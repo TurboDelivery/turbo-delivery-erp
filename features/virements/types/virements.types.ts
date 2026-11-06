@@ -84,3 +84,45 @@ export interface IEnregistrerParametre {
   modeReglement?: string | null;
   commissionStandard?: number | null;
 }
+
+/**
+ * Le volet « argent reçu » d'une sélection, tel que le relevé de compte le calcule.
+ *
+ * <p>C'est la même source que les deux PDF du relevé : l'écran et l'export disent donc
+ * le même franc, par construction. Les faire calculer séparément est exactement ce qui
+ * fait qu'un export contredit l'écran qui l'a lancé.</p>
+ */
+export interface IReleveReglement {
+  /** Frais de livraison + commission sur les tickets facturables de la période. */
+  montantFacture: number;
+  /** La somme des virements BANCAIRES de la période, hors annulés. */
+  montantRegle: number;
+  /** La retenue : `virement × taux / (100 − taux)`, arrondie virement par virement. */
+  prelevement: number;
+  /** `montantRegle + prelevement` : ce que les virements couvrent réellement. */
+  montantCouvert: number;
+  /** `montantFacture − montantCouvert`. Positif, il reste dû. */
+  gap: number;
+  tauxApplique: number | null;
+  /**
+   * ⚠ Vrai quand la sélection n'a AUCUN payeur rattaché.
+   *
+   * <p>Le montant réglé vaut alors zéro — mais ce zéro ne veut pas dire « rien n'a été
+   * payé », il veut dire « on ne sait pas qui paie ». L'écran doit afficher un tiret et
+   * la raison, jamais « 0 FCFA », qui se lirait comme une mesure.</p>
+   */
+  aucunPayeurRattache: boolean;
+  /**
+   * Vrai quand un payeur de la sélection règle AUSSI des établissements hors sélection :
+   * le montant réglé ne peut pas être attribué à cette seule sélection sans ventilation.
+   */
+  payeurDeborde: boolean;
+  nombreEtablissements: number;
+}
+
+export interface IReleveParams {
+  groupeId?: string;
+  restaurantIds?: string[];
+  debut: Date;
+  fin: Date;
+}

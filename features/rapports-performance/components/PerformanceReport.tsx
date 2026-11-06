@@ -9,6 +9,7 @@ import { usePerformanceFilters } from '@/features/rapports-performance/hooks/use
 import { useGroupesListeQuery } from '@/features/groupes-partenaires/queries/groupes-partenaires.query';
 import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
 import { toRestaurantOptions } from '@/features/restaurants';
+import { useReleveReglementQuery } from '@/features/virements';
 
 import { decrireSelection } from '../utils/selection.utils';
 import { exportPerformancePdf } from '../utils/performance-export.utils';
@@ -22,6 +23,7 @@ import { PerformanceSummarySection } from './performance-summary-section';
 import { SelecteurSelection } from './selecteur-selection';
 import { TopStatsSection } from './top-stats-section';
 import { RecouvrementSection } from '@/features/rapports-performance/components/recouvrement/recouvrement-section';
+import { RapprochementSection } from '@/features/rapports-performance/components/releve/rapprochement-section';
 
 export default function PerformanceReport() {
   const { data, isError, isLoading, isFetching, refetch } = usePerformanceStats();
@@ -80,6 +82,34 @@ export default function PerformanceReport() {
    */
   const recouvrements = data?.recouvrements ?? null;
 
+  /*
+   * LE VOLET REGLEMENT, lu a la MEME source que les deux releves exportes.
+   *
+   * ⚠ Un second appel, et c'est voulu. Le calcul du reglement depend du PAYEUR et de son
+   * rattachement, pas des courses : il ne peut pas sortir de `/analytics/performance`
+   * sans y faire entrer la notion de payeur, qui n'y a rien a faire. Le faire calculer
+   * une seconde fois cote ecran serait pire : deux arithmetiques pour le meme Gap
+   * divergent a la premiere regle d'arrondi qui change, et c'est exactement le defaut que
+   * la specification du releve reproche a l'existant.
+   */
+  const etablissementsSelectionnes = React.useMemo(() => {
+    if (filters.restaurantIds?.length) return filters.restaurantIds;
+    return filters.restaurantId ? [filters.restaurantId] : [];
+  }, [filters.restaurantId, filters.restaurantIds]);
+
+  const {
+    data: reglement,
+    isError: reglementEnErreur,
+    isLoading: reglementEnChargement,
+  } = useReleveReglementQuery({
+    groupeId: filters.groupeId || undefined,
+    restaurantIds: filters.groupeId ? undefined : etablissementsSelectionnes,
+    debut: filters.debut,
+    fin: filters.fin,
+  });
+
+  const selectionFaite = Boolean(filters.groupeId) || etablissementsSelectionnes.length > 0;
+
   const selection = React.useMemo(
     () =>
       decrireSelection(
@@ -113,6 +143,7 @@ export default function PerformanceReport() {
     consolide: selection.consolide,
     parStore,
     recouvrements,
+    reglement,
     debut: filters.debut,
     fin: filters.fin,
   };
@@ -201,6 +232,19 @@ export default function PerformanceReport() {
            * elle-meme sa raison quand le serveur ne sert pas le bloc.
            */}
           <RecouvrementSection bloc={recouvrements} enChargement={isLoading} />
+
+          {/*
+           * Le rapprochement bancaire se lit APRES le recouvrement, et pas avant : on
+           * regarde ce que nous avons porte au credit des factures, PUIS ce que la banque
+           * a reellement recu. L'ordre inverse donnerait le chiffre de la banque sans
+           * qu'on sache a quoi le comparer.
+           */}
+          <RapprochementSection
+            enChargement={reglementEnChargement}
+            enEchec={reglementEnErreur}
+            reglement={reglement}
+            selectionFaite={selectionFaite}
+          />
 
           <PerformanceSummarySection
             mainKPIs={mainKPIs}

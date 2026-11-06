@@ -17,6 +17,7 @@ import {
   texteMouvement,
 } from '@/features/rapports-performance/components/recouvrement/recouvrement-table-columns';
 import type { IRecouvrementPeriode } from '@/features/rapports-performance/types/performance.type';
+import type { IReleveReglement } from '@/features/virements';
 
 /*
  * Le rapport en tableur.
@@ -79,6 +80,7 @@ function lignesRapport({
   fin,
   libelleSelection,
   mainKPIs,
+  reglement,
   secondaryKPIs,
 }: ExportParams): LigneFormatee[] {
   const vendu = consolide
@@ -138,7 +140,62 @@ function lignesRapport({
       ligne: ['Facture totale à régler sur la période', financialDetails?.totalFacture ?? null],
       format: FCFA,
     },
+
+    ...lignesRapprochement(reglement),
   ];
+}
+
+/**
+ * Le bloc « rapprochement bancaire », les memes quatre chiffres que l'ecran.
+ *
+ * <p>Absent tant qu'aucune selection n'est faite : le serveur n'a alors aucun payeur a
+ * resoudre, et un bloc a zero se lirait comme un impaye total.</p>
+ *
+ * <p>⚠ Sans payeur rattache, les cellules restent VIDES, jamais a zero. Dans un tableur
+ * un zero s'additionne et se graphe : il se lit comme une mesure. Une cellule vide, suivie
+ * de la ligne qui dit pourquoi, se lit pour ce qu'elle est. C'est la meme regle qu'a
+ * l'ecran, ou ces chiffres rendent un tiret.</p>
+ */
+function lignesRapprochement(reglement?: IReleveReglement): LigneFormatee[] {
+  if (!reglement) return [];
+
+  const inconnu = reglement.aucunPayeurRattache;
+  const chiffre = (valeur: number) => (inconnu ? null : valeur);
+
+  const lignes: LigneFormatee[] = [
+    { ligne: [] },
+    { ligne: ['RAPPROCHEMENT BANCAIRE'] },
+    { ligne: ['Facturé sur la période', reglement.montantFacture], format: FCFA },
+    { ligne: ['Réglé par virement', chiffre(reglement.montantRegle)], format: FCFA },
+    { ligne: ['Prélèvement', chiffre(reglement.prelevement)], format: FCFA },
+    { ligne: ['Montant couvert', chiffre(reglement.montantCouvert)], format: FCFA },
+    { ligne: ['Gap', chiffre(reglement.gap)], format: FCFA },
+  ];
+
+  if (reglement.tauxApplique) {
+    lignes.push({ ligne: ['Taux de retenue appliqué', reglement.tauxApplique], format: POURCENT });
+  }
+  if (inconnu) {
+    lignes.push({
+      ligne: [
+        'Aucun payeur rattaché à cette sélection : le montant réglé et le Gap sont inconnus, et non nuls',
+      ],
+    });
+  }
+  if (reglement.payeurDeborde) {
+    lignes.push({
+      ligne: [
+        "Un payeur de cette sélection règle aussi des établissements hors sélection : le montant réglé ne lui est pas attribuable sans ventilation",
+      ],
+    });
+  }
+  lignes.push({
+    ligne: [
+      "« Réglé » vient des virements bancaires ; « recouvré », dans l'onglet Recouvrement, vient des factures. Les deux peuvent différer.",
+    ],
+  });
+
+  return lignes;
 }
 
 /**

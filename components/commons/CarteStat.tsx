@@ -68,6 +68,22 @@ export interface CarteStatProps {
      * <p>Un tiret ne dit pas « zéro », il dit « on ne sait pas ». C'est la vérité.</p>
      */
     isError?: boolean;
+    /**
+     * POURQUOI la valeur est indisponible, quand ce n'est pas une lecture en échec.
+     *
+     * <p>⚠ `isError` rend un tiret ET annonce « la lecture a échoué » au lecteur
+     * d'écran. Or toutes les valeurs manquantes ne viennent pas d'une panne : une
+     * sélection sans payeur rattaché, un taux jamais paramétré, un dénominateur nul
+     * donnent un tiret tout aussi légitime, et dire « la lecture a échoué » envoie
+     * alors chercher une panne qui n'existe pas. Mesuré sur le banc du rapprochement :
+     * le bandeau disait « aucun payeur rattaché » et la carte, juste dessous, annonçait
+     * un échec de lecture — l'écran se contredisait à dix centimètres, pour qui
+     * l'entend.</p>
+     *
+     * <p>Une phrase courte, sans point final. À défaut, le motif par défaut reste la
+     * lecture en échec, qui est le cas le plus fréquent.</p>
+     */
+    motifIndisponible?: string;
     /** Rend la carte cliquable : vrai <button>, aria-pressed, focus visible. */
     onClick?: () => void;
     /** Filtre appliqué : anneau de sélection. N'a de sens qu'avec `onClick`. */
@@ -111,6 +127,7 @@ export default function CarteStat({
     accent = false,
     isLoading = false,
     isError = false,
+    motifIndisponible,
     onClick,
     estActif = false,
     badge,
@@ -173,10 +190,12 @@ export default function CarteStat({
             ) : isError ? (
                 <p
                     className="mt-2 text-xl font-semibold leading-none tracking-tight text-default-400 sm:text-2xl"
-                    title="La lecture a échoué : cette valeur est indisponible."
+                    title={`Valeur indisponible : ${motifIndisponible ?? 'la lecture a échoué'}.`}
                 >
                     <span aria-hidden="true">—</span>
-                    <span className="sr-only">Valeur indisponible, la lecture a échoué</span>
+                    <span className="sr-only">
+                        Valeur indisponible, {motifIndisponible ?? 'la lecture a échoué'}
+                    </span>
                 </p>
             ) : (
                 <p

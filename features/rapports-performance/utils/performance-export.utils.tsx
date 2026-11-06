@@ -9,6 +9,7 @@ import {
   ISecondaryKPIs,
   IStorePerformance,
 } from '../types/performance.type';
+import type { IReleveReglement } from '@/features/virements';
 import { libellePourFichier } from './selection.utils';
 import {
   COLONNES_MOUVEMENT,
@@ -48,6 +49,18 @@ export interface ExportParams {
    * n'y porte qu'une explication.
    */
   recouvrements?: IRecouvrementPeriode | null;
+  /**
+   * Le volet reglement du releve de compte : facture, regle, prelevement, Gap.
+   *
+   * <p>⚠ Les quatre chiffres viennent du SERVEUR, jamais recalcules ici. Le prelevement
+   * s'arrondit virement par virement, et refaire ce calcul cote export le ferait diverger
+   * du releve au premier arrondi : deux documents annonceraient deux Gap differents pour
+   * la meme periode.</p>
+   *
+   * <p>Indefini tant qu'aucune selection n'est faite : le document n'en porte alors rien,
+   * exactement comme l'ecran n'y porte qu'une explication.</p>
+   */
+  reglement?: IReleveReglement;
   debut?: Date;
   fin?: Date;
 }
@@ -301,6 +314,7 @@ function PerformancePdfDocument({
   libelleSelection,
   parStore,
   recouvrements,
+  reglement,
   debut,
   fin,
 }: ExportParams) {
@@ -461,6 +475,80 @@ function PerformancePdfDocument({
           </Text>
           <Text style={[s.colValue, s.totalText]}>{fmtPdf(financialDetails?.totalFacture)}</Text>
         </View>
+
+        {/*
+         * LE RAPPROCHEMENT BANCAIRE, sous les details financiers et sur la MEME page.
+         *
+         * Cinq lignes : elles tiennent, et le lecteur doit pouvoir poser l'oeil sur la
+         * facture puis sur ce que la banque a recu sans tourner la page. C'est tout l'objet
+         * du bloc.
+         *
+         * Il n'existe que quand une selection a ete faite : sans payeur a resoudre, un
+         * tableau a zero se lirait comme un impaye total.
+         */}
+        {reglement ? (
+          <>
+            <Text style={s.sectionTitle}>Rapprochement bancaire</Text>
+            <View style={s.tableHeader}>
+              <Text style={[s.colLabel, s.thText]}>Libellé</Text>
+              <Text style={[s.colValue, s.thText]}>Montant</Text>
+            </View>
+            <View style={s.tableRow}>
+              <Text style={s.colLabel}>Facturé sur la période</Text>
+              <Text style={s.colValue}>{fmtPdf(reglement.montantFacture)}</Text>
+            </View>
+            {/*
+             * ⚠ Sans payeur rattache, on imprime un TIRET, pas un zero. `fmtPdf(undefined)`
+             * rend « - » : le zero du serveur veut dire « on ne sait pas qui paie », et
+             * imprime tel quel il annoncerait un impaye du montant entier de la facture.
+             */}
+            <View style={s.tableRowAlt}>
+              <Text style={s.colLabel}>Réglé par virement</Text>
+              <Text style={s.colValue}>
+                {fmtPdf(reglement.aucunPayeurRattache ? undefined : reglement.montantRegle)}
+              </Text>
+            </View>
+            <View style={s.tableRow}>
+              <Text style={s.colLabel}>
+                Prélèvement
+                {reglement.tauxApplique ? ` (retenue de ${reglement.tauxApplique} %)` : ''}
+              </Text>
+              <Text style={s.colValue}>
+                {fmtPdf(reglement.aucunPayeurRattache ? undefined : reglement.prelevement)}
+              </Text>
+            </View>
+            <View style={s.tableRowAlt}>
+              <Text style={s.colLabel}>Montant couvert</Text>
+              <Text style={s.colValue}>
+                {fmtPdf(reglement.aucunPayeurRattache ? undefined : reglement.montantCouvert)}
+              </Text>
+            </View>
+            <View style={s.tableRowTotal}>
+              <Text style={[s.colLabel, s.totalText]}>Gap</Text>
+              <Text style={[s.colValue, s.totalText]}>
+                {fmtPdf(reglement.aucunPayeurRattache ? undefined : reglement.gap)}
+              </Text>
+            </View>
+
+            {reglement.aucunPayeurRattache ? (
+              <Text style={s.recNote}>
+                Aucun payeur n&apos;est rattaché à cette sélection : le montant réglé et le
+                Gap sont inconnus, et non nuls.
+              </Text>
+            ) : null}
+            {reglement.payeurDeborde ? (
+              <Text style={s.recNote}>
+                Un payeur de cette sélection règle aussi des établissements hors sélection :
+                le montant réglé ne lui est pas attribuable sans ventilation manuelle.
+              </Text>
+            ) : null}
+            <Text style={s.recNote}>
+              « Réglé » vient des virements bancaires, avec leur référence et leur date de
+              valeur. « Recouvré », dans la page du recouvrement, vient des factures : les
+              deux peuvent différer.
+            </Text>
+          </>
+        ) : null}
 
         <Text style={s.footer}>Généré par Turbo Delivery ERP - {now}</Text>
       </Page>

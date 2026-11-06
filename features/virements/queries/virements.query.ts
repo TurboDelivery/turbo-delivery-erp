@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { virementsAPI } from '../apis/virements.api';
+import type { IReleveParams } from '../types/virements.types';
 
 export const virementsKeys = {
   all: ['virements'] as const,
@@ -10,7 +11,34 @@ export const virementsKeys = {
   liste: (payeurIds: string[]) => [...virementsKeys.all, 'liste', [...payeurIds].sort()] as const,
   parametre: (groupeId?: string, restaurantId?: string) =>
     [...virementsKeys.all, 'parametre', groupeId ?? null, restaurantId ?? null] as const,
+  reglement: (p: IReleveParams) =>
+    [
+      ...virementsKeys.all,
+      'reglement',
+      p.groupeId ?? null,
+      [...(p.restaurantIds ?? [])].sort(),
+      p.debut.toISOString().split('T')[0],
+      p.fin.toISOString().split('T')[0],
+    ] as const,
 };
+
+/**
+ * Le volet règlement de la sélection courante.
+ *
+ * <p>⚠ La clé porte les DATES EN TEXTE, pas les objets `Date`. Un `Date` est une
+ * référence neuve à chaque rendu : dans une clé de requête, il relance la lecture à
+ * chaque passage, et le piège est déjà documenté ailleurs dans ce dépôt.</p>
+ *
+ * <p>⚠ Désactivée sans sélection. Sans groupe ni établissement, le relevé n'a aucun
+ * périmètre et le serveur rendrait des zéros — qui s'afficheraient comme une mesure.</p>
+ */
+export const useReleveReglementQuery = (params: IReleveParams) =>
+  useQuery({
+    queryKey: virementsKeys.reglement(params),
+    queryFn: () => virementsAPI.lireReglement(params),
+    enabled: Boolean(params.groupeId || params.restaurantIds?.length),
+    staleTime: 60 * 1000,
+  });
 
 export const usePayeursQuery = () =>
   useQuery({

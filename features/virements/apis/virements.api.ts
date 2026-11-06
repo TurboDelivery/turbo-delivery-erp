@@ -7,6 +7,8 @@ import {
   IParametreReglement,
   IPayeur,
   IPayeurRattachement,
+  IReleveParams,
+  IReleveReglement,
   IVirementRecu,
 } from '../types/virements.types';
 
@@ -70,6 +72,38 @@ export const virementsAPI = {
       endpoint: `erp/releve/virements/${virementId}/annuler`,
       method: 'POST',
       data: { motif },
+    });
+  },
+
+
+  /**
+   * Le volet règlement d'une sélection : facturé, réglé, prélèvement, Gap.
+   *
+   * <p>MÊME endpoint que les deux PDF du relevé. L'écran de performance et l'export
+   * lisent donc la même source, ce qui est tout l'objet de la corrélation demandée :
+   * deux calculs séparés divergent à la première grandeur ajoutée.</p>
+   *
+   * <p>⚠ Le détail des tickets (Annexe 3) n'est PAS demandé ici : `detail` reste à faux.
+   * Sur un groupe de dix établissements sur l'année, c'est plusieurs dizaines de milliers
+   * de lignes transportées pour afficher quatre nombres.</p>
+   */
+  lireReglement(params: IReleveParams): Promise<IReleveReglement> {
+    const recherche: Record<string, string> = {
+      debut: params.debut.toISOString().split('T')[0],
+      fin: params.fin.toISOString().split('T')[0],
+    };
+    // Un seul paramètre de sélection part, jamais deux : la précédence du serveur est
+    // reproduite ici, comme dans `performanceAPI`, pour que ce qui est envoyé soit ce
+    // qui est demandé.
+    if (params.groupeId) {
+      recherche.groupeId = params.groupeId;
+    } else if (params.restaurantIds?.length) {
+      recherche.restaurantIds = params.restaurantIds.join(',');
+    }
+    return api.request<IReleveReglement>({
+      endpoint: 'erp/releve/donnees',
+      method: 'GET',
+      searchParams: recherche as SearchParams,
     });
   },
 
