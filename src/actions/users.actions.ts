@@ -12,6 +12,7 @@ import { tracerConnexion } from './audit-connexion.actions';
 import { ActionResult, PaginatedResponse } from '@/types';
 import { processFormData } from '@/utils/formdata-zod.utilities';
 import { _createUserSchema, changePasswordSchema, createUserSchema, loginSchema } from '../schemas/users.schema';
+import { lireCorpsReponse, motifDuRefus } from './login-refus.utils';
 
 const BASE_URL = '/api/V1/turbo/erp/user';
 
@@ -93,8 +94,12 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
         });
         
 
-        // 🔥 TOUJOURS lire le JSON
-        const json = await result.json();
+        // ⚠ En TEXTE, jamais `result.json()` : il LÈVE sur un corps `text/plain`, et un
+        // refus « mot de passe faux » partait ainsi dans le `catch` ci-dessous, où il
+        // s'affichait « Erreur serveur. Veuillez réessayer. ». Le raisonnement complet
+        // et le banc sont dans `login-refus.utils.ts`.
+        const corpsLu = lireCorpsReponse(await result.text());
+        const json = corpsLu.json;
 
         // console.log('Retour connexion:', json);
         // console.log('HTTP Status:', result.status);
@@ -139,19 +144,27 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
          * ❌ Autres erreurs HTTP
          */
         if (!result.ok) {
+            // ⚠ Un 5xx n'est PAS un mauvais mot de passe. Annoncer « Identifiants
+            // incorrects » quand le service est tombé envoie la personne retaper son
+            // mot de passe, et trois passages verrouillent un compte qui n'avait rien
+            // fait. On nomme la panne pour ce qu'elle est.
+            //
+            // Le `detail` de ProblemDetail n'est volontairement PAS repris : le
+            // gestionnaire générique d'`erp-backend` y place `e.getMessage()` brut,
+            // donc le texte d'une exception serveur, sur une page que l'on atteint
+            // sans être connecté.
+            const motif = motifDuRefus(result.status, corpsLu);
+
             // Journalisé même quand l'identifiant n'existe pas : sans cela, une
             // énumération de comptes ne laisserait aucune trace.
             await tracerConnexion({
                 typeEvenement: 'ECHEC',
                 identifiant: formdata.username,
-                motif: json?.message ?? 'Identifiants incorrects',
+                motif,
             });
             evenementEmis = true;
 
-            return {
-                status: 'error',
-                message: json?.message ?? 'Identifiants incorrects',
-            };
+            return { status: 'error', message: motif };
         }
 
         // ⚠️ Une connexion réussie appelle DEUX fois l'API de login : ici, puis dans

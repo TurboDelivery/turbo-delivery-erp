@@ -67,10 +67,19 @@ export function FormLogin() {
             // Le message reste porte par l'etat pour etre affiche DANS le formulaire :
             // un toast disparait, et l'operateur qui revient sur l'ecran ne sait plus
             // pourquoi sa connexion a echoue.
-            toast.error('Identifiants incorrects');
+            //
+            // ⚠ Et c'est le message DU SERVEUR, pas une constante. Cette ligne ecrivait
+            // « Identifiants incorrects » quoi qu'il arrive, ce qui annulait d'un seul
+            // coup LOG11 (« Compte inactif. Contactez l'Admin »), LOG12 (mot de passe
+            // expire) et LOG13 (compte bloque apres trois essais). La personne dont le
+            // compte etait ferme lisait donc qu'elle s'etait trompee de mot de passe,
+            // et reessayait : exactement ce qu'il ne faut pas faire. Le serveur sait
+            // pourquoi il refuse, l'ecran doit le dire.
+            const motif = result.message || 'Identifiants incorrects';
+            toast.error(motif);
             return {
                 data: { changePassword: true, username: '' },
-                message: 'Identifiants incorrects',
+                message: motif,
                 errors: {},
                 status: 'idle',
                 code: undefined,
