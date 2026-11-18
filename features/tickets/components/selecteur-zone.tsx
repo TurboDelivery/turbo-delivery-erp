@@ -50,9 +50,29 @@ export function SelecteurZone({
     const { data, isPending, isError } = useDeliveryFeesByRestaurantQuery(restaurantId || null, 0, 100);
 
     const zones: DeliveryFee[] = useMemo(() => data?.content ?? [], [data]);
+    /*
+     * ⚠ UNE ZONE DESACTIVEE NE SE PROPOSE PLUS, MAIS CELLE DEJA CHOISIE RESTE VISIBLE.
+     *
+     * On saisit ici un ticket NEUF : proposer une zone que l'exploitation a retiree du
+     * service revient a annuler la desactivation. L'exception porte sur `zoneId`, la zone
+     * deja posee sur cette ligne : la masquer ferait disparaitre la valeur courante du
+     * selecteur, et un ticket ancien perdrait sa zone a la premiere ouverture. Elle est
+     * alors annoncee comme desactivee, pour que personne ne la reconduise sans le savoir.
+     *
+     * ⚠ Le test est `!== false` et non `=== true` : un backend qui ne servirait pas encore
+     * le champ rendrait `undefined`, et un test strict viderait la liste entiere. Ici le
+     * repli penche du bon cote, contrairement au `actif ?? true` de l'interrupteur, qui
+     * faisait passer une zone eteinte pour allumee.
+     */
     const options = useMemo(
-        () => zones.map((z) => ({ value: z.id ?? '', label: z.name ?? `Zone ${z.id}` })),
-        [zones],
+        () =>
+            zones
+                .filter((z) => z.actif !== false || z.id === zoneId)
+                .map((z) => ({
+                    value: z.id ?? '',
+                    label: `${z.name ?? `Zone ${z.id}`}${z.actif === false ? ' (désactivée)' : ''}`,
+                })),
+        [zones, zoneId],
     );
 
     const choisir = (cle: string) => {

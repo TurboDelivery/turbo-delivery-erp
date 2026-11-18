@@ -4,7 +4,6 @@ import { IconEdit } from '@tabler/icons-react';
 import { useCallback } from 'react';
 import { DeliveryFee } from '@/types/price-list';
 import { ZoneActifSwitch, ZoneHistoriqueButton } from '@/features/zones-demande-coursier';
-import PriceListeTools from './price-list-tools';
 
 export const priceListColumns = [
   { name: 'Nom', uid: 'name' },
@@ -63,10 +62,19 @@ export function usePriceListRenderCell({ currentRestaurant, onEdit }: RenderCell
                 </Button>
                 <Tooltip.Content>Modifier</Tooltip.Content>
               </Tooltip>
-              <Tooltip>
-                <PriceListeTools id={deliveryFee.id ?? ''} />
-                <Tooltip.Content>Autres actions</Tooltip.Content>
-              </Tooltip>
+              {/*
+                * ⚠ LE MENU « Autres actions » A ETE RETIRE, et il ne faut pas le remettre.
+                *
+                * Il ne portait que deux entrees, toutes deux mortes. « Supprimer » ouvrait une
+                * modale dont l'appel serveur echouait pour TOUTE zone sans exception : la
+                * suppression etait un `deleteById` dur, et deux cles etrangeres sans clause
+                * ON DELETE pointent vers frais_livraison, dont l'historique des tarifs, que
+                * chaque zone recoit a sa naissance. « Annuler » appelait un `setOpen` dont la
+                * valeur n'etait jamais lue (`const [, setOpen]`), donc n'ouvrait rien.
+                *
+                * Pour retirer une zone du service, l'interrupteur « Active » de cette meme
+                * ligne suffit, et il est desormais respecte partout ou une zone se choisit.
+                */}
             </div>
           );
         default:

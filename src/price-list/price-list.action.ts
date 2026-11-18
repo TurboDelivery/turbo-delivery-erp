@@ -27,10 +27,11 @@ const priceListEndpoints = {
     //     endpoint: (fraisDeLivraisonId: string) => `${BASE_URL}/${fraisDeLivraisonId}`,
     //     method: 'GET',
     // },
-    deletePriceList: {
-        endpoint: (fraisDeLivraisonId: string) => `${BASE_URL}/${fraisDeLivraisonId}`,
-        method: 'DELETE',
-    },
+    // ⚠ Pas de `deletePriceList` : la route DELETE du backend a ete retiree le 18/11/2026.
+    // Elle ne pouvait supprimer aucune zone (deux cles etrangeres sans ON DELETE, et chaque
+    // zone porte une ligne d'historique des sa naissance), elle contredisait la regle
+    // « aucune suppression » du module, et elle etait joignable SANS JETON sur le prefixe
+    // permitAll /api/erp/**. Pour retirer une zone du service : l'interrupteur « Active ».
     getRestaurantUndefined: {
         endpoint: (page:number) => `${BASE_URL}/restaurant/non-defini`,
         method: 'GET',
@@ -192,51 +193,6 @@ export async function updatePriceList(formData: _deliveryFeeCreateSchema): Promi
         });
 
         // const data=formdata
-        return {
-            status: 'success',
-            data,
-        };
-    } catch (error: any) {
-        return {
-            status: 'error',
-            message: error?.response?.data?.message ?? 'Une erreur est survenue',
-        };
-    }
-}
-
-
-export async function deletePriceList(fraisDeLivraisonId: string) {
-    // const {
-    //     success,
-    //     data: formdata,
-    //     errorsInArray,
-    // } = processFormData(deliveryFeeCreateSchema, formData, {
-    //     useDynamicValidation: true,
-    //     transformations: {
-    //         distanceDebut: (value) => Number(value),
-    //         distanceFin: (value) => Number(value),
-    //         prix: (value) => Number(value),
-    //         commission: (value) => Number(value),
-    //         longitude: (value) => Number(value),
-    //         latitude: (value) => Number(value),
-    //     },
-    // });
-
-    // if (!success && errorsInArray) {
-    //     return {
-    //         status: 'error',
-    //         message: errorsInArray[0].message ?? 'Données manquantes ou mal formatées',
-    //     };
-    // }
-
-    try {
-        const data = await apiClientHttp.request<string>({
-            endpoint: priceListEndpoints.deletePriceList.endpoint(fraisDeLivraisonId),
-            method: priceListEndpoints.deletePriceList.method,
-            data: fraisDeLivraisonId,
-            service: 'backend',
-        });
-
         return {
             status: 'success',
             data,
