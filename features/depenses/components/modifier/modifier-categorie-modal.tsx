@@ -8,11 +8,16 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { ChampTexte } from '@/components/commons/champs-formulaire';
 import { FenetreAction } from '@/components/commons/FenetreAction';
+import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import {
   CategorieDepenseUpdateDTO,
   CategorieDepenseUpdateSchema,
 } from '@/features/depenses/schemas/categorie-depense.schema';
 import { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
+import {
+  trouverDoublonExact,
+  trouverSimilaire,
+} from '@/features/depenses/utils/categorie-doublon.utils';
 
 import { useModifierCategorieDepenseMutation } from '../../queries/category/categorie-depense-mutation.query';
 
@@ -46,6 +51,7 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
     formState: { errors, isSubmitting },
     handleSubmit,
     reset,
+    watch,
   } = useForm<CategorieDepenseUpdateDTO>({
     resolver: zodResolver(CategorieDepenseUpdateSchema),
     defaultValues: {
@@ -53,6 +59,19 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
       nomCategorie: categorieDepense.nomCategorie,
     },
   });
+
+  /**
+   * LE DOUBLON AU RENOMMAGE, la catégorie écartée d'elle-même.
+   *
+   * <p>Sans l'exclusion par identifiant, rouvrir la fenêtre et réenregistrer sans rien
+   * changer refuserait le geste : la catégorie serait son propre doublon.</p>
+   */
+  const { categories } = useCategorieDepense();
+  const nomSaisi = watch('nomCategorie');
+  const doublon = trouverDoublonExact(nomSaisi, categories, categorieDepense.id);
+  const similaire = trouverSimilaire(nomSaisi, categories, categorieDepense.id);
+  const nomChange =
+    (nomSaisi ?? '').trim() !== (categorieDepense.nomCategorie ?? '').trim();
 
   // La fenetre vit dans la ligne et n'est jamais demontee : sans cette remise a l'etat
   // enregistre, on rouvrirait sur la saisie abandonnee la fois precedente.
@@ -69,6 +88,9 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
   // La mutation dit deja la reussite et l'echec. Un second message ici en affichait
   // DEUX pour un seul enregistrement.
   const onSubmit = async (data: CategorieDepenseUpdateDTO) => {
+    if (trouverDoublonExact(data.nomCategorie, categories, categorieDepense.id)) {
+      return;
+    }
     try {
       await modifierCategorie.mutateAsync({
         data: { description: data.description, nomCategorie: data.nomCategorie },
@@ -111,6 +133,19 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
         </p>
 
         {/*
+         * Un renommage est RETROACTIF : la colonne categorie_depense des depenses porte
+         * un identifiant, pas un libelle, donc le nouveau nom se substitue a l'ancien
+         * partout, y compris sur les mois deja factures et dans les exports deja
+         * rapproches. Dit seulement quand le nom change vraiment, pour ne pas crier a
+         * chaque ouverture de la fenetre.
+         */}
+        {nomChange && (
+          <p className="text-sm text-warning">
+            Le nouveau libellé s&apos;affichera partout, mois passés et exports compris.
+          </p>
+        )}
+
+        {/*
          * Le bouton d'action vit dans le pied de la fenetre, hors du formulaire. Sans
          * bouton d'envoi par defaut ICI, la touche Entree ne validerait plus la saisie.
          */}
@@ -126,7 +161,17 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
             name="nomCategorie"
             render={({ field }) => (
               <ChampTexte
-                erreur={errors.nomCategorie?.message}
+                aide={
+                  similaire
+                    ? `Catégorie similaire : « ${similaire.nomCategorie} ». Vérifiez que vous n'en créez pas un doublon.`
+                    : undefined
+                }
+                erreur={
+                  errors.nomCategorie?.message ??
+                  (doublon
+                    ? `La catégorie « ${doublon.nomCategorie} » existe déjà. Enregistrement impossible.`
+                    : undefined)
+                }
                 label="Nom"
                 onChange={field.onChange}
                 placeholder="Nom de la catégorie"

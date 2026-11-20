@@ -2,18 +2,19 @@
 
 import { Card, Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import { Wallet } from 'lucide-react';
 import React from 'react';
 
-import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import EtatErreur from '@/components/commons/EtatErreur';
-import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
 import { DepenseMobileCard } from '@/components/depenses/depense-table/depense-mobile-card';
-import DateFilterInput from '@/components/finance/date-filter-input';
 import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { CreerDepenseModal } from '@/features/depenses/components/depense-list/creer-depense';
-import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
+import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
+import {
+  type DepenseFilters,
+  type MagasinFiltresDepense,
+  useDepenseTable,
+} from '@/features/depenses/hooks/use-depense-table';
 import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
@@ -36,57 +37,86 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
  * <p>Enfin, le tableau n'avait PAS d'état vide : une période sans dépense n'affichait rien
  * du tout sous les en-têtes, ni message ni explication. Les cartes mobiles, elles,
  * disaient « Aucune dépense ».</p>
+ *
+ * <h3>UNE SEULE BARRE DE FILTRES</h3>
+ * <p>Ce tableau reposait sa PROPRE période et sa propre liste de catégories dans son
+ * en-tête, pilotées par le `useState` de `useDepenseTable`, alors que la page en portait
+ * déjà une paire identique au-dessus, celle-là dans l'URL. Deux magasins indépendants,
+ * avec des valeurs par défaut différentes (fin de mois en haut, aujourd'hui ici) : les
+ * cartes et la liste pouvaient annoncer deux périodes sans que rien ne le dise, et
+ * filtrer dans le tableau ne faisait pas bouger les cartes. Le tableau consomme
+ * désormais le magasin de l'URL, et ses deux cartes, qui doublaient celles de la page,
+ * ont cédé la place au total en PIED DE TABLEAU, à côté des lignes qu'il décrit.</p>
  */
 export function DepenseTable() {
-  const {
-    filters,
-    handleDateChange,
-    isError,
-    isFetching,
-    isLoading,
-    pagination,
-    refetch,
-    setSelectedCategories,
-    table,
-  } = useDepenseTable();
+  /**
+   * Le magasin de l'URL, passé au hook avec son écriture.
+   *
+   * <p>`useQueryStates` de nuqs sert le même état à tous ses appelants pour une URL
+   * donnée : la barre de filtres de la page, la répartition et ce tableau lisent donc
+   * la même vérité sans qu'on ait à la faire descendre en props.</p>
+   */
+  const { filters: filtresUrl, setFilters } = useDepenseDashboardFilters();
+  const magasin: MagasinFiltresDepense = {
+    filters: {
+      categoriesDepense: filtresUrl.categoriesDepense,
+      debut: filtresUrl.debut,
+      fin: filtresUrl.fin,
+      limit: filtresUrl.limit,
+      orderBy: filtresUrl.orderBy || undefined,
+      orderDirection: filtresUrl.orderDirection === 'asc' ? 'asc' : 'desc',
+      page: filtresUrl.page,
+    },
+    appliquer: (maj: (prev: DepenseFilters) => DepenseFilters) => {
+      setFilters((prev) => maj(prev as unknown as DepenseFilters) as never);
+    },
+  };
 
-  const currentSearchParams = {
+  const { filters, isError, isFetching, isLoading, pagination, refetch, table } =
+    useDepenseTable(magasin);
+
+  const { data: statsData } = useDepenseStatsQuery({
     categoriesDepense: filters.categoriesDepense || undefined,
     debut: filters.debut,
     fin: filters.fin,
-  };
+  });
 
-  const { data: statsData } = useDepenseStatsQuery(currentSearchParams);
-  const nombre = statsData?.nombre_depenses ?? 0;
   const pageCount = pagination?.pageCount ?? 1;
+
+  /**
+   * Le compte vient de la REQUÊTE DE LISTE, le montant des statistiques.
+   *
+   * <p>`totalElements` décrit exactement l'ensemble qui a produit les lignes affichées.
+   * Le montant, lui, n'existe que dans `/stats`. Les deux concordent aujourd'hui parce
+   * que les deux requêtes reçoivent les mêmes filtres.</p>
+   *
+   * <p>⚠ Elles divergeront le jour où un filtre de TYPE sera posé sur l'écran :
+   * `/finance/depenses/pagination` accepte `typeDepense`, `/finance/depenses/stats` ne le
+   * connaît pas. Le compte resterait juste et le montant compterait les deux types. Le
+   * filtre de type ne doit donc pas être branché avant que `/stats` l'accepte.</p>
+   */
+  const totalLignes = pagination?.totalItems ?? 0;
+  const montantTotal = statsData?.montant_total ?? 0;
+
+  /**
+   * Rien tant qu'on ne sait pas : un « 0 ligne au total · 0 FCFA » posé à côté d'un
+   * message d'échec se lit comme une période vide, alors que c'est une panne.
+   */
+  const piedDeTableau =
+    isError || isLoading ? null : (
+      <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted">
+          {totalLignes} {totalLignes > 1 ? 'lignes' : 'ligne'} au total
+          {pageCount > 1 ? ` · page ${filters.page + 1} sur ${pageCount}` : ''}
+        </p>
+        <p className="text-sm font-medium">Total · {formatCFA(montantTotal)}</p>
+      </div>
+    );
 
   return (
     <div className="flex flex-col gap-6">
-      <GrilleStats colonnes={2}>
-        <CarteStat
-          icone={Wallet}
-          isError={isError}
-          isLoading={isLoading}
-          libelle="Montant total"
-          note="Sur la période retenue"
-          valeur={formatCFA(statsData?.montant_total || 0)}
-        />
-        <CarteStat
-          isError={isError}
-          isLoading={isLoading}
-          libelle="Dépenses"
-          note={nombre > 1 ? 'Lignes enregistrées' : 'Ligne enregistrée'}
-          valeur={nombre}
-        />
-      </GrilleStats>
-
       <Card>
         <Card.Header className="flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <DateFilterInput filters={filters} handleDateChange={handleDateChange} variant="outline" />
-          <CategoriesSelectFilter
-            onCategoriesChange={setSelectedCategories}
-            selectedCategories={filters.categoriesDepense || []}
-          />
           <CreerDepenseModal />
         </Card.Header>
 
@@ -172,15 +202,16 @@ export function DepenseTable() {
                   </Table.Body>
                 </Table.Content>
               </Table.ScrollContainer>
-              {pageCount > 1 && (
-                <Table.Footer>
+              <Table.Footer>
+                {piedDeTableau}
+                {pageCount > 1 && (
                   <PaginationTableau
                     onPage={pagination.handlePageChange}
                     page={filters.page + 1}
                     total={pageCount}
                   />
-                </Table.Footer>
-              )}
+                )}
+              </Table.Footer>
             </Table>
           </div>
 
@@ -199,6 +230,7 @@ export function DepenseTable() {
                 <DepenseMobileCard depense={row.original} key={row.id} />
               ))
             )}
+            {piedDeTableau}
             {pageCount > 1 && (
               <div className="flex justify-center pt-2">
                 <PaginationTableau

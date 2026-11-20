@@ -9,10 +9,15 @@ import { toast } from 'sonner';
 
 import { ChampTexte } from '@/components/commons/champs-formulaire';
 import { FenetreAction } from '@/components/commons/FenetreAction';
+import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import {
   CategorieDepenseCreateDTO,
   CategorieDepenseCreateSchema,
 } from '@/features/depenses/schemas/categorie-depense.schema';
+import {
+  trouverDoublonExact,
+  trouverSimilaire,
+} from '@/features/depenses/utils/categorie-doublon.utils';
 
 import { useAjouterCategorieDepenseMutation } from '../../queries/category/categorie-depense-mutation.query';
 
@@ -35,6 +40,7 @@ export function CreerCategorieModal() {
     formState: { errors, isSubmitting },
     handleSubmit,
     reset,
+    watch,
   } = useForm<CategorieDepenseCreateDTO>({
     resolver: zodResolver(CategorieDepenseCreateSchema),
     defaultValues: {
@@ -45,12 +51,36 @@ export function CreerCategorieModal() {
 
   const ajouterCategorie = useAjouterCategorieDepenseMutation();
 
+  /**
+   * LE DOUBLON, DIT AVANT L'ALLER-RETOUR.
+   *
+   * <p>Le serveur refuse désormais un nom déjà pris, en 409 avec un message lisible, et
+   * c'est lui qui fait autorité : l'écran ne connaît que les catégories qu'il a chargées.
+   * Mais la liste est justement déjà là, donc autant ne pas faire un aller-retour pour
+   * apprendre ce qu'on sait. Les deux refus disent la même phrase.</p>
+   *
+   * <p>Le rapprochement, lui, n'interdit rien : il nomme la catégorie voisine et laisse
+   * créer. Un faux rapprochement coûte une phrase à lire, pas une création bloquée.</p>
+   */
+  const { categories } = useCategorieDepense();
+  const nomSaisi = watch('nomCategorie');
+  const doublon = trouverDoublonExact(nomSaisi, categories);
+  const similaire = trouverSimilaire(nomSaisi, categories);
+
   const fermer = () => {
     reset();
     setOuvert(false);
   };
 
   const onSubmit = async (data: CategorieDepenseCreateDTO) => {
+    const dejaPrise = trouverDoublonExact(data.nomCategorie, categories);
+    if (dejaPrise) {
+      toast.error("La catégorie n'a pas été créée", {
+        description: `La catégorie « ${dejaPrise.nomCategorie} » existe déjà.`,
+      });
+      return;
+    }
+
     try {
       await ajouterCategorie.mutateAsync({
         description: data.description,
@@ -104,7 +134,17 @@ export function CreerCategorieModal() {
             name="nomCategorie"
             render={({ field }) => (
               <ChampTexte
-                erreur={errors.nomCategorie?.message}
+                aide={
+                  similaire
+                    ? `Catégorie similaire : « ${similaire.nomCategorie} ». Vérifiez que vous n'en créez pas un doublon.`
+                    : undefined
+                }
+                erreur={
+                  errors.nomCategorie?.message ??
+                  (doublon
+                    ? `La catégorie « ${doublon.nomCategorie} » existe déjà. Enregistrement impossible.`
+                    : undefined)
+                }
                 label="Nom"
                 onChange={field.onChange}
                 placeholder="Nom de la catégorie"

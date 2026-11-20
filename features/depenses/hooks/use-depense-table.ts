@@ -6,12 +6,56 @@ import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-ta
 import { startOfMonth } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
-interface DepenseFilters extends GenericTableFilters {
+export interface DepenseFilters extends GenericTableFilters {
   debut?: Date;
   fin?: Date;
   categoriesDepense?: string[] | null;
   typeDepense?: 'FIXE' | 'VARIABLE';
 }
+
+/**
+ * UN MAGASIN DE FILTRES FOURNI PAR L'APPELANT.
+ *
+ * <p>Le hook acceptait déjà un `externalFilters`, mais la fonctionnalité était à moitié
+ * faite : la LECTURE le respectait et TOUTES les écritures repartaient vers le `useState`
+ * local. `handlePageChange` ne faisait carrément rien quand on en fournissait un
+ * (`if (!externalFilters)`), et `pageSize` lisait le magasin local même en mode externe.
+ * Conséquence : l'écran `/finance/depense` portait DEUX jeux de filtres d'apparence
+ * identique, la barre du haut dans l'URL et celle du tableau en mémoire, qui ne
+ * s'accordaient jamais. Les cartes et la liste pouvaient afficher deux périodes
+ * différentes sans que rien ne le dise.</p>
+ *
+ * <p>D'où ce contrat : qui fournit un magasin fournit AUSSI son écriture. Il n'existe
+ * alors qu'un seul endroit où la vérité est écrite.</p>
+ *
+ * <p>Sans magasin, le hook garde son `useState` : c'est ce dont `/finance/sorties`
+ * (`depenses-client.tsx`) a besoin, avec sa période « Toutes les dates » qui n'a pas
+ * d'équivalent dans l'URL.</p>
+ */
+export interface MagasinFiltresDepense {
+  filters: DepenseFilters;
+  appliquer: (maj: (prev: DepenseFilters) => DepenseFilters) => void;
+}
+
+/**
+ * ⚠ DEUX VOCABULAIRES, ET IL FAUT TRADUIRE.
+ *
+ * <p>TanStack envoie l'IDENTIFIANT DE COLONNE (`date_depense`, `montant`), que l'URL
+ * conserve puisqu'il décrit ce que l'opérateur a cliqué. Le serveur, lui, attend un nom
+ * de PROPRIÉTÉ de l'entité, parce que le listage passe par des requêtes dérivées et que
+ * `Sort.by(...)` est interprété comme tel. Sa liste blanche
+ * (`DepenseResource.TRIS_ACCEPTES`) n'accepte donc que `dateDepense`, `createdAt`,
+ * `montant` et `description`.</p>
+ *
+ * <p>Une colonne absente de cette table n'est pas envoyée : le serveur retombe alors sur
+ * son tri par défaut plutôt que de recevoir un nom qu'il ne connaît pas.</p>
+ */
+const TRI_API: Record<string, string> = {
+  date_ajout: 'createdAt',
+  date_depense: 'dateDepense',
+  description: 'description',
+  montant: 'montant',
+};
 
 const initialFilters: DepenseFilters = {
   categoriesDepense: null,
@@ -21,25 +65,43 @@ const initialFilters: DepenseFilters = {
   orderDirection: 'desc',
 };
 
-export const useDepenseTable = (externalFilters?: DepenseFilters) => {
-  const [filters, setFilters] = useState<DepenseFilters>({
+export const useDepenseTable = (externe?: MagasinFiltresDepense) => {
+  const [filtresLocaux, setFiltresLocaux] = useState<DepenseFilters>({
     ...initialFilters,
     debut: startOfMonth(new Date()),
     fin: new Date(),
   });
 
-  // Utiliser les filtres externes s'ils sont fournis, sinon utiliser les filtres locaux
-  const currentFilters = externalFilters || filters;
+  const currentFilters = externe?.filters ?? filtresLocaux;
+
+  /**
+   * L'UNIQUE chemin d'écriture, stable d'un rendu à l'autre.
+   *
+   * <p>La référence est relue à chaque appel : l'appelant recrée son objet de magasin à
+   * chaque rendu, et mettre `externe` dans les dépendances d'un `useCallback` rendrait
+   * `appliquer` instable, ce qui invaliderait les `useMemo` qui en dépendent à chaque
+   * rendu.</p>
+   */
+  const externeRef = React.useRef(externe);
+  externeRef.current = externe;
+  const appliquer = React.useCallback((maj: (prev: DepenseFilters) => DepenseFilters) => {
+    const magasin = externeRef.current;
+    if (magasin) {
+      magasin.appliquer(maj);
+      return;
+    }
+    setFiltresLocaux(maj);
+  }, []);
 
   const [sorting, setSorting] = React.useState<SortingState>(() => {
-    const orderBy = filters?.orderBy;
-    const orderDirection = filters?.orderDirection ?? 'desc';
+    const orderBy = currentFilters?.orderBy;
+    const orderDirection = currentFilters?.orderDirection ?? 'desc';
     return orderBy ? [{ id: orderBy, desc: orderDirection === 'desc' }] : [];
   });
 
   React.useEffect(() => {
-    const orderBy = filters?.orderBy;
-    const orderDirection = filters?.orderDirection ?? 'desc';
+    const orderBy = currentFilters?.orderBy;
+    const orderDirection = currentFilters?.orderDirection ?? 'desc';
     const next = orderBy ? [{ id: orderBy, desc: orderDirection === 'desc' }] : [];
     setSorting((prev) => {
       const prevFirst = prev[0];
@@ -47,7 +109,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       if (prevFirst?.id === nextFirst?.id && prevFirst?.desc === nextFirst?.desc) return prev;
       return next;
     });
-  }, [filters?.orderBy, filters?.orderDirection]);
+  }, [currentFilters?.orderBy, currentFilters?.orderDirection]);
 
   const currentSearchParams = useMemo(() => {
     return {
@@ -58,13 +120,13 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       // Envoyer les filtres de catégories au backend
       categoriesDepense: currentFilters.categoriesDepense || undefined,
       typeDepense: currentFilters.typeDepense,
-      orderBy: currentFilters.orderBy,
+      orderBy: currentFilters.orderBy ? TRI_API[currentFilters.orderBy] : undefined,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
     };
   }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.typeDepense, currentFilters.orderBy, currentFilters.orderDirection]);
 
   const setTypeDepense = (typeDepense?: 'FIXE' | 'VARIABLE') => {
-    syncedSetFilters((prev) => ({
+    appliquer((prev) => ({
       ...prev,
       typeDepense,
       page: 0,
@@ -81,26 +143,18 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       totalItems: allDepensesData?.totalElements || 0,
       page: currentFilters?.page ?? 0,
       handlePageChange: (page: number) => {
-        if (!externalFilters) {
-          setFilters((prev) => ({
-            ...prev,
-            page: page - 1,
-          }));
-        }
+        appliquer((prev) => ({
+          ...prev,
+          page: page - 1,
+        }));
       },
     };
-  }, [allDepensesData, currentFilters?.page, externalFilters, setFilters]);
+  }, [allDepensesData, currentFilters?.page, appliquer]);
 
   const isLoading = allDepensesLoading;
 
-  // Synchroniser les filtres locaux avec les filtres globaux
-  const syncedSetFilters = (fn: (prev: DepenseFilters) => DepenseFilters) => {
-    const newFilters = fn(filters as unknown as DepenseFilters);
-    setFilters(newFilters as typeof filters);
-  };
-
   const setSelectedCategories = (categoryIds: string[] | null) => {
-    syncedSetFilters((prev) => ({
+    appliquer((prev) => ({
       ...prev,
       categoriesDepense: categoryIds,
       page: 0, // Reset to first page when filters change
@@ -109,10 +163,11 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
 
   const handleDateChange = (value: DateRange | undefined) => {
     if (value?.from && value?.to) {
-      setFilters((prev) => ({
+      appliquer((prev) => ({
         ...prev,
         debut: value.from,
         fin: value.to,
+        page: 0,
       }));
     }
   };
@@ -126,7 +181,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     state: {
       pagination: {
         pageIndex: pagination.page,
-        pageSize: filters?.limit ?? 50,
+        pageSize: currentFilters?.limit ?? 20,
       },
       sorting,
     },
@@ -134,7 +189,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       setSorting((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater;
         const first = next[0];
-        setFilters((prevFilters) => ({
+        appliquer((prevFilters) => ({
           ...prevFilters,
           orderBy: first?.id ?? undefined,
           orderDirection: first ? (first.desc ? 'desc' : 'asc') : undefined,
@@ -145,7 +200,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     },
     onPaginationChange: (updater) => {
       const newState = typeof updater === 'function' ? updater(table.getState().pagination) : updater;
-      setFilters((prev) => ({
+      appliquer((prev) => ({
         ...prev,
         page: newState.pageIndex,
         limit: newState.pageSize,
@@ -159,7 +214,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     isError,
     isFetching,
     refetch,
-    setFilters: syncedSetFilters,
+    setFilters: appliquer,
     depenses: allDepenses,
     depensesData: allDepensesData,
     error,
@@ -170,4 +225,3 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     handleDateChange,
   };
 };
-

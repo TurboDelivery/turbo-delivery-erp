@@ -88,14 +88,16 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
      * l'export CSV, lui, sortait bien `createdAt` sous « Ajoute le ».
      */
     cell: ({ row }) => formatDateDepense(row.original.createdAt),
-    enableSorting: false,
+    // Triable : le serveur l'accepte sous `createdAt` (DepenseResource.TRIS_ACCEPTES),
+    // et `use-depense-table` traduit cet identifiant de colonne pour lui.
+    enableSorting: true,
   },
   {
     id: 'date_depense',
     accessorKey: 'dateDepense',
     header: 'Date de comptabilisation',
     cell: ({ row }) => formatDateDepense(row.original.dateDepense),
-    enableSorting: false,
+    enableSorting: true,
   },
   {
     id: 'description',
@@ -129,7 +131,7 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
     cell: ({ row }) => (
       <span className="block text-right tabular-nums">{formatCFA(row.original.montant)}</span>
     ),
-    enableSorting: false,
+    enableSorting: true,
   },
   {
     id: 'actions',
