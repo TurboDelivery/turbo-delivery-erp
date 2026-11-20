@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { FenetreAction } from '@/components/commons/FenetreAction';
 import { ColonneResponsive, TableauResponsive } from '@/components/commons/TableauResponsive';
 import { FusionCategoriesDialog } from '@/components/finance/configuration/fusion-categories-dialog';
+import { HistoriqueFusions } from '@/components/finance/configuration/historique-fusions';
 import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
@@ -277,6 +278,14 @@ export function CategorieDepenseList() {
           />
         </Card.Content>
       </Card>
+
+      {/*
+        * L'historique vient APRES le referentiel, pas avant : on arrive sur cet onglet
+        * pour lire ou corriger ses categories, pas pour consulter des fusions passees.
+        * C'est aussi la ou l'on cherche l'annulation, juste sous la liste dont elle
+        * change le contenu.
+        */}
+      <HistoriqueFusions />
 
       <FusionCategoriesDialog
         ids={Array.from(sel)}
