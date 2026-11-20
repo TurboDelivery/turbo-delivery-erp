@@ -66,6 +66,7 @@ export function DepenseTable() {
       orderBy: filtresUrl.orderBy || undefined,
       orderDirection: filtresUrl.orderDirection === 'asc' ? 'asc' : 'desc',
       page: filtresUrl.page,
+      statut: filtresUrl.statut || undefined,
     },
     appliquer: (maj: (prev: DepenseFilters) => DepenseFilters) => {
       setFilters((prev) => maj(prev as unknown as DepenseFilters) as never);
@@ -75,10 +76,13 @@ export function DepenseTable() {
   const { filters, isError, isFetching, isLoading, pagination, refetch, table } =
     useDepenseTable(magasin);
 
+  // Les MEMES filtres que la liste, statut compris : c'est ce qui garantit que le total
+  // du pied decrit bien les lignes au-dessus de lui.
   const { data: statsData } = useDepenseStatsQuery({
     categoriesDepense: filters.categoriesDepense || undefined,
     debut: filters.debut,
     fin: filters.fin,
+    statut: filters.statut || undefined,
   });
 
   const pageCount = pagination?.pageCount ?? 1;

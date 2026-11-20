@@ -9,6 +9,7 @@ interface UseDepenseExportParams {
   debut?: Date;
   fin?: Date;
   categoriesDepense?: string[]; // Tableau de catégories pour le filtre
+  statut?: string;
   page?: number;
   limit?: number;
 }
@@ -26,9 +27,19 @@ export function useDepenseExport() {
     mutationFn: async (params: UseDepenseExportParams) => {
     try {
       // Utiliser la même API que le dashboard pour la cohérence
+      /*
+       * ⚠ LE TOTAL DE REFERENCE DOIT PORTER LES MEMES FILTRES QUE LE FICHIER.
+       *
+       * Cet appel n'envoyait NI les categories NI le statut : le rapprochement calcule
+       * plus bas comparait donc le total du fichier, filtre, au total de la periode
+       * ENTIERE. Un ecart etait garanti des qu'un filtre etait pose, et il ne disait
+       * rien d'une vraie anomalie.
+       */
       const statsData: IDepenseStats = await depenseAPI.obtenirStatsDepenses({
         debut: params.debut,
         fin: params.fin,
+        categoriesDepense: params.categoriesDepense,
+        statut: params.statut,
       });
 
       // Récupérer les dépenses individuelles pour le détail
@@ -41,6 +52,7 @@ export function useDepenseExport() {
           debut: params.debut,
           fin: params.fin,
           categoriesDepense: params.categoriesDepense,
+          statut: params.statut,
           page: currentPage,
           limit: params.limit || 1000,
         });

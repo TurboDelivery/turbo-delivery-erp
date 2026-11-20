@@ -13,6 +13,7 @@ export function useDepenseDashboardFilters() {
       debut: depenseFiltersClient.filters.debut.defaultValue,
       fin: depenseFiltersClient.filters.fin.defaultValue,
       categoriesDepense: depenseFiltersClient.filters.categoriesDepense.defaultValue,
+      statut: depenseFiltersClient.filters.statut.defaultValue,
       limit: depenseFiltersClient.filters.limit.defaultValue,
       page: depenseFiltersClient.filters.page.defaultValue,
       orderBy: depenseFiltersClient.filters.orderBy.defaultValue,
@@ -30,6 +31,11 @@ export function useDepenseDashboardFilters() {
     }
   };
 
+  /** Changer de statut remet a la premiere page : la pagination ne survit pas au filtre. */
+  const handleStatutChange = (statut: string) => {
+    setFilters({ statut: statut || '', page: 0 });
+  };
+
   const handleCategoriesChange = (categoryIds: string[] | null) => {
     setFilters({
       categoriesDepense: categoryIds || [],
@@ -37,5 +43,5 @@ export function useDepenseDashboardFilters() {
     });
   };
 
-  return { filters, updateFilters, clearFilters, handleDateChange, handleCategoriesChange, setFilters };
+  return { filters, updateFilters, clearFilters, handleDateChange, handleCategoriesChange, handleStatutChange, setFilters };
 }

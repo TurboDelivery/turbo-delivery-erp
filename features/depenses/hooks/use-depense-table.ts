@@ -11,6 +11,7 @@ export interface DepenseFilters extends GenericTableFilters {
   fin?: Date;
   categoriesDepense?: string[] | null;
   typeDepense?: 'FIXE' | 'VARIABLE';
+  statut?: string;
 }
 
 /**
@@ -120,10 +121,12 @@ export const useDepenseTable = (externe?: MagasinFiltresDepense) => {
       // Envoyer les filtres de catégories au backend
       categoriesDepense: currentFilters.categoriesDepense || undefined,
       typeDepense: currentFilters.typeDepense,
+      // Chaine vide = tous les statuts : ne rien envoyer plutot qu'un filtre vide.
+      statut: currentFilters.statut || undefined,
       orderBy: currentFilters.orderBy ? TRI_API[currentFilters.orderBy] : undefined,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
     };
-  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.typeDepense, currentFilters.orderBy, currentFilters.orderDirection]);
+  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.typeDepense, currentFilters.statut, currentFilters.orderBy, currentFilters.orderDirection]);
 
   const setTypeDepense = (typeDepense?: 'FIXE' | 'VARIABLE') => {
     appliquer((prev) => ({

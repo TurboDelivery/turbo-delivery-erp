@@ -20,13 +20,34 @@ export interface IDepenseAPI {
 
 export const depenseAPI: IDepenseAPI = {
   async obtenirTousDepenses(params: IDepensesParams): Promise<PaginatedResponse<IDepense>> {
+    /*
+     * ⚠ LE FILTRE DE CATEGORIE N'ARRIVAIT PAS JUSQU'A LA LISTE.
+     *
+     * Cette fonction repandait `...params` tel quel, donc elle envoyait un parametre
+     * nomme `categoriesDepense` que /finance/depenses/pagination ne connait pas : il
+     * attend `categorieIds`. Le filtre etait donc ignore cote serveur, SANS erreur et
+     * sans trace. Les cartes, elles, filtraient bien, parce que obtenirStatsDepenses
+     * fait la traduction : l'ecran montrait un total pour une categorie et une liste
+     * pour toutes. Et l'export Excel, qui passe par le meme chemin, nommait son fichier
+     * d'apres une categorie que son contenu ne respectait pas.
+     *
+     * Les identifiants sont joints par des virgules, comme le fait deja
+     * categorie-depense.api.ts : Spring lie aussi bien « a,b » qu'un parametre repete,
+     * et une chaine ne depend pas de la facon dont le client serialise les tableaux.
+     */
+    const { categoriesDepense, debut, fin, ...reste } = params;
+
     return await api.request<PaginatedResponse<IDepense>>({
       endpoint: `/finance/depenses/pagination`,
       method: 'GET',
       searchParams: {
-        ...params,
-        debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
-        fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
+        ...reste,
+        categorieIds:
+          categoriesDepense && categoriesDepense.length > 0
+            ? categoriesDepense.join(',')
+            : undefined,
+        debut: debut ? debut.toISOString().split('T')[0] : undefined,
+        fin: fin ? fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,
     });
   },
@@ -94,7 +115,18 @@ export const depenseAPI: IDepenseAPI = {
         searchParams.append('categorieIds', category);
       });
     }
-    
+
+    // ⚠ Les MEMES filtres que la liste. /pagination acceptait typeDepense depuis
+    // toujours, /stats non : le total aurait compte les deux types sous une liste n'en
+    // montrant qu'un.
+    if (params.typeDepense) {
+      searchParams.append('typeDepense', params.typeDepense);
+    }
+
+    if (params.statut) {
+      searchParams.append('statut', params.statut);
+    }
+
     const url = `/finance/depenses/stats${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 
     return api.request<IDepenseStats>({
@@ -133,8 +165,14 @@ export const depenseAPI: IDepenseAPI = {
     return await api.request<Blob>({
       endpoint: `/finance/depenses/export`,
       method: 'GET',
+      // Meme traduction que la liste : sans elle le fichier annonce une categorie que
+      // son contenu ne respecte pas.
       searchParams: {
-        ...params,
+        ...(({ categoriesDepense, debut, fin, ...reste }) => reste)(params),
+        categorieIds:
+          params.categoriesDepense && params.categoriesDepense.length > 0
+            ? params.categoriesDepense.join(',')
+            : undefined,
         debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
         fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,

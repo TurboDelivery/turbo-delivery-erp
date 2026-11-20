@@ -6,6 +6,9 @@ export const depenseFiltersClient = {
     debut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
     fin: parseAsIsoDate.withDefault(endOfMonth(new Date())),
     categoriesDepense: parseAsArrayOf(parseAsString.withDefault('')).withDefault([]),
+    // Le statut d'une depense : PENDING, A_DECAISSER, DECAISSE, PAID. Chaine vide = tous.
+    // Dans l'URL comme le reste, pour qu'une vue filtree se partage.
+    statut: parseAsString.withDefault(''),
     limit: parseAsInteger.withDefault(10),
     page: parseAsInteger.withDefault(0),
     orderBy: parseAsString.withDefault('date_depense'),
