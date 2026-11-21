@@ -46,7 +46,12 @@ export default function EntreesCaissePage() {
           <h1 className="text-2xl font-bold text-foreground">Autres composantes du CA</h1>
           <p className="text-sm text-muted">Prestations hors livraison déjà comprises dans le chiffre d&apos;affaires</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        {/*
+          * ⚠ `items-end` : le sélecteur de période porte un libellé au-dessus de son
+          * champ, le bouton n'en a pas. Centrés, le bouton se pose au milieu du bloc
+          * libellé + champ et flotte au-dessus de la ligne du champ.
+          */}
+        <div className="flex flex-wrap items-end gap-3">
           <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
           <CreerEntreeCaisseModal />
         </div>

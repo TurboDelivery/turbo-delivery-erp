@@ -45,8 +45,6 @@ const REGLES_HORS_MENU: Record<string, Rule> = {
   '/finance/cycle-facturation': { action: 'read', subject: 'Finance' },
   '/finance/entrees-caisse': { action: 'read', subject: 'Finance' },
   '/finance/revenus-encaisses': { action: 'read', subject: 'Finance' },
-  '/finance/depense': { action: 'read', subject: 'Depense' },
-  '/finance/sorties': { action: 'read', subject: 'Depense' },
   '/type-plat': { action: 'read', subject: 'Restaurant' },
 
   /**

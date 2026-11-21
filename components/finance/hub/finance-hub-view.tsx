@@ -56,6 +56,7 @@ import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depens
 import RepartitionDepense from '@/features/depenses/components/repartition';
 import { Can } from '@/components/auth/Can';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { GrandLivreTab } from '@/components/finance/hub/grand-livre-tab';
 import { FinanceHistoriqueTab } from './finance-historique-tab';
 import EtatErreur from '@/components/commons/EtatErreur';
 
@@ -118,6 +119,16 @@ const TABS = [
   { k: 'variable', label: 'Dépenses variables' },
   { k: 'bap', label: 'Bon à payer' },
   { k: 'all', label: 'Toutes' },
+  /*
+   * ⚠ GRAND LIVRE : les lignes de `depenses`, pas des charges.
+   *
+   * Les quatre onglets precedents listent des CHARGES : l'engagement. Une charge ne
+   * devient une depense qu'au decaissement. Cet ecran s'intitulait « Depenses » en ne
+   * montrant que des charges, et les 678 lignes du grand livre n'etaient consultables
+   * que sur deux ecrans absents du menu, desormais supprimes. En lecture seule : la
+   * saisie libre qu'ils portaient contournait la cascade justificatif / visa / accord.
+   */
+  { k: 'livre', label: 'Grand livre' },
   { k: 'histo', label: 'Mon historique' },
 ] as const;
 
@@ -450,7 +461,7 @@ export function FinanceHubView() {
     : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
     : kk === 'bap' ? bap.length
     : kk === 'all' ? items.length
-    : null; // histo : compteur non pertinent (pagination côté serveur)
+    : null; // histo et livre : compteur non pertinent (pagination côté serveur)
 
   const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
 
@@ -628,8 +639,18 @@ export function FinanceHubView() {
           et câblée sur le mois + le filtre catégorie du dashboard. */}
       <RepartitionDepense debut={chartDebut} fin={chartFin} />
 
-      {/* Filtre catégorie (à gauche, masqué en « Mon historique ») + onglets */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/*
+        * Filtre catégorie (à gauche, masqué en « Mon historique ») + onglets.
+        *
+        * ⚠ `items-end` ET NON `items-center`. Le filtre porte un libellé AU-DESSUS de son
+        * champ, les onglets n'en ont pas : centrés, les onglets se posent au milieu du
+        * bloc libellé + champ, et le champ descend sous eux. Alignés par le bas, le champ
+        * qu'on lit et les onglets qu'on clique sont sur la même ligne.
+        *
+        * Le même défaut existait sur la barre de filtres de /finance/depense, pour la
+        * même raison : un contrôle sans libellé à côté de contrôles qui en portent un.
+        */}
+      <div className="flex flex-wrap items-end gap-3">
         {tab !== 'histo' && (
           <div className="w-full sm:w-72">
             <CategoriesSelectFilter
@@ -650,7 +671,9 @@ export function FinanceHubView() {
         </div>
       </div>
 
-      {tab === 'histo' ? (
+      {tab === 'livre' ? (
+        <GrandLivreTab categories={categorieFilter} debut={chartDebut} fin={chartFin} />
+      ) : tab === 'histo' ? (
         <FinanceHistoriqueTab debut={periodeDebut} fin={periodeFin} isAdmin={isAdmin} moi={actor} />
       ) : isLoading ? (
         <div className="flex flex-col items-center justify-center gap-2 py-16">
