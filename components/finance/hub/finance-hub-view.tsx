@@ -31,7 +31,7 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
+import { BarreFiltresFinance } from '@/components/finance/hub/barre-filtres-finance';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ui/confirm-modal';
 import { useAbility } from '@/hooks/use-ability';
@@ -42,6 +42,7 @@ import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 import {
   FinanceStatut,
   IFinanceItem,
+  filtrerItems,
   fmtFcfa,
   generateFinancesPdf,
   generateFinancesXlsx,
@@ -141,6 +142,16 @@ export function FinanceHubView() {
   const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
+  /*
+   * Recherche et etape : etat LOCAL, volontairement pas dans l'URL.
+   *
+   * <p>La categorie, elle, vit dans nuqs parce qu'elle est PARTAGEE avec le graphique de
+   * repartition au-dessus et avec le grand livre en dessous. Ces deux-ci ne reduisent que
+   * le tableau : les verser dans le meme magasin partage ferait bouger le graphique sans
+   * qu'on le demande, et la frappe au clavier reecrirait l'URL a chaque lettre.</p>
+   */
+  const [recherche, setRecherche] = useState('');
+  const [etape, setEtape] = useState<string>('tous');
   // Filtre catégorie partagé (nuqs) — même source que le graphique de répartition.
   const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
   const categorieFilter = depenseFilters.categoriesDepense ?? [];
@@ -249,6 +260,11 @@ export function FinanceHubView() {
     const it = items.find((i) => i.id === focus.depense);
     if (!it) return; // pas dans ce mois (on attend le refetch) ou déjà traitée
     focusDoneRef.current = true;
+    // ⚠ On leve les filtres AVANT de cibler : une recherche ou une etape encore posee
+    // masquerait la depense sur laquelle le courriel fait atterrir, et l'ecran repondrait
+    // « aucune depense ne correspond » a un lien qu'il vient lui-meme d'envoyer.
+    setRecherche('');
+    setEtape('tous');
     const targetTab = (nextAction(it, seuil) === 'pay' ? 'bap' : it.type) as (typeof TABS)[number]['k'];
     const targetList = targetTab === 'bap'
       ? items.filter((i) => nextAction(i, seuil) === 'pay')
@@ -293,16 +309,41 @@ export function FinanceHubView() {
   // Encours = CA pas encore encaissé (cf. tableau de bord principal).
   const encours = Math.max(0, k.ca - k.revenuEncaisse);
   const realDays = daysInMonth(monthKey); // borne du curseur = vrai dernier jour du mois
-  // `items` est DÉJÀ filtré par mois + catégorie côté serveur (useFinancesHub).
+  /*
+   * `items` est DEJA filtre par mois + categorie COTE SERVEUR (useFinancesHub). La
+   * recherche et l'etape s'appliquent ICI, en memoire : le mois entier est deja charge,
+   * donc reduire ne coute aucun aller-retour et repond a la frappe.
+   */
+  const itemsVus = useMemo(
+    () => filtrerItems(items, { etape, recherche }, seuil),
+    [items, recherche, etape, seuil],
+  );
+
+  /*
+   * ⚠ `bap` reste calcule sur le MOIS ENTIER, et surtout pas sur ce que les filtres
+   * laissent voir : il alimente la carte « Bon a payer » et l'export. Une carte de
+   * synthese qui suivrait la recherche annoncerait un total faux des la troisieme lettre
+   * tapee, sans que rien ne le dise. Le TABLEAU, lui, lit `bapVus`.
+   */
   const bap = useMemo(() => items.filter((i) => nextAction(i, seuil) === 'pay'), [items, seuil]);
   const bapTotal = bap.reduce((s, i) => s + i.montant, 0);
+  const bapVus = useMemo(() => itemsVus.filter((i) => nextAction(i, seuil) === 'pay'), [itemsVus, seuil]);
 
   const list = useMemo(() => {
-    if (tab === 'fixe') return items.filter((i) => i.type === 'fixe');
-    if (tab === 'variable') return items.filter((i) => i.type === 'variable');
-    if (tab === 'bap') return bap;
-    return items;
-  }, [items, tab, bap]);
+    if (tab === 'fixe') return itemsVus.filter((i) => i.type === 'fixe');
+    if (tab === 'variable') return itemsVus.filter((i) => i.type === 'variable');
+    if (tab === 'bap') return bapVus;
+    return itemsVus;
+  }, [itemsVus, tab, bapVus]);
+  const listTotal = useMemo(() => list.reduce((s, i) => s + i.montant, 0), [list]);
+
+  const estTableauCharges = tab !== 'histo' && tab !== 'livre';
+  const aDesFiltres = recherche.trim() !== '' || etape !== 'tous' || categorieFilter.length > 0;
+  const reinitialiser = () => {
+    setRecherche('');
+    setEtape('tous');
+    handleCategoriesChange(null);
+  };
 
   // Pagination
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
@@ -313,10 +354,22 @@ export function FinanceHubView() {
   useEffect(() => { setSel(new Set()); }, [tab]);
   // Changement de filtre (catégorie / mois) : on repart page 1.
   useEffect(() => { setSel(new Set()); setPage(1); }, [catKey, monthKey]);
+  /*
+   * Recherche et etape : on repart page 1, mais on GARDE la selection.
+   *
+   * <p>Effacer a chaque lettre tapee ferait perdre a l'operateur tout ce qu'il vient de
+   * cocher, au moment precis ou il affine. Ce qui sort du resultat n'est pas perdu : la
+   * barre de selection annonce combien de lignes cochees sont masquees, et les actions
+   * groupees n'agissent QUE sur ce qui est visible (`selItems`).</p>
+   */
+  useEffect(() => { setPage(1); }, [recherche, etape]);
   useEffect(() => { if (page > pageCount) setPage(1); }, [page, pageCount]);
 
   // Sélection multiple (par id) + actions groupées sur la sélection de l'onglet.
   const selItems = useMemo(() => list.filter((i) => sel.has(i.id)), [list, sel]);
+  // Cochees mais sorties du resultat courant. Les actions groupees les ignorent : il faut
+  // donc le DIRE, sinon le compte affiche promet plus que les boutons ne feront.
+  const selMasquees = sel.size - selItems.length;
   const selByAction = (a: 'vise' | 'approuve' | 'pay') => selItems.filter((i) => nextAction(i, seuil) === a);
   const pageIds = paged.map((i) => i.id);
   const allPageSelected = pageIds.length > 0 && pageIds.every((id) => sel.has(id));
@@ -456,11 +509,19 @@ export function FinanceHubView() {
     setTimeout(() => w.print(), 250);
   };
 
+  /*
+   * ⚠ Les compteurs suivent les FILTRES, pas le mois entier.
+   *
+   * <p>Un onglet qui annonce « Toutes 74 » au-dessus d'un tableau qui en montre 37 fait
+   * exactement ce qu'un ecran ne doit jamais faire : afficher un nombre que le contenu
+   * dement. La ligne de resultat sous la barre de filtres rappelle le total du mois, de
+   * sorte qu'on ne perd pas l'ordre de grandeur.</p>
+   */
   const countFor = (kk: string): number | null =>
-    kk === 'fixe' ? items.filter((i) => i.type === 'fixe').length
-    : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
-    : kk === 'bap' ? bap.length
-    : kk === 'all' ? items.length
+    kk === 'fixe' ? itemsVus.filter((i) => i.type === 'fixe').length
+    : kk === 'variable' ? itemsVus.filter((i) => i.type === 'variable').length
+    : kk === 'bap' ? bapVus.length
+    : kk === 'all' ? itemsVus.length
     : null; // histo et livre : compteur non pertinent (pagination côté serveur)
 
   const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
@@ -640,36 +701,50 @@ export function FinanceHubView() {
       <RepartitionDepense debut={chartDebut} fin={chartFin} />
 
       {/*
-        * Filtre catégorie (à gauche, masqué en « Mon historique ») + onglets.
+        * LES ONGLETS D'ABORD, LES FILTRES ENSUITE, et non les deux sur la meme ligne.
         *
-        * ⚠ `items-end` ET NON `items-center`. Le filtre porte un libellé AU-DESSUS de son
-        * champ, les onglets n'en ont pas : centrés, les onglets se posent au milieu du
-        * bloc libellé + champ, et le champ descend sous eux. Alignés par le bas, le champ
-        * qu'on lit et les onglets qu'on clique sont sur la même ligne.
+        * <p>Ils etaient cote a cote. L'operateur a demande « on ne peut pas filtrer ? »
+        * devant un ecran qui portait DEJA un filtre : un controle seul, sans cadre, pose
+        * au meme niveau que six onglets, se lit comme un titre de section — d'autant que
+        * son libelle, « Categories », en a exactement la forme.</p>
         *
-        * Le même défaut existait sur la barre de filtres de /finance/depense, pour la
-        * même raison : un contrôle sans libellé à côté de contrôles qui en portent un.
+        * <p>Les deux ne font pas le meme travail. Les onglets disent QUELLE population on
+        * regarde, les filtres COMMENT on la reduit. Separes, chacun se lit pour ce qu'il
+        * est ; et la barre, encadree et titree, annonce ce qu'elle a retenu.</p>
         */}
-      <div className="flex flex-wrap items-end gap-3">
-        {tab !== 'histo' && (
-          <div className="w-full sm:w-72">
-            <CategoriesSelectFilter
-              selectedCategories={categorieFilter}
-              onCategoriesChange={handleCategoriesChange}
-            />
-          </div>
-        )}
-        <div className="flex flex-1 flex-wrap gap-1.5">
-          {TABS.map((t) => {
-            const c = countFor(t.k);
-            return (
-              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}>
-                {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary text-muted'}`}>{c}</span>}
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex flex-wrap gap-1.5">
+        {TABS.map((t) => {
+          const c = countFor(t.k);
+          return (
+            <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}>
+              {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary text-muted'}`}>{c}</span>}
+            </button>
+          );
+        })}
       </div>
+
+      {/*
+        * ⚠ `items-end` ET NON `items-center` : chaque champ porte son libelle AU-DESSUS,
+        * le bouton « Reinitialiser » n'en a pas. Centres, le bouton flotterait au-dessus
+        * de la ligne des champs. Alignes par le bas, ce qu'on lit et ce qu'on clique sont
+        * sur la meme ligne. Le meme defaut avait ete corrige sur deux autres ecrans.
+        */}
+      {tab !== 'histo' && (
+        <BarreFiltresFinance
+          aDesFiltres={aDesFiltres}
+          categories={categorieFilter}
+          etape={etape}
+          montantRetenu={fmtFcfa(listTotal)}
+          onCategories={handleCategoriesChange}
+          onEtape={setEtape}
+          onRecherche={setRecherche}
+          onReinitialiser={reinitialiser}
+          recherche={recherche}
+          retenues={list.length}
+          surLeTableau={estTableauCharges}
+          total={items.length}
+        />
+      )}
 
       {tab === 'livre' ? (
         <GrandLivreTab categories={categorieFilter} debut={chartDebut} fin={chartFin} />
@@ -688,7 +763,15 @@ export function FinanceHubView() {
           {/* Barre d'actions GROUPÉES sur la sélection (tous les onglets) */}
           {sel.size > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-separator bg-accent-soft/30 px-4 py-2.5">
-              <span className="text-sm font-medium text-muted">{sel.size} sélectionné{sel.size > 1 ? 's' : ''}</span>
+              <span className="text-sm font-medium text-muted">
+                {selItems.length} sélectionnée{selItems.length > 1 ? 's' : ''}
+                {selMasquees > 0 && (
+                  <span className="text-xs">
+                    {' · '}
+                    {selMasquees} masquée{selMasquees > 1 ? 's' : ''} par les filtres
+                  </span>
+                )}
+              </span>
               <div className="flex flex-wrap items-center gap-1.5">
                 {selByAction('vise').filter(peutViser).length > 0 && (
                   <Button isPending={busy} onPress={bulkViser} size="sm" variant="outline">
@@ -712,6 +795,28 @@ export function FinanceHubView() {
                   Effacer
                 </Button>
               </div>
+            </div>
+          )}
+          {/*
+            * SELECTIONNER AU-DELA DE LA PAGE.
+            *
+            * <p>La case d'en-tete ne coche que la PAGE, douze lignes : pour decaisser
+            * soixante-quatorze charges il fallait sept pages et sept series de clics.
+            * Elle garde ce sens, qui est le seul previsible — mais des que la page est
+            * entierement cochee et qu'il reste du resultat derriere, on propose de prendre
+            * le tout. C'est un deuxieme geste, explicite et chiffre : on ne coche jamais a
+            * la place de l'operateur des lignes qu'il n'a pas vues.</p>
+            */}
+          {allPageSelected && list.length > pageIds.length && (
+            <div className="border-b border-separator bg-accent-soft/15 px-4 py-2 text-center text-xs text-muted">
+              Les {pageIds.length} lignes de cette page sont sélectionnées.{' '}
+              <button
+                className="font-semibold text-accent underline underline-offset-2"
+                onClick={() => setSel(new Set(list.map((i) => i.id)))}
+                type="button"
+              >
+                Sélectionner les {list.length} lignes du résultat
+              </button>
             </div>
           )}
           {/*
@@ -910,7 +1015,8 @@ export function FinanceHubView() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-separator px-4 py-3">
             <span className="text-xs text-muted">
               {list.length} ligne{list.length > 1 ? 's' : ''}
-              {sel.size > 0 ? ` · ${sel.size} sélectionnée${sel.size > 1 ? 's' : ''}` : ''}
+              {aDesFiltres ? ` sur ${items.length}` : ''}
+              {selItems.length > 0 ? ` · ${selItems.length} sélectionnée${selItems.length > 1 ? 's' : ''}` : ''}
             </span>
             {pageCount > 1 && <PaginationTableau onPage={setPage} page={page} total={pageCount} />}
           </div>
