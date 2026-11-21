@@ -31,7 +31,21 @@ export interface CategorieComparable {
  * Toute addition ici désaccorde l'écran du serveur.
  */
 export function cleExacte(nom: string | null | undefined): string {
-  return (nom ?? '').trim().toLowerCase();
+  /*
+   * ⚠ PAS `trim()`, et c'est tout le sujet de cette fonction.
+   *
+   * <p>`String.prototype.trim()` retire TOUTE la classe d'espaces Unicode : insecable
+   * (U+00A0), fine insecable (U+202F), demi-cadratin... La `TRIM()` de Postgres, elle,
+   * ne retire que l'ESPACE ordinaire. Un nom colle depuis un tableur, « Loyer\u00A0 »,
+   * serait donc reduit a « loyer » par l'ecran — qui le refuserait comme doublon — et
+   * laisse tel quel par le serveur, qui l'aurait accepte. L'operateur se verrait interdire
+   * une creation possible sans qu'aucun message ne puisse l'expliquer.</p>
+   *
+   * <p>On ne retire donc que ce que Postgres retire. Un nom a espace insecable reste
+   * distinct des deux cotes : c'est discutable comme regle metier, mais c'est la MEME
+   * regle des deux cotes, et c'est la seule chose que cette fonction doit garantir.</p>
+   */
+  return (nom ?? '').replace(/^ +| +$/g, '').toLowerCase();
 }
 
 /**

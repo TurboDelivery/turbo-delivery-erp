@@ -61,6 +61,23 @@ describe('trouverDoublonExact, le refus', () => {
   });
 });
 
+describe('cleExacte — elle ne doit normaliser NI PLUS NI MOINS que le serveur', () => {
+  it("ne retire que l'espace ORDINAIRE, comme TRIM() de Postgres", () => {
+    expect(cleExacte('  Loyer  ')).toBe('loyer');
+  });
+
+  it("garde l'espace INSÉCABLE, que Postgres garde aussi", () => {
+    // Collé depuis un tableur. `trim()` de JavaScript le retirerait, pas `TRIM()` de SQL :
+    // l'écran refuserait alors comme doublon un nom que le serveur accepte.
+    expect(cleExacte('Loyer\u00A0')).toBe('loyer\u00a0');
+    expect(cleExacte('Loyer\u00A0')).not.toBe(cleExacte('Loyer'));
+  });
+
+  it("garde l'espace fine insécable", () => {
+    expect(cleExacte('Loyer\u202F')).not.toBe('loyer');
+  });
+});
+
 describe('cleApprochee, la clé du rapprochement', () => {
   it('retire les accents, la ponctuation et le pluriel de fin de mot', () => {
     expect(cleApprochee('Réparations motos')).toBe('reparation moto');
