@@ -81,6 +81,14 @@ jobs:
       - name: Type check
         run: pnpm exec tsc --noEmit --pretty
 
+      # Les tests ne tournaient NULLE PART dans ce pipeline : 171 cas ecrits au fil des
+      # seances, et un `tsc` vert suffisait a livrer. Une regression dans un utilitaire
+      # teste — un separateur de milliers lu de travers, une cle de doublon qui normalise
+      # plus fort que le serveur — passait donc en production sans que rien ne s'allume.
+      # Ils durent moins d'une seconde : il n'y avait aucune raison de les laisser dehors.
+      - name: Tests unitaires
+        run: pnpm test
+
   build:
     needs: typecheck
     runs-on: ubuntu-latest
