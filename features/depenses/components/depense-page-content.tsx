@@ -45,14 +45,20 @@ export default function DepensePageContent() {
   return (
     <div className="flex flex-col gap-6 px-4 ">
       <DepenseHeader />
-      <div className="flex items-center justify-end gap-4">
-        {/* Le bouton d'export etait peint en SUCCES. Exporter n'est pas une reussite,
-            c'est une action ordinaire : le vert y etait reserve pour rien. Et le libelle
-            changeait pendant l'attente, alors que le bouton v3 montre deja son propre
-            indicateur — on lisait « Exportation... » a cote d'un cercle qui tourne. */}
-        <Button isPending={isLoadingDepenseExport} onPress={handleExport} variant="outline">
-          Exporter (Excel)
-        </Button>
+      {/*
+        * ⚠ `items-end` ET NON `items-center`. Les trois filtres portent un libelle
+        * au-dessus de leur champ, le bouton n'en a pas : centres, ils ne s'alignent sur
+        * rien, et le bouton flotte au-dessus de la ligne des champs. Alignes par le BAS,
+        * tout se pose sur la meme ligne de base, celle des champs qu'on lit.
+        *
+        * Et le bouton passe APRES les filtres : exporter agit sur le resultat de ce qui
+        * precede, le lire en premier demandait de deviner sur quoi il porte. Les filtres
+        * se lisent de gauche a droite, l'action vient apres.
+        *
+        * `flex-wrap` parce que la fenetre de travail fait environ 1000 px : quatre
+        * controles sur une ligne s'y ecrasent, et un champ ecrase ne se lit plus.
+        */}
+      <div className="flex flex-wrap items-end justify-end gap-3">
         <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
         <div className="w-full sm:w-[220px]">
           <ChampListe
@@ -64,6 +70,13 @@ export default function DepensePageContent() {
           />
         </div>
         <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
+        {/* Le bouton d'export etait peint en SUCCES. Exporter n'est pas une reussite,
+            c'est une action ordinaire : le vert y etait reserve pour rien. Et le libelle
+            changeait pendant l'attente, alors que le bouton v3 montre deja son propre
+            indicateur — on lisait « Exportation... » a cote d'un cercle qui tourne. */}
+        <Button isPending={isLoadingDepenseExport} onPress={handleExport} variant="outline">
+          Exporter (Excel)
+        </Button>
       </div>
       <StatisticDepenseCards filters={filters} />
       <RepartitionDepense />

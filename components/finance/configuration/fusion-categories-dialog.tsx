@@ -135,14 +135,23 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                       const estSuggere = c.id === suggereId && c.total > 0;
                       const estGarde = c.id === gardeId;
                       return (
-                        <div
+                        /*
+                         * ⚠ LA CARTE ENTIERE EST LA CIBLE, et non sa seule bande de titre.
+                         *
+                         * Le <Radio> n'enveloppait que le nom et la description ; le bloc
+                         * de metriques, qui fait les trois quarts de la hauteur et qui est
+                         * precisement ce qu'on lit pour arbitrer, etait un frere HORS de
+                         * la zone cliquable. Il fallait viser la bande du haut pour
+                         * choisir, en croyant cliquer sur une carte qui en a tout l'air.
+                         */
+                        <Radio
                           className={cn(
-                            'rounded-xl border p-3 transition-colors',
+                            'w-full items-start rounded-xl border p-3 transition-colors',
                             estGarde ? 'border-accent bg-accent-soft/30' : 'border-separator',
                           )}
                           key={c.id}
+                          value={c.id}
                         >
-                          <Radio className="w-full items-start" value={c.id}>
                             <Radio.Content className="flex w-full items-start gap-3">
                               <Radio.Control className="mt-1">
                                 <Radio.Indicator />
@@ -162,24 +171,22 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                                   <span className="truncate text-xs text-muted">{c.description}</span>
                                 )}
                               </span>
+                              <span className="mt-3 flex w-full flex-col gap-1 border-t border-separator pt-2">
+                                {METRIQUES.map((m) => (
+                                  <span className="flex justify-between text-xs" key={m.key}>
+                                    <span className="text-muted">{m.label}</span>
+                                    <span className="font-medium tabular-nums text-foreground">
+                                      {c[m.key] as number}
+                                    </span>
+                                  </span>
+                                ))}
+                                <span className="flex justify-between border-t border-separator pt-1 text-xs font-semibold">
+                                  <span className="text-muted">Total lignes</span>
+                                  <span className="tabular-nums text-foreground">{c.total}</span>
+                                </span>
+                              </span>
                             </Radio.Content>
                           </Radio>
-
-                          <div className="mt-3 flex flex-col gap-1 border-t border-separator pt-2">
-                            {METRIQUES.map((m) => (
-                              <div className="flex justify-between text-xs" key={m.key}>
-                                <span className="text-muted">{m.label}</span>
-                                <span className="font-medium tabular-nums text-foreground">
-                                  {c[m.key] as number}
-                                </span>
-                              </div>
-                            ))}
-                            <div className="flex justify-between border-t border-separator pt-1 text-xs font-semibold">
-                              <span className="text-muted">Total lignes</span>
-                              <span className="tabular-nums text-foreground">{c.total}</span>
-                            </div>
-                          </div>
-                        </div>
                       );
                     })}
                   </div>
