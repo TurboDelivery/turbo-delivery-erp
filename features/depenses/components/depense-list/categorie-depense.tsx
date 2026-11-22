@@ -95,12 +95,17 @@ function SupprimerCategorie({ categorie }: { categorie: ICategorieDepense }) {
 /**
  * Le cumul des depenses d'une categorie.
  *
- * <p>Le backend tient `total_depense` comme un COMPTEUR : il ajoute a la creation d'une
- * depense et retranche a la modification, au marquage paye et a la suppression, en bornant
- * chacune de ces trois soustractions par `Math.max(0, ...)`. Un total negatif n'est donc
- * pas une recette ni un signe metier : c'est un compteur qui a derive, et la liste le
- * rendait en noir, exactement comme un total sain. Il est affiche tel qu'il est stocke,
- * parce que rien ici ne permet de le recalculer, mais il est signale.</p>
+ * <p>⚠ Ce montant etait, jusqu'au 22/11/2026, un COMPTEUR entretenu coup par coup cote
+ * serveur : ajoute a la creation d'une depense, retranche a la modification, au marquage
+ * paye et a la suppression, chaque soustraction bornee par `Math.max(0, ...)`. Il ne
+ * pouvait que deriver, et il derivait : le decaissement, devenu le seul chemin de creation
+ * d'une depense, ne le touchait pas du tout. Un total negatif ne disait donc rien du
+ * metier, et la liste le rendait en noir comme un total sain.</p>
+ *
+ * <p>Le serveur le CALCULE desormais a la lecture, depuis les lignes de `depenses` : somme
+ * des montants rattaches a la categorie, tout l'historique, tous les statuts. L'avertissement
+ * reste en place parce qu'il ne coute rien et qu'il reste vrai dans un cas : un montant
+ * negatif saisi sur une ligne. Mais il ne doit plus se declencher par derive.</p>
  */
 function MontantCumule({ valeur }: { valeur: number }) {
   if (!(typeof valeur === 'number' && valeur < 0)) return <>{formatCFA(valeur)}</>;
@@ -108,7 +113,7 @@ function MontantCumule({ valeur }: { valeur: number }) {
   return (
     <span
       className="inline-flex items-center justify-end gap-1.5 text-warning-soft-foreground"
-      title="Total négatif : le cumul de cette catégorie a dérivé côté serveur. La valeur est affichée telle qu'elle est stockée."
+      title="Total négatif : le cumul de cette catégorie est la somme de ses lignes, l'une au moins porte un montant négatif."
     >
       <AlertTriangle aria-hidden="true" className="size-3.5 shrink-0" />
       {formatCFA(valeur)}
