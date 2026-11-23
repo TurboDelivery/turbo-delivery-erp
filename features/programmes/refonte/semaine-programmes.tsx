@@ -11,6 +11,7 @@ import { VueCouverture } from './vue-couverture';
 import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
 import { aRecuUnSurplus, JOURS_SEMAINE } from '@/features/turboys/utils/couverture.utils';
+import { type CleManque, manquesProgramme, puceSitesDesservis } from '@/features/turboys/utils/manques.utils';
 import { preuvesManquantes } from '@/features/turboys/utils/preuves.utils';
 import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
 import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils';
@@ -92,7 +93,8 @@ export interface SemaineProgrammesProps {
   onCarburant: (p: IProgramme) => void;
   /** Le même geste sur les lignes cochées. */
   onCarburantLot: (programmes: IProgramme[]) => void;
-  onEditer: (p: IProgramme) => void;
+  /** `champ` : ouvrir l'éditeur SUR ce champ (RG-L03, clic sur une pastille de manque). */
+  onEditer: (p: IProgramme, champ?: CleManque) => void;
   onPlanifier: (p: IProgramme) => void;
   onPublier: (p: IProgramme) => void;
   /** Envoyer (ou relancer) la notification au livreur. */
@@ -215,7 +217,7 @@ const STATUT: Record<string, { libelle: string; couleur: 'default' | 'warning' |
  * squelette de chargement comptait `JOURS.length + 4` la ou il en faut cinq de plus ; ni
  * `tsc` ni le build ne l'ont vu, seul l'ecran. Le compte se derive donc d'ici.</p>
  */
-const COLONNES_GRILLE = ['base', 'coche', 'numero', 'livreur', 'postes', ...JOURS.map((j) => j.cle), 'carburant', 'statut', 'actions'];
+const COLONNES_GRILLE = ['base', 'coche', 'numero', 'livreur', ...JOURS.map((j) => j.cle), 'carburant', 'statut', 'actions'];
 
 /** Les populations du document papier, dans son ordre. */
 const TYPES_CARBURANT = ['JOURNALIER', 'SUPERVISEUR_LIVREUR', 'INDEPENDANT'];
@@ -253,16 +255,9 @@ type Vue = 'LIVREURS' | 'COUVERTURE';
  * aucune base, mais il doit en gérer au moins une pour être publiable.</p>
  */
 function estACompleter(p: IProgramme): boolean {
-  const c = p.complement ?? COMPLEMENT_VIDE;
-  if (p.typeLivreur === 'SUPERVISEUR_LIVREUR') {
-    if ((c.basesGerees ?? []).length === 0) return true;
-  } else if (!p.siteId) {
-    return true;
-  }
-  const actifs = (p.jours ?? []).filter((j) => j.actif);
-  if (actifs.length === 0) return true;
-  if (actifs.some((j) => !j.debut || !j.fin)) return true;
-  return estSansCarburant(p);
+  // UNE définition : celle qui nomme les manques sur la ligne. L'onglet, le groupe et le
+  // compteur ne peuvent plus ranger ici un programme auquel aucune pastille ne correspond.
+  return manquesProgramme(p).length > 0;
 }
 
 /** Le livreur dessert-il un site qui n'est pas sa base cette semaine ? (onglet Renforts, §3.2) */
@@ -590,7 +585,6 @@ function LigneSecteur({
           {groupe.secteur ? <span className="text-muted"> · {groupe.secteur}</span> : null}
         </span>
       </Table.Cell>
-      <Table.Cell className={cellule}>{''}</Table.Cell>
       {JOURS.map((j) => {
         const n = presents(j.cle);
         return (
@@ -1291,9 +1285,6 @@ export function SemaineProgrammes({
                   <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="livreur" isRowHeader>
                     Livreur
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="postes">
-                    Site · Postes
-                  </Table.Column>
                   {JOURS.map((j, rang) => (
                     <Table.Column className="sticky top-0 z-20 bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
                       {/* La DATE sous le jour (maquette). « Mar » seul oblige à remonter en
@@ -1362,6 +1353,7 @@ export function SemaineProgrammes({
                     }
                     const p = item.p;
                     const enCours = idEnCours === p.id;
+                    const manques = manquesProgramme(p);
                     const s = STATUT[p.statut ?? ''] ?? {
                       couleur: 'default' as const,
                       libelle: p.statut ?? '—',
@@ -1399,41 +1391,94 @@ export function SemaineProgrammes({
                           </span>
                         </Table.Cell>
 
-                        <Table.Cell>
-                          <span className="block max-w-[12rem] truncate font-medium">{p.livreurNom ?? '—'}</span>
-                          {p.typeLivreur && <span className="block text-xs text-muted">{getTurboyTypeDisplay(p.typeLivreur).label}</span>}
-                          {/*
-                           * Sept jours travailles : le repos n'a pas ete pris, et il se regle.
-                           * La direction veut le lire sans recoupement, ligne par ligne.
-                           */}
-                          {estSeptSurSept(p.jours) && (
-                            <Tooltip>
-                              <Chip className="mt-1" color="warning" size="sm" variant="soft">
-                                <Chip.Label>7 j/7, repos à compenser</Chip.Label>
-                              </Chip>
-                              <Tooltip.Content>{OBSERVATION_SEPT_SUR_SEPT}</Tooltip.Content>
-                            </Tooltip>
-                          )}
-                        </Table.Cell>
-
-                        <Table.Cell>
+                        {/*
+                         * LA CELLULE DU LIVREUR (maquette, RG-L03, RG-L04, §3.2).
+                         *
+                         * La colonne « Site · Postes » a disparu : le site de base est
+                         * dans le bloc de gauche, et ce que la ligne a de propre s'écrit
+                         * sous le nom. Dans l'ordre : le type, le site (seulement quand
+                         * aucun bloc de base ne le dit déjà), les bases gérées d'un
+                         * superviseur-livreur, les sites desservis en plus de la base, puis
+                         * CE QUI MANQUE, nommé et cliquable. Les postes passent dans
+                         * l'infobulle du nom et restent dans le détail du programme.
+                         *
+                         * Le liseré orange à gauche marque une ligne incomplète : sur
+                         * trente-huit lignes, l'œil descend le long du bord sans lire.
+                         */}
+                        <Table.Cell className={cn(manques.length > 0 && 'shadow-[inset_3px_0_0_var(--warning)]')}>
                           {(() => {
-                            /*
-                             * Le site de la semaine d'abord, les postes desservis dessous. Un poste
-                             * qui EST le site ne se repete pas : la cellule affichait deux fois le
-                             * meme nom, l'un sous l'autre.
-                             */
+                            const c = p.complement ?? COMPLEMENT_VIDE;
+                            const estSuperviseur = p.typeLivreur === 'SUPERVISEUR_LIVREUR';
                             const site = p.siteId ? (nomSite.get(p.siteId) ?? 'Site inconnu') : null;
-                            const autresPostes = postesSemaine(p).filter((n) => n !== site);
+                            const postes = postesSemaine(p).filter((n) => n !== site);
+                            const nom = p.livreurNom ?? '—';
+                            // Une clé « 2-… » est un groupe de base : le bloc de gauche porte déjà le site.
+                            const dansUneBase = item.groupe?.cle.startsWith('2-') ?? false;
+                            const bases = estSuperviseur ? (c.basesGerees ?? []).map((id) => nomSite.get(id) ?? 'Site inconnu') : [];
+                            const desservis = estSuperviseur
+                              ? []
+                              : (c.sitesDesservis ?? []).filter((id) => id !== p.siteId).map((id) => nomSite.get(id) ?? 'Site inconnu');
+                            const { puces, reste } = puceSitesDesservis(desservis);
                             return (
                               <>
-                                <span className="block max-w-[14rem] truncate text-xs font-medium text-foreground">
-                                  {site ?? 'Sans site'}
-                                  {site && p.siteDeLaSemaine ? <span className="font-normal text-muted"> · cette semaine</span> : null}
+                                <span
+                                  className="block max-w-[14rem] truncate font-medium"
+                                  title={postes.length > 0 ? `${nom}\nPostes : ${postes.join(' · ')}` : nom}
+                                >
+                                  {nom}
                                 </span>
-                                {autresPostes.length > 0 ? (
-                                  <span className="block max-w-[14rem] truncate text-xs text-muted">{autresPostes.join(' · ')}</span>
+                                {p.typeLivreur && <span className="block text-xs text-muted">{getTurboyTypeDisplay(p.typeLivreur).label}</span>}
+                                {!estSuperviseur && !dansUneBase && site ? (
+                                  <span className="block max-w-[14rem] text-xs text-muted">{site}</span>
                                 ) : null}
+                                {bases.length > 0 && (
+                                  <span className="mt-1 flex max-w-[14rem] flex-wrap gap-1">
+                                    {bases.map((n) => (
+                                      <Chip key={n} size="sm" variant="soft">
+                                        <Chip.Label>{n}</Chip.Label>
+                                      </Chip>
+                                    ))}
+                                  </span>
+                                )}
+                                {puces.length > 0 && (
+                                  <span
+                                    className="mt-0.5 flex max-w-[14rem] flex-wrap gap-x-1.5 text-[11px] font-medium leading-tight text-warning"
+                                    title={reste.length > 0 ? `Sites desservis : ${desservis.join(' · ')}` : undefined}
+                                  >
+                                    {puces.map((n) => (
+                                      <span key={n}>+ {n}</span>
+                                    ))}
+                                    {reste.length > 0 && <span className="tabular-nums">+{reste.length}</span>}
+                                  </span>
+                                )}
+                                {manques.length > 0 && (
+                                  <span className="mt-1 flex max-w-[14rem] flex-wrap gap-1">
+                                    {manques.map((m) => (
+                                      <Chip
+                                        className="cursor-pointer"
+                                        color={m.ton}
+                                        key={m.cle}
+                                        onClick={() => onEditer(p, m.cle)}
+                                        size="sm"
+                                        variant="soft"
+                                      >
+                                        <Chip.Label>{m.libelle}</Chip.Label>
+                                      </Chip>
+                                    ))}
+                                  </span>
+                                )}
+                                {/*
+                                 * Sept jours travailles : le repos n'a pas ete pris, et il se regle.
+                                 * La direction veut le lire sans recoupement, ligne par ligne.
+                                 */}
+                                {estSeptSurSept(p.jours) && (
+                                  <Tooltip>
+                                    <Chip className="mt-1" color="warning" size="sm" variant="soft">
+                                      <Chip.Label>7 j/7, repos à compenser</Chip.Label>
+                                    </Chip>
+                                    <Tooltip.Content>{OBSERVATION_SEPT_SUR_SEPT}</Tooltip.Content>
+                                  </Tooltip>
+                                )}
                               </>
                             );
                           })()}
@@ -1451,7 +1496,7 @@ export function SemaineProgrammes({
                         ))}
 
                         <Table.Cell className="text-xs">
-                          <CelluleCarburant onCombler={() => onEditer(p)} p={p} />
+                          <CelluleCarburant onCombler={() => onEditer(p, 'CARBURANT')} p={p} />
                         </Table.Cell>
 
                         <Table.Cell>
@@ -1498,6 +1543,26 @@ export function SemaineProgrammes({
                               return (
                                 <span className={cn('max-w-[14rem] text-[11px] leading-tight', w.ton === 'attention' ? 'text-warning-soft-foreground' : 'text-muted')}>
                                   {w.texte}
+                                </span>
+                              );
+                            })()}
+                            {/*
+                             * Les preuves Wave manquantes (maquette, RG-W05). Elles
+                             * n'apparaissaient que sur l'œil d'un jour : il fallait parcourir
+                             * sept cases pour savoir si un livreur devait encore une capture.
+                             */}
+                            {(() => {
+                              const n = preuvesManquantes(p, JOURS_SEMAINE);
+                              if (n === 0) return null;
+                              const relance = p.preuvesRelanceLe ? new Date(p.preuvesRelanceLe) : null;
+                              const quand =
+                                relance && !Number.isNaN(relance.getTime())
+                                  ? relance.toLocaleString('fr-FR', { day: '2-digit', hour: '2-digit', minute: '2-digit', month: '2-digit' })
+                                  : null;
+                              return (
+                                <span className="max-w-[14rem] text-[11px] leading-tight text-warning-soft-foreground">
+                                  {n} preuve{n > 1 ? 's' : ''} Wave manquante{n > 1 ? 's' : ''}
+                                  {quand ? ` · relancé le ${quand}` : ''}
                                 </span>
                               );
                             })()}

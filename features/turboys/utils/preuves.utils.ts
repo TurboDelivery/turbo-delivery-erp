@@ -84,8 +84,17 @@ export function preuvesDuJour(p: IProgramme, jour: string): PreuvesDuJour {
   };
 }
 
-/** Les preuves manquantes d'un programme, sur les jours DÉJÀ PASSÉS. */
+/**
+ * Les preuves manquantes d'un programme, sur les jours DÉJÀ PASSÉS.
+ *
+ * <p>⚠ Seul un programme PARTI chez le livreur (notifié ou accepté) doit une preuve : c'est
+ * la règle du serveur (`RelancePreuvesService`), qui ne relance que ceux-là. Sans elle, un
+ * brouillon resté en plan sur une semaine passée affichait « 6 preuves manquantes » pour de
+ * l'argent qui n'a jamais été versé, et l'onglet annonçait plus de retards que la relance
+ * n'en trouvait.</p>
+ */
 export function preuvesManquantes(p: IProgramme, jours: readonly string[], aujourdhui = new Date()): number {
+  if (p.statut !== 'NOTIFIE' && p.statut !== 'ACCEPTE') return 0;
   let n = 0;
   for (const jour of jours) {
     const j = (p.jours ?? []).find((x) => x.jour === jour);

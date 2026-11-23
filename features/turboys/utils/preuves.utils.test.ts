@@ -163,4 +163,14 @@ describe('preuvesManquantes', () => {
   it('un jour sans date n’est pas compté : on ne sait pas s’il est passé', () => {
     expect(preuvesManquantes(prog({}), JOURS, new Date('2026-11-25'))).toBe(0);
   });
+
+  it('⚠ un programme qui n\'est pas parti chez le livreur ne doit aucune preuve', () => {
+    // Même jeu qu'au-dessus, où il en manque : seul le statut change.
+    const parti = prog({ jours: [{ actif: true, date: '2026-11-23', debut: '10:00', fin: '23:00', jour: 'LUNDI', montantCarburant: 5000 }] });
+    expect(preuvesManquantes(parti, JOURS, new Date('2026-11-25'))).toBe(1);
+    for (const statut of ['BROUILLON', 'PLANIFIE', 'REFUSE'] as const) {
+      expect(preuvesManquantes({ ...parti, statut }, JOURS, new Date('2026-11-25'))).toBe(0);
+    }
+    expect(preuvesManquantes({ ...parti, statut: 'ACCEPTE' }, JOURS, new Date('2026-11-25'))).toBe(1);
+  });
 });

@@ -20,6 +20,7 @@ import {
   IProgramme,
 } from '@/features/turboys/types/programme.types';
 import { carburantPrevisionnel } from '@/features/turboys/utils/carburant.utils';
+import type { CleManque } from '@/features/turboys/utils/manques.utils';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { formatMontant } from '@/utils/format.utils';
 
@@ -40,6 +41,20 @@ const nomLivreur = (l: {
 }) => `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() || l.telephone || l.matricule || 'Livreur';
 
 const ENVOYE = ['ACCEPTE', 'NOTIFIE', 'REFUSE'];
+
+/**
+ * Où poser le curseur pour chaque manque, du plus précis au plus général.
+ *
+ * <p>Un programme sans aucun jour travaillé n'a ni champ d'heure ni champ de carburant :
+ * seuls les interrupteurs « travaillé / repos » existent. D'où le repli sur le premier
+ * interrupteur, qui est justement le geste à faire.</p>
+ */
+const CIBLES_DU_CHAMP: Record<CleManque, string[]> = {
+  BASES: ['[data-champ="BASES"] input', '[data-champ="BASES"] button'],
+  CARBURANT: ['input[aria-label^="Carburant"]', '[aria-label^="Carburant"] input', '[role="switch"]'],
+  HORAIRES: ['[aria-label^="Montée"] [role="spinbutton"]', '[role="switch"]'],
+  SITE: ['[data-champ="SITE"] input', '[data-champ="SITE"] button'],
+};
 
 /**
  * Créer ou modifier le programme hebdomadaire d'un livreur (SPEC §6.5).
@@ -73,8 +88,14 @@ export function ProgrammeFormModal({
   onSurplusJour,
   programme,
   semaineInitiale,
+  champInitial,
 }: {
   anneeInitiale: number;
+  /**
+   * Le champ sur lequel OUVRIR la fenêtre (RG-L03, CA-41) : celui que désigne la pastille
+   * de manque cliquée dans la liste. Absent = ouverture ordinaire, en haut.
+   */
+  champInitial?: CleManque | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   /**
@@ -226,6 +247,33 @@ export function ProgrammeFormModal({
     });
   };
 
+  /*
+   * OUVRIR SUR LE CHAMP MANQUANT (RG-L03).
+   *
+   * Cliquer « Horaires à renseigner » ouvrait la fenêtre en haut : il restait à trouver le
+   * champ parmi sept lignes de jours. On l'amène au centre et on y pose le curseur.
+   *
+   * ⚠ Après un court délai : la fenêtre se monte, les listes arrivent, et un focus posé
+   * trop tôt est repris par le dialogue qui le remet sur son premier champ.
+   */
+  React.useEffect(() => {
+    if (!isOpen || !champInitial) return;
+    const minuterie = window.setTimeout(() => {
+      const dialogues = document.querySelectorAll<HTMLElement>('[role="dialog"]');
+      const racine = dialogues[dialogues.length - 1];
+      if (!racine) return;
+      for (const selecteur of CIBLES_DU_CHAMP[champInitial]) {
+        const cible = racine.querySelector<HTMLElement>(selecteur);
+        if (cible) {
+          cible.scrollIntoView({ block: 'center' });
+          cible.focus();
+          return;
+        }
+      }
+    }, 350);
+    return () => window.clearTimeout(minuterie);
+  }, [isOpen, champInitial]);
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
@@ -355,7 +403,7 @@ export function ProgrammeFormModal({
                   téléphone. Chez un superviseur-livreur, les deux sont remplacés par un
                   seul champ « Bases gérées » (RG-V01). */}
               {estSuperviseur ? (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1" data-champ="BASES">
                   <ChampListeMultiple
                     label="Bases gérées"
                     onChange={setBasesGerees}
@@ -370,7 +418,7 @@ export function ProgrammeFormModal({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1" data-champ="SITE">
                     <ChampListe
                       estDesactive={isLoading || restaurantsQuery.isLoading}
                       label="Site de base"

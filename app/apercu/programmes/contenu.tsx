@@ -8,12 +8,15 @@ import { CarburantRapideModal } from '@/components/turboys/programmes/carburant-
 import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplication-semaine-dialog';
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
 import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
+import { ProgrammeFormModal } from '@/components/turboys/programmes/programme-form-modal';
 import { LigneRelancePreuves } from '@/components/turboys/programmes/relance-preuves-dialog';
 import { SoumissionSurplus } from '@/components/turboys/programmes/soumission-surplus';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
 import { programmeKeys } from '@/features/turboys/queries/programme.query';
+import { ticketsKeyQuery } from '@/features/tickets/queries/index.query';
+import { type CleManque, manquesProgramme } from '@/features/turboys/utils/manques.utils';
 import type { IAuditAction } from '@/features/supervision/types';
 import type {
     IAutosuffisanceJour,
@@ -112,7 +115,8 @@ function fabriquer(graine: number, nb: number, statuts: StatutProgramme[]): IPro
              * un surplus non prouvé (donc orange, « 1/2 »), les autres restent gris.
              */
             complement: {
-                basesGerees: type === 'SUPERVISEUR_LIVREUR' ? [`r${i % RESTOS.length}`, `r${(i + 1) % RESTOS.length}`] : [],
+                // Un superviseur-livreur sur deux n'a pas encore de base : « Bases à renseigner » doit se voir.
+                basesGerees: type === 'SUPERVISEUR_LIVREUR' && i % 2 === 0 ? [`r${i % RESTOS.length}`, `r${(i + 1) % RESTOS.length}`] : [],
                 preuvesParJour: (
                     i % 3 !== 2 && jours[0].actif
                         ? {
@@ -130,7 +134,13 @@ function fabriquer(graine: number, nb: number, statuts: StatutProgramme[]): IPro
                               ],
                           }
                         : {}) as Record<string, IPreuveCarburant[]>,
-                sitesDesservis: i % 4 === 1 ? [`r${(i + 2) % RESTOS.length}`] : [],
+                // Un site desservi le plus souvent, quatre de temps en temps : les deux puces puis « +2 ».
+                sitesDesservis:
+                    i % 8 === 5
+                        ? [1, 2, 3, 4].map((d) => `r${(i + d) % RESTOS.length}`)
+                        : i % 4 === 1
+                          ? [`r${(i + 2) % RESTOS.length}`]
+                          : [],
                 sitesParJour: (i % 4 === 1 ? { MERCREDI: [`r${(i + 2) % RESTOS.length}`] } : {}) as Record<string, string[]>,
                 surplusParJour: (
                     i % 3 === 1 && jours[0].actif
@@ -260,6 +270,58 @@ function BancCarburantRapide({ programmes }: { programmes: IProgramme[] }) {
  * <p>Semaine 39 : 29 programmes (la source). Semaine 40 : vide. Semaine 41 : 14
  * programmes, pour voir le refus.</p>
  */
+/**
+ * La fenêtre « Modifier le programme », ouverte SUR le champ manquant (RG-L03, CA-41).
+ *
+ * <p>La page qui la monte exige une session : sans ce banc, on ne pouvait pas voir où le
+ * curseur se pose quand on clique une pastille de manque. Un bouton par manque ; chacun
+ * ouvre le premier programme du jeu à qui il manque justement cela.</p>
+ */
+function BancFormulaire({ programmes }: { programmes: IProgramme[] }) {
+    const [cas, setCas] = React.useState<{ champ: CleManque; p: IProgramme } | null>(null);
+
+    const client = React.useMemo(() => {
+        const c = new QueryClient({
+            defaultOptions: {
+                queries: { gcTime: Infinity, refetchOnMount: false, refetchOnReconnect: false, refetchOnWindowFocus: false, retry: false, staleTime: Infinity },
+            },
+        });
+        c.setQueryData(['restaurants', 'all', 'programmes'], RESTOS.map((nom, i) => ({ id: `r${i}`, nomEtablissement: nom })));
+        c.setQueryData(ticketsKeyQuery('livreur-list'), programmes.map((p) => ({ id: p.livreurId, nom: p.livreurNom, prenoms: '', typeLivreur: p.typeLivreur })));
+        return c;
+    }, [programmes]);
+
+    const premier = (champ: CleManque) => programmes.find((p) => manquesProgramme(p).some((m) => m.cle === champ));
+
+    return (
+        <section className="mt-6 rounded-lg border border-separator p-4">
+            <h2 className="mb-3 text-sm font-semibold">Modifier le programme, ouvert sur le champ manquant</h2>
+            <div className="flex flex-wrap gap-2">
+                {(['SITE', 'BASES', 'HORAIRES', 'CARBURANT'] as const).map((champ) => {
+                    const p = premier(champ);
+                    return (
+                        <Button isDisabled={!p} key={champ} onPress={() => p && setCas({ champ, p })} size="sm" variant="outline">
+                            Ouvrir sur {champ}
+                        </Button>
+                    );
+                })}
+            </div>
+            <QueryClientProvider client={client}>
+                <ProgrammeFormModal
+                    anneeInitiale={2026}
+                    champInitial={cas?.champ ?? null}
+                    isOpen={cas !== null}
+                    onOpenChange={(ouvert) => {
+                        if (!ouvert) setCas(null);
+                    }}
+                    programme={cas?.p ?? null}
+                    semaineInitiale={35}
+                />
+            </QueryClientProvider>
+        </section>
+    );
+}
+
 function BancDuplication() {
     const [ouvert, setOuvert] = React.useState(false);
 
@@ -650,7 +712,7 @@ export default function ApercuProgrammes() {
                         onCarburant={(p) => noter(`Carburant de ${p.livreurNom}`)}
                         onCarburantLot={(ps) => noter(`Carburant en lot sur ${ps.length} programme(s)`)}
                         onDupliquerSemainePrecedente={() => noter('Duplication de la semaine précédente')}
-                        onEditer={(p) => noter(`Édition de ${p.livreurNom}`)}
+                        onEditer={(p, champ) => noter(`Édition de ${p.livreurNom}${champ ? ` sur le champ ${champ}` : ''}`)}
                         onEnvoyer={(p) => noter(`Envoi au livreur ${p.livreurNom}`)}
                         onExporterExcel={() => noter('Export Excel')}
                         onExporterPdf={() => noter('Export PDF')}
@@ -705,6 +767,7 @@ export default function ApercuProgrammes() {
                         ]}
                     />
                     <BancEditeur />
+                    <BancFormulaire programmes={JEUX.ordinaire.lignes} />
                     <BancExports programmes={JEUX.ordinaire.lignes} />
                     <BancDuplication />
                     <BancHistorique />

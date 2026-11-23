@@ -18,6 +18,7 @@ import { RelancePreuvesConnectee, RelancePreuvesDialog } from './relance-preuves
 import { SoumissionSurplusConnectee } from './soumission-surplus';
 import { SurplusCarburantDialog } from './surplus-carburant-dialog';
 import { joursAvecDates } from './weekly-jours-editor';
+import type { CleManque } from '@/features/turboys/utils/manques.utils';
 import { ErrorBoundary } from '@/components/common/error-boundary';
 import { useAbility } from '@/hooks/use-ability';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
@@ -100,6 +101,8 @@ export default function ProgrammesSection() {
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<IProgramme | null>(null);
+  // Le champ sur lequel ouvrir l'éditeur, quand on y arrive par une pastille de manque.
+  const [champEdition, setChampEdition] = React.useState<CleManque | null>(null);
   /**
    * L'aperçu : le programme regardé, et l'ordre dans lequel l'écran le montrait.
    *
@@ -408,7 +411,10 @@ export default function ProgrammesSection() {
           onCarburantLot={setCarburantDe}
           onDupliquerSemainePrecedente={() => setDupliquerOuvert(true)}
           onDupliquerSuivante={(p) => runAction(p.id, dupliquerSuivante.mutateAsync)}
-          onEditer={setEditing}
+          onEditer={(p, champ) => {
+            setChampEdition(champ ?? null);
+            setEditing(p);
+          }}
           onEnvoyer={(p) => runAction(p.id, envoyer.mutateAsync)}
           onExporterExcel={() => exporterProgrammesExcel(programmesFiltres, annee, semaine, contexteExport)}
           onExporterPdf={() =>
@@ -475,9 +481,13 @@ export default function ProgrammesSection() {
       />
       <ProgrammeFormModal
         anneeInitiale={annee}
+        champInitial={champEdition}
         isOpen={!!editing}
         onOpenChange={(open) => {
-          if (!open) setEditing(null);
+          if (!open) {
+            setEditing(null);
+            setChampEdition(null);
+          }
         }}
         /*
          * Depuis une ligne de jour de l'éditeur. La fenêtre de surplus s'ouvre PAR-DESSUS
@@ -507,6 +517,7 @@ export default function ProgrammesSection() {
         nomSite={nomSite}
         onEditer={(p) => {
           setApercu(null);
+          setChampEdition(null);
           setEditing(p);
         }}
         onFermer={() => setApercu(null)}
