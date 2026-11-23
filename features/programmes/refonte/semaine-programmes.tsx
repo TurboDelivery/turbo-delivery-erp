@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Card, Checkbox, Chip, ComboBox, Dropdown, Input, Label, ListBox, SearchField, type Selection, Separator, Spinner, Table, ToggleButton, ToggleButtonGroup, Tooltip } from '@heroui-v3/react';
-import { ChevronDown, MoreHorizontal, TriangleAlert } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, Settings2, TriangleAlert } from 'lucide-react';
 import React from 'react';
 
 import { BoutonOeilPreuves } from '@/components/turboys/programmes/preuves-carburant-dialog';
@@ -169,6 +169,15 @@ export interface SemaineProgrammesProps {
   onRelancerPreuves?: (p: IProgramme) => void;
   /** La ligne de relance groupée, rendue par l'appelant : elle porte ses propres requêtes. */
   relancePreuves?: React.ReactNode;
+
+  /**
+   * Les secteurs et leurs sites (§8.6). Ils alimentent les onglets de filtre et le
+   * sous-titre des groupes. Liste vide = aucun secteur configuré, et les onglets de
+   * secteur n'apparaissent pas du tout.
+   */
+  secteurs?: { id: string; nom: string; siteIds: string[] }[];
+  /** Ouvrir la configuration des secteurs (§8.6). Absent = pas de bouton. */
+  onConfigurerSecteurs?: () => void;
 }
 
 const JOURS = [
@@ -406,7 +415,7 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
  * COLONNES_GRILLE. Loin d'être une contrainte subie, les sept cellules de jour portent
  * précisément les présents du groupe, que la règle demande.</p>
  */
-function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme[]; titre: string } }) {
+function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string } }) {
   const totaux = totauxCarburant(groupe.programmes);
   const presents = (cle: string) =>
     groupe.programmes.filter((p) => (p.jours ?? []).some((j) => (j.jour ?? '').toUpperCase() === cle && j.actif)).length;
@@ -418,6 +427,9 @@ function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme
         <span className="block text-sm font-semibold text-foreground">{groupe.titre}</span>
         <span className="block text-xs text-muted tabular-nums">
           {groupe.programmes.length} livreur{groupe.programmes.length > 1 ? 's' : ''}
+          {/* Le secteur de la base, quand il est connu : c'est lui qui relie cette
+              base aux onglets et aux groupes de l'export. */}
+          {groupe.secteur ? <span className="text-muted"> · {groupe.secteur}</span> : null}
         </span>
       </Table.Cell>
       <Table.Cell>{''}</Table.Cell>
@@ -497,6 +509,8 @@ export function SemaineProgrammes({
   onPreuves,
   onRelancerPreuves,
   relancePreuves = null,
+  secteurs = [],
+  onConfigurerSecteurs,
 }: SemaineProgrammesProps) {
   const [recherche, setRecherche] = React.useState('');
   const [seulement, setSeulement] = React.useState<Onglet>('TOUS');
@@ -504,9 +518,26 @@ export function SemaineProgrammes({
   const [grouper, setGrouper] = React.useState(true);
   /** Par livreur, ou par site (§5.2). La liste reste l'entrée par défaut : c'est elle qu'on vient éditer. */
   const [vue, setVue] = React.useState<Vue>('LIVREURS');
+  /** Le secteur filtré, ou `'TOUS'`. Les onglets n'existent que s'il y a des secteurs. */
+  const [secteurFiltre, setSecteurFiltre] = React.useState('TOUS');
   const [coches, setCoches] = React.useState<Selection>(new Set());
   /** Le nom d'un site par son identifiant : la grille l'écrit sur chaque ligne. */
   const nomSite = React.useMemo(() => new Map(partenaires.map((x) => [x.id, x.nom])), [partenaires]);
+
+  /**
+   * Le secteur de chaque site (§8.6).
+   *
+   * <p>Un site n'appartient qu'à un seul secteur, la règle est posée en base : une Map
+   * suffit, et un site absent est « Sans secteur » — l'absence de clé, pas une valeur
+   * particulière.</p>
+   */
+  const secteurDuSite = React.useMemo(() => {
+    const m = new Map<string, string>();
+    for (const s of secteurs) {
+      for (const id of s.siteIds) m.set(id, s.nom);
+    }
+    return m;
+  }, [secteurs]);
 
   /*
    * La selection ne survit ni au changement de semaine ni a un echec de lecture :
@@ -529,9 +560,22 @@ export function SemaineProgrammes({
       if (seulement === 'SUPERVISEURS' && p.typeLivreur !== 'SUPERVISEUR_LIVREUR') return false;
       if (seulement === 'AVEC_SURPLUS' && !aRecuUnSurplus(p)) return false;
       if (seulement === 'PREUVES_MANQUANTES' && preuvesManquantes(p, JOURS_SEMAINE) === 0) return false;
+      /*
+       * Le filtre de secteur porte sur la BASE du livreur, pas sur ses sites desservis :
+       * un renfort ponctuel dans un autre secteur ne doit pas le faire disparaître de
+       * son secteur d'attache, où son chef le cherche.
+       */
+      if (secteurFiltre !== 'TOUS') {
+        const secteur = p.siteId ? secteurDuSite.get(p.siteId) : undefined;
+        if (secteurFiltre === 'SANS') {
+          if (secteur) return false;
+        } else if (secteur !== secteurFiltre) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [programmes, recherche, seulement]);
+  }, [programmes, recherche, secteurDuSite, secteurFiltre, seulement]);
 
   /**
    * RG-L01 — LE REGROUPEMENT.
@@ -549,10 +593,17 @@ export function SemaineProgrammes({
    * demande.</p>
    */
   const groupes = React.useMemo(() => {
-    const parCle = new Map<string, { cle: string; programmes: IProgramme[]; titre: string }>();
+    const parCle = new Map<string, { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string }>();
     for (const p of lignes) {
       let cle: string;
       let titre: string;
+      /*
+       * ⚠ Le secteur ne vaut QUE pour un groupe de base. « À compléter » et
+       * « Superviseurs-livreurs » rassemblent des livreurs de bases différentes :
+       * y écrire le secteur du premier d'entre eux serait une affirmation fausse,
+       * et elle ne se verrait pas.
+       */
+      let secteur: string | null = null;
       if (estACompleter(p)) {
         cle = '0-a-completer';
         titre = 'À compléter';
@@ -563,8 +614,9 @@ export function SemaineProgrammes({
         const nom = p.siteId ? (nomSite.get(p.siteId) ?? p.siteId) : 'Sans site';
         cle = `2-${nom.toLocaleLowerCase('fr')}`;
         titre = nom;
+        secteur = p.siteId ? (secteurDuSite.get(p.siteId) ?? null) : null;
       }
-      const g = parCle.get(cle) ?? { cle, programmes: [], titre };
+      const g = parCle.get(cle) ?? { cle, programmes: [], secteur, titre };
       g.programmes.push(p);
       parCle.set(cle, g);
     }
@@ -573,7 +625,7 @@ export function SemaineProgrammes({
       g.programmes.sort((a, b) => (a.livreurNom ?? '').localeCompare(b.livreurNom ?? '', 'fr'));
     }
     return ordonnes;
-  }, [lignes, nomSite]);
+  }, [lignes, nomSite, secteurDuSite]);
 
   /** Les lignes effectivement rendues, en-têtes de groupe compris, dans l'ordre d'affichage. */
   const aPlat = React.useMemo(
@@ -620,6 +672,11 @@ export function SemaineProgrammes({
   );
   const compteSansCarburant = React.useMemo(() => programmes.filter(estSansCarburant).length, [programmes]);
   const compteAvecSurplus = React.useMemo(() => programmes.filter(aRecuUnSurplus).length, [programmes]);
+  /** Les programmes dont la base n'est dans aucun secteur. */
+  const compteSansSecteur = React.useMemo(
+    () => programmes.filter((p) => !p.siteId || !secteurDuSite.has(p.siteId)).length,
+    [programmes, secteurDuSite],
+  );
   const comptePreuvesManquantes = React.useMemo(
     () => programmes.filter((p) => preuvesManquantes(p, JOURS_SEMAINE) > 0).length,
     [programmes],
@@ -894,6 +951,58 @@ export function SemaineProgrammes({
        *
        * Chacun porte son compte : un onglet vide se voit sans avoir à cliquer dedans.
        */}
+      {/*
+       * LES ONGLETS DE SECTEUR (§8.6). Ils n'apparaissent QUE si des secteurs sont
+       * configurés : une rangée d'onglets à un seul élément « Tous » occuperait une
+       * ligne entière pour ne rien filtrer.
+       *
+       * « Sans secteur » n'est proposé que s'il y a vraiment des sites orphelins —
+       * sinon l'onglet promet un contenu qui n'existe pas.
+       */}
+      {secteurs.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <ToggleButtonGroup
+            onSelectionChange={(sel) => {
+              const v = Array.from(sel)[0];
+              if (v) setSecteurFiltre(String(v));
+            }}
+            selectedKeys={new Set([secteurFiltre])}
+            selectionMode="single"
+          >
+            <ToggleButton id="TOUS">Tous les secteurs</ToggleButton>
+            {secteurs.map((sect) => {
+              const n = programmes.filter((p) => p.siteId && sect.siteIds.includes(p.siteId)).length;
+              return (
+                <ToggleButton id={sect.nom} key={sect.id}>
+                  {sect.nom} {n > 0 ? n : ''}
+                </ToggleButton>
+              );
+            })}
+            {compteSansSecteur > 0 ? (
+              <ToggleButton id="SANS">Sans secteur {compteSansSecteur}</ToggleButton>
+            ) : null}
+          </ToggleButtonGroup>
+
+          {onConfigurerSecteurs ? (
+            <Button className="ms-auto" onPress={onConfigurerSecteurs} size="sm" variant="ghost">
+              <Settings2 aria-hidden="true" className="size-4" />
+              Secteurs
+            </Button>
+          ) : null}
+        </div>
+      )}
+
+      {/* Aucun secteur configuré : le bouton reste accessible, sinon on ne pourrait
+          jamais en créer le premier. */}
+      {secteurs.length === 0 && onConfigurerSecteurs ? (
+        <div className="flex justify-end">
+          <Button onPress={onConfigurerSecteurs} size="sm" variant="ghost">
+            <Settings2 aria-hidden="true" className="size-4" />
+            Configurer les secteurs
+          </Button>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         <ToggleButtonGroup
           onSelectionChange={(sel) => {

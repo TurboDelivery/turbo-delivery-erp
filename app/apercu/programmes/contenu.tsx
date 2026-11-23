@@ -686,6 +686,13 @@ export default function ApercuProgrammes() {
                            montre pas du tout, et sa couleur est précisément ce qu'on doit
                            pouvoir vérifier à l'œil. */
                         onPreuves={(p, jour) => noter(`Preuves de ${p.livreurNom} — ${jour}`)}
+                        /* Deux secteurs et un site orphelin : les onglets, leurs comptes
+                           et « Sans secteur » doivent tous être visibles d'un coup. */
+                        onConfigurerSecteurs={() => noter('Configuration des secteurs')}
+                        secteurs={[
+                            { id: 's1', nom: 'Abidjan Nord', siteIds: ['r0', 'r1'] },
+                            { id: 's2', nom: 'Abidjan Sud', siteIds: ['r2'] },
+                        ]}
                     />
                     <BancEditeur />
                     <BancExports programmes={JEUX.ordinaire.lignes} />

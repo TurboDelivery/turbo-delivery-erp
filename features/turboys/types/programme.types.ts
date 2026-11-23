@@ -390,3 +390,28 @@ export interface IRelancePreuves {
   nbManquantes: number;
   livreurs: ILivreurEnRetard[];
 }
+
+/**
+ * Un secteur ou une couverture, avec ses sites (§8.5, §8.6).
+ *
+ * Même forme pour les deux : ils ne diffèrent que par leur usage — le secteur alimente
+ * les onglets et les groupes de la liste, la couverture regroupe la grille site × jour.
+ */
+export interface IGroupeSites {
+  id: string;
+  nom: string;
+  ordre: number;
+  siteIds: string[];
+}
+
+export interface IGroupeSitesPayload {
+  nom: string;
+  ordre?: number;
+  /**
+   * `undefined` = ne pas toucher aux sites ; `[]` = vider le groupe.
+   *
+   * ⚠ La distinction compte : un simple renommage ne doit pas détacher tous les sites
+   * parce que le formulaire ne les a pas renvoyés.
+   */
+  siteIds?: string[];
+}

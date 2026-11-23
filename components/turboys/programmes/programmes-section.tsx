@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { AffectationSiteDialog } from './affectation-site-dialog';
 import { CarburantRapideModal } from './carburant-rapide-modal';
+import { ConfigurationGroupesDialog } from './configuration-groupes-dialog';
 import { DuplicationSemaineDialog } from './duplication-semaine-dialog';
 import { EngagementCarburantConnecte } from './engagement-carburant';
 import { ProgrammeApercuPanneau } from './programme-apercu-panneau';
@@ -21,6 +22,7 @@ import { ErrorBoundary } from '@/components/common/error-boundary';
 import { useAbility } from '@/hooks/use-ability';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
+import { useGroupesSitesQuery } from '@/features/turboys/queries/groupes-sites.query';
 import { creerProgrammeAction } from '@/features/turboys/actions/programme.actions';
 import {
   useAutosuffisanceSemaineQuery,
@@ -130,6 +132,18 @@ export default function ProgrammesSection() {
   const peutRelancerPreuve = ability.can('relancer-preuve', 'ProgrammeLivreur');
   const [preuvesDe, setPreuvesDe] = React.useState<{ jour: string; programme: IProgramme } | null>(null);
   const [relanceOuverte, setRelanceOuverte] = React.useState(false);
+
+  /**
+   * Secteurs et couvertures (§8.5, §8.6).
+   *
+   * RG-K07 : la configuration revient à Admin, Chef aux opérations, DGA et DG. ⚠ Pas au
+   * comptable, à la différence du carburant : un secteur est une décision
+   * d'organisation, pas de dépense. La LECTURE est ouverte, sans quoi la liste ne
+   * saurait plus former ses groupes pour personne.
+   */
+  const peutConfigurerGroupes = ability.can('configurer-secteur', 'ProgrammeLivreur');
+  const secteursQuery = useGroupesSitesQuery('secteurs');
+  const [configOuverte, setConfigOuverte] = React.useState<'secteurs' | 'couvertures' | null>(null);
   /** Le jour pré-rempli quand le geste vient d'une ligne de l'éditeur. */
   const [surplusJour, setSurplusJour] = React.useState<string | null>(null);
 
@@ -413,6 +427,8 @@ export default function ProgrammesSection() {
           onPartenaireFiltre={setPartenaireFiltre}
           onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
           onPublier={(p) => runAction(p.id, publier.mutateAsync)}
+          onConfigurerCouvertures={() => setConfigOuverte('couvertures')}
+          onConfigurerSecteurs={() => setConfigOuverte('secteurs')}
           onPreuves={(p, jour) => setPreuvesDe({ jour, programme: p })}
           onPublierLot={publierLot}
           onReessayer={() => void refetch()}
@@ -443,6 +459,7 @@ export default function ProgrammesSection() {
           partenairesEnCours={restaurantsQuery.isLoading}
           programmes={programmesFiltres}
           relancePreuves={<RelancePreuvesConnectee annee={annee} semaine={semaine} />}
+          secteurs={secteursQuery.data ?? []}
           semaine={semaine}
           typeFiltre={typeFiltre}
           typeOptions={TYPE_OPTIONS}
@@ -511,6 +528,13 @@ export default function ProgrammesSection() {
         }}
         programme={historiqueDe}
         sites={nomSite}
+      />
+      <ConfigurationGroupesDialog
+        genre={configOuverte ?? 'secteurs'}
+        onFermer={() => setConfigOuverte(null)}
+        ouvert={!!configOuverte}
+        peutModifier={peutConfigurerGroupes}
+        sites={restaurants}
       />
       <PreuvesCarburantDialog
         cible={preuvesDe}
