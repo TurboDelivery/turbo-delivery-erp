@@ -5,9 +5,11 @@
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 
-import { IProgramme } from '../types/programme.types';
+import { COMPLEMENT_VIDE, IProgramme } from '../types/programme.types';
 import { carburantAffiche, joursTravailles } from './carburant.utils';
 import { estSeptSurSept, libelleJourInactif, OBSERVATION_SEPT_SUR_SEPT } from './jour.utils';
+import { JOURS_SEMAINE } from './couverture.utils';
+import { preuvesDuJour } from './preuves.utils';
 import { lundiDeSemaine } from './semaine.utils';
 import { getTurboyTypeDisplay } from './type-livreur-display';
 
@@ -107,6 +109,90 @@ function celluleJour(p: IProgramme, jourKey: string): string {
 function carburantExport(p: IProgramme): number | '' {
   const { montant } = carburantAffiche(p);
   return montant === null ? '' : montant;
+}
+
+// ── Surplus et preuves dans l'export (§8.4) ───────────────────────────────────
+
+/** « LUNDI » → « Lundi ». */
+function jourLisible(jour: string): string {
+  return jour.charAt(0) + jour.slice(1).toLowerCase();
+}
+
+const MOTIFS_LISIBLES: Record<string, string> = {
+  AUTRE: 'Autre',
+  LONGUE_DISTANCE: 'Longue distance',
+  PIC_ACTIVITE: "Pic d'activité",
+  RENFORT_AUTRE_SITE: 'Renfort autre site',
+};
+
+function libelleMotifSurplus(motif: string): string {
+  return MOTIFS_LISIBLES[motif] ?? motif;
+}
+
+/** Le nom d'un site, ou son identifiant : jamais « undefined » dans un document lu. */
+function nomDuSite(siteId: string | null | undefined, ctx: ContexteExport): string {
+  if (!siteId) return '';
+  return ctx.sites?.get(siteId)?.nom ?? siteId;
+}
+
+/** Les surplus VIVANTS d'un programme : un surplus annulé ne coûte rien. */
+export function surplusExport(p: IProgramme): number {
+  return Object.values((p.complement ?? COMPLEMENT_VIDE).surplusParJour ?? {})
+    .flat()
+    .filter((x) => !x.annule)
+    .reduce((n, x) => n + (x.montant ?? 0), 0);
+}
+
+/**
+ * Le total carburant d'un programme : dotation + surplus (RG-C04).
+ *
+ * <p>Rendu comme chaîne vide quand RIEN n'est saisi, et non zéro : un total à
+ * « 0 FCFA » dans un tableau comptable se lit comme une décision, alors que la saisie
+ * n'a simplement pas été faite.</p>
+ */
+export function totalCarburantExport(p: IProgramme): number | '' {
+  const dotation = carburantExport(p);
+  const surplus = surplusExport(p);
+  if (dotation === '' && surplus === 0) return '';
+  return (dotation === '' ? 0 : dotation) + surplus;
+}
+
+export interface ComptePreuvesExport {
+  attendues: number;
+  recues: number;
+  validees: number;
+  manquantes: number;
+}
+
+/**
+ * Les preuves Wave d'un programme, sur les jours DÉJÀ PASSÉS (RG-W05).
+ *
+ * <p>Compter demain ferait apparaître des preuves manquantes pour un argent qui n'est
+ * pas encore versé — et l'export, que la direction lit, annoncerait un retard qui
+ * n'existe pas.</p>
+ */
+export function preuvesExport(p: IProgramme, aujourdhui = new Date()): ComptePreuvesExport {
+  let attendues = 0;
+  let recues = 0;
+  let validees = 0;
+  for (const jour of JOURS_SEMAINE) {
+    const j = (p.jours ?? []).find((x) => x.jour === jour);
+    if (!j?.date || new Date(j.date) > aujourdhui) continue;
+    const e = preuvesDuJour(p, jour);
+    if (e.etat === 'SANS_OBJET') continue;
+    attendues += e.attendues;
+    recues += e.recues;
+    validees += e.validees;
+  }
+  return { attendues, manquantes: attendues - recues, recues, validees };
+}
+
+/** « 3/4 · 2 validées · 1 manquante », ou vide quand rien n'est attendu. */
+export function libellePreuves(c: ComptePreuvesExport): string {
+  if (c.attendues === 0) return '';
+  const bouts = [`${c.recues}/${c.attendues}`, `${c.validees} validée${c.validees > 1 ? 's' : ''}`];
+  if (c.manquantes > 0) bouts.push(`${c.manquantes} manquante${c.manquantes > 1 ? 's' : ''}`);
+  return bouts.join(' · ');
 }
 
 /** Les partenaires desservis sur la semaine, sans doublon, dans l'ordre d'apparition. */
@@ -322,13 +408,33 @@ const effectif = (s: SectionsExport) =>
 // ── Excel ─────────────────────────────────────────────────────────────────────
 export function exporterProgrammesExcel(programmes: IProgramme[], annee: number, semaine: number, ctx: ContexteExport = {}): void {
   const s = regrouperPourExport(programmes, ctx);
-  const entete = ['Site', 'Livreur', 'Type', 'Statut', ...JOURS.map((j) => j.court), 'Jours travaillés', 'Carburant (FCFA)', 'Observations'];
+  /*
+   * §8.4 — la colonne « Carburant » devient TROIS colonnes, plus les preuves Wave.
+   *
+   * ⚠ Dotation et surplus ne se cumulent pas dans une seule colonne : la comptabilité
+   * doit pouvoir dire ce qui était prévu et ce qui a été ajouté, et un total unique
+   * efface définitivement la distinction.
+   */
+  const entete = [
+    'Site',
+    'Livreur',
+    'Type',
+    'Statut',
+    ...JOURS.map((j) => j.court),
+    'Jours travaillés',
+    'Dotation prévue (FCFA)',
+    'Surplus accordés (FCFA)',
+    'Total carburant (FCFA)',
+    'Preuves Wave',
+    'Observations',
+  ];
   const vide = (n: number) => Array.from({ length: n }, () => '');
   const lignes: (string | number)[][] = [];
 
   const ecrireGroupe = (g: GroupeExport) => {
     lignes.push([g.titre.toUpperCase(), g.sousTitre, ...vide(entete.length - 2)]);
     for (const p of g.programmes) {
+      const surplus = surplusExport(p);
       lignes.push([
         g.siteNom,
         p.livreurNom ?? '',
@@ -337,34 +443,80 @@ export function exporterProgrammesExcel(programmes: IProgramme[], annee: number,
         ...JOURS.map((j) => celluleJour(p, j.key)),
         joursTravailles(p.jours),
         carburantExport(p),
+        // Un surplus à zéro reste VIDE : « 0 » dans une colonne d'argent se lit comme
+        // un surplus refusé, pas comme un surplus jamais demandé.
+        surplus > 0 ? surplus : '',
+        totalCarburantExport(p),
+        libellePreuves(preuvesExport(p)),
         observations(p).join(' ; '),
       ]);
     }
     const m = montantGroupe(g);
+    const surplusGroupe = g.programmes.reduce((n, p) => n + surplusExport(p), 0);
+    const preuvesGroupe = g.programmes.reduce(
+      (acc, p) => {
+        const c = preuvesExport(p);
+        return {
+          attendues: acc.attendues + c.attendues,
+          manquantes: acc.manquantes + c.manquantes,
+          recues: acc.recues + c.recues,
+          validees: acc.validees + c.validees,
+        };
+      },
+      { attendues: 0, manquantes: 0, recues: 0, validees: 0 },
+    );
     lignes.push([
       `Sous-total ${g.titre}`,
       `${g.programmes.length} ligne${g.programmes.length > 1 ? 's' : ''}`,
-      ...vide(entete.length - 4),
+      ...vide(entete.length - 7),
       m === null ? '' : m,
+      surplusGroupe > 0 ? surplusGroupe : '',
+      m === null && surplusGroupe === 0 ? '' : (m ?? 0) + surplusGroupe,
+      libellePreuves(preuvesGroupe),
       g.sansMontant > 0 ? `${g.sansMontant} sans montant` : '',
     ]);
   };
 
   s.livreurs.forEach(ecrireGroupe);
-  lignes.push(['SOUS-TOTAL LIVREURS', `${s.nbLivreurs} livreur${s.nbLivreurs > 1 ? 's' : ''}`, ...vide(entete.length - 4), s.totalLivreurs, '']);
+  const surplusTous = programmes.reduce((n, p) => n + surplusExport(p), 0);
+  const surplusLivreurs = s.livreurs.flatMap((g) => g.programmes).reduce((n, p) => n + surplusExport(p), 0);
+  const surplusSupervision = s.supervision.flatMap((g) => g.programmes).reduce((n, p) => n + surplusExport(p), 0);
+
+  lignes.push(['SOUS-TOTAL LIVREURS', `${s.nbLivreurs} livreur${s.nbLivreurs > 1 ? 's' : ''}`, ...vide(entete.length - 7), s.totalLivreurs, surplusLivreurs > 0 ? surplusLivreurs : '', s.totalLivreurs + surplusLivreurs, '', '']);
   s.supervision.forEach(ecrireGroupe);
   if (s.nbSupervision > 0) {
-    lignes.push(['SOUS-TOTAL SUPERVISION', `${s.nbSupervision} superviseur${s.nbSupervision > 1 ? 's' : ''}`, ...vide(entete.length - 4), s.totalSupervision, '']);
+    lignes.push(['SOUS-TOTAL SUPERVISION', `${s.nbSupervision} superviseur${s.nbSupervision > 1 ? 's' : ''}`, ...vide(entete.length - 7), s.totalSupervision, surplusSupervision > 0 ? surplusSupervision : '', s.totalSupervision + surplusSupervision, '', '']);
   }
-  lignes.push(['GRAND TOTAL CARBURANT SEMAINE', '', ...vide(entete.length - 4), s.total, s.previsionnel > 0 ? `dont ${s.previsionnel} prévisionnels` : '']);
+  const preuvesTous = programmes.reduce(
+    (acc, p) => {
+      const c = preuvesExport(p);
+      return {
+        attendues: acc.attendues + c.attendues,
+        manquantes: acc.manquantes + c.manquantes,
+        recues: acc.recues + c.recues,
+        validees: acc.validees + c.validees,
+      };
+    },
+    { attendues: 0, manquantes: 0, recues: 0, validees: 0 },
+  );
+  lignes.push([
+    'GRAND TOTAL CARBURANT SEMAINE',
+    '',
+    ...vide(entete.length - 7),
+    s.total,
+    surplusTous > 0 ? surplusTous : '',
+    s.total + surplusTous,
+    libellePreuves(preuvesTous),
+    s.previsionnel > 0 ? `dont ${s.previsionnel} prévisionnels` : '',
+  ]);
   const prec = ctx.carburantSemainePrecedente;
   if (prec !== null && prec !== undefined) {
-    lignes.push(['Écart vs semaine précédente', `précédente : ${prec}`, ...vide(entete.length - 4), s.total - prec, '']);
+    lignes.push(['Écart vs semaine précédente', `précédente : ${prec}`, ...vide(entete.length - 7), s.total - prec, '', '', '', '']);
   }
   lignes.push(['Effectif', effectif(s), ...vide(entete.length - 2)]);
 
   const feuille = XLSX.utils.aoa_to_sheet([entete, ...lignes]);
-  feuille['!cols'] = [{ wch: 22 }, { wch: 26 }, { wch: 18 }, { wch: 11 }, ...JOURS.map(() => ({ wch: 13 })), { wch: 9 }, { wch: 16 }, { wch: 48 }];
+  feuille['!cols'] = [{ wch: 22 }, { wch: 26 }, { wch: 18 }, { wch: 11 }, ...JOURS.map(() => ({ wch: 13 })), { wch: 9 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 26 }, { wch: 48 }];
 
   const parSite = XLSX.utils.aoa_to_sheet([
     ['Site', 'Livreurs', 'Carburant (FCFA)', 'Dessert'],
@@ -374,9 +526,100 @@ export function exporterProgrammesExcel(programmes: IProgramme[], annee: number,
   ]);
   parSite['!cols'] = [{ wch: 28 }, { wch: 10 }, { wch: 16 }, { wch: 60 }];
 
+  /*
+   * ANNEXE « DÉTAIL DES SURPLUS » (§8.4).
+   *
+   * Une colonne de totaux ne suffit pas à la comptabilité : elle doit pouvoir dire
+   * POURQUOI 15 000 FCFA ont été ajoutés, livreur par livreur. Sans cette annexe,
+   * l'écart entre le prévu et le payé n'a aucune explication dans le document.
+   */
+  const lignesSurplus: (string | number)[][] = [];
+  for (const p of programmes) {
+    for (const [jour, liste] of Object.entries((p.complement ?? COMPLEMENT_VIDE).surplusParJour ?? {})) {
+      for (const su of liste ?? []) {
+        lignesSurplus.push([
+          p.livreurNom ?? '',
+          jourLisible(jour),
+          nomDuSite(su.siteId, ctx),
+          libelleMotifSurplus(su.motif),
+          su.commentaire ?? '',
+          su.montant ?? 0,
+          // Un surplus ANNULÉ figure, barré d'un mot : le retirer ferait disparaître
+          // une décision qui a existé, et son annulation est justement ce qui explique
+          // un écart entre deux versions de l'export.
+          su.annule ? `Annulé${su.motifAnnulation ? ` : ${su.motifAnnulation}` : ''}` : 'Accordé',
+        ]);
+      }
+    }
+  }
+
+  /*
+   * ANNEXE « PREUVES DE VERSEMENT WAVE » (§8.4).
+   *
+   * Une preuve attendue par ligne, y compris celles qui MANQUENT : une annexe qui ne
+   * listerait que les captures reçues ne dirait jamais ce qu'il reste à réclamer.
+   */
+  const lignesPreuves: (string | number)[][] = [];
+  const aujourdhui = new Date();
+  for (const p of programmes) {
+    const complement = p.complement ?? COMPLEMENT_VIDE;
+    for (const jour of JOURS_SEMAINE) {
+      const j = (p.jours ?? []).find((x) => x.jour === jour);
+      if (!j?.actif || !j.date || new Date(j.date) > aujourdhui) continue;
+
+      const versements: { montant: number; surplusId: string | null; nature: string }[] = [];
+      if ((j.montantCarburant ?? 0) > 0) {
+        versements.push({ montant: j.montantCarburant ?? 0, nature: 'Dotation', surplusId: null });
+      }
+      for (const su of (complement.surplusParJour?.[jour] ?? []).filter((x) => !x.annule)) {
+        versements.push({ montant: su.montant ?? 0, nature: 'Surplus', surplusId: su.id });
+      }
+
+      for (const v of versements) {
+        const captures = (complement.preuvesParJour?.[jour] ?? []).filter(
+          (x) => (x.surplusId ?? null) === v.surplusId,
+        );
+        const vivante = captures.find((x) => x.statut !== 'REJETEE') ?? null;
+        lignesPreuves.push([
+          p.livreurNom ?? '',
+          jourLisible(jour),
+          v.nature,
+          v.montant,
+          vivante?.referenceTransaction ?? '',
+          vivante?.envoyeLe ? new Date(vivante.envoyeLe).toLocaleString('fr-FR') : '',
+          vivante == null
+            ? 'Manquante'
+            : vivante.statut === 'VALIDEE'
+              ? 'Validée'
+              : 'Reçue, à valider',
+        ]);
+      }
+    }
+  }
+
   const classeur = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(classeur, feuille, `S${semaine}-${annee}`);
   XLSX.utils.book_append_sheet(classeur, parSite, 'Par site');
+
+  if (lignesSurplus.length > 0) {
+    const f = XLSX.utils.aoa_to_sheet([
+      ['Livreur', 'Jour', 'Site', 'Motif', 'Commentaire', 'Montant (FCFA)', 'État'],
+      ...lignesSurplus,
+      ['Total', '', '', '', '', surplusTous, ''],
+    ]);
+    f['!cols'] = [{ wch: 26 }, { wch: 12 }, { wch: 28 }, { wch: 22 }, { wch: 38 }, { wch: 16 }, { wch: 34 }];
+    XLSX.utils.book_append_sheet(classeur, f, 'Détail des surplus');
+  }
+
+  if (lignesPreuves.length > 0) {
+    const f = XLSX.utils.aoa_to_sheet([
+      ['Livreur', 'Jour', 'Nature', 'Montant (FCFA)', 'ID de transaction', 'Envoyée le', 'État'],
+      ...lignesPreuves,
+    ]);
+    f['!cols'] = [{ wch: 26 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 28 }, { wch: 20 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(classeur, f, 'Preuves Wave');
+  }
+
   XLSX.writeFile(classeur, `programmes_${annee}_S${semaine}.xlsx`);
 }
 
@@ -472,6 +715,32 @@ function construirePdfProgrammes(
       START_X,
       19,
     );
+
+    /*
+     * LE BANDEAU CARBURANT DANS L'EN-TÊTE (§8.4), à droite du titre.
+     *
+     * La direction lit ce document sans l'écran à côté. Le total à décaisser, sa
+     * dotation et ses surplus doivent y être AVANT le tableau : chercher le total en
+     * bas de la dernière page est exactement ce qu'on évite en l'écrivant ici.
+     */
+    const surplusTotal = programmes.reduce((n, prog) => n + surplusExport(prog), 0);
+    const aDecaisser = s.total + surplusTotal;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(255, 255, 255);
+    ecrire(`${nombre(aDecaisser)} FCFA à décaisser`, pageW - START_X, 12, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 230, 150);
+    ecrire(
+      `Dotation ${nombre(s.total)}   •   Surplus ${nombre(surplusTotal)}`
+        + `   •   Journaliers ${nombre(s.totalLivreurs)}   •   Superviseurs ${nombre(s.totalSupervision)}`,
+      pageW - START_X,
+      19,
+      { align: 'right' },
+    );
+
     doc.setTextColor(...DARK);
   }
 
