@@ -424,16 +424,41 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
  * COLONNES_GRILLE. Loin d'être une contrainte subie, les sept cellules de jour portent
  * précisément les présents du groupe, que la règle demande.</p>
  */
-function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string } }) {
+function LigneGroupe({
+  groupe,
+  estPremier,
+}: {
+  groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string };
+  estPremier: boolean;
+}) {
   const totaux = totauxCarburant(groupe.programmes);
   const presents = (cle: string) =>
     groupe.programmes.filter((p) => (p.jours ?? []).some((j) => (j.jour ?? '').toUpperCase() === cle && j.actif)).length;
 
+  /*
+   * ⚠ LE FOND VA SUR LES CELLULES, PAS SUR LA LIGNE. Mesuré à l'écran : la ligne portait
+   * bien `bg-surface-secondary`, mais chaque cellule du Table v3 repeint `oklch(1 0 0)`,
+   * du blanc pur, par-dessus. Le fond existait et ne se voyait pas, et l'opérateur ne
+   * distinguait plus une section d'une ligne de données.
+   *
+   * Le filet du haut est ce qui FERME le bloc précédent : sans lui, deux sections se
+   * touchent et la coupure ne se lit pas. Il est retiré sur la première, qui s'appuie
+   * déjà sur l'en-tête du tableau — deux traits à la suite feraient un trait double.
+   */
+  const cellule = cn(
+    'bg-surface-tertiary',
+    !estPremier && 'border-t-2 border-default-300',
+  );
+
   return (
-    <Table.Row className="bg-surface-secondary" id={`g-${groupe.cle}`}>
-      <Table.Cell className="pe-0">{''}</Table.Cell>
-      <Table.Cell>
-        <span className="block text-sm font-semibold text-foreground">{groupe.titre}</span>
+    <Table.Row className="bg-surface-tertiary" id={`g-${groupe.cle}`}>
+      <Table.Cell className={cn(cellule, 'pe-0')}>{''}</Table.Cell>
+      <Table.Cell className={cellule}>
+        {/* Capitales espacées : un nom de section ne doit pas se lire comme un nom de
+            personne. Sans ça, « Chez Paul, Cocody » et « TOURE Bakary » ont exactement le
+            même poids et l'œil ne sait pas lequel ouvre un bloc. Au passage, cela normalise
+            des libellés que la production écrit tantôt en capitales, tantôt non. */}
+        <span className="block text-sm font-semibold uppercase tracking-wide text-foreground">{groupe.titre}</span>
         <span className="block text-xs text-muted tabular-nums">
           {groupe.programmes.length} livreur{groupe.programmes.length > 1 ? 's' : ''}
           {/* Le secteur de la base, quand il est connu : c'est lui qui relie cette
@@ -441,23 +466,23 @@ function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme
           {groupe.secteur ? <span className="text-muted"> · {groupe.secteur}</span> : null}
         </span>
       </Table.Cell>
-      <Table.Cell>{''}</Table.Cell>
+      <Table.Cell className={cellule}>{''}</Table.Cell>
       {JOURS.map((j) => {
         const n = presents(j.cle);
         return (
-          <Table.Cell className="px-2 text-center" key={j.cle}>
+          <Table.Cell className={cn(cellule, 'px-2 text-center')} key={j.cle}>
             {/* Une case à zéro est en rouge : ce jour-là, personne n'est prévu ici. */}
             <span className={cn('text-xs font-medium tabular-nums', n === 0 ? 'text-danger' : 'text-muted')}>{n}</span>
           </Table.Cell>
         );
       })}
-      <Table.Cell>
+      <Table.Cell className={cellule}>
         <span className="block text-end text-xs font-semibold tabular-nums text-foreground">
           {totaux.total > 0 ? formatMontant(totaux.total) : ''}
         </span>
       </Table.Cell>
-      <Table.Cell>{''}</Table.Cell>
-      <Table.Cell>{''}</Table.Cell>
+      <Table.Cell className={cellule}>{''}</Table.Cell>
+      <Table.Cell className={cellule}>{''}</Table.Cell>
     </Table.Row>
   );
 }
@@ -1159,9 +1184,15 @@ export function SemaineProgrammes({
                       ))
                     : null}
 
-                  {(isError || isLoading ? [] : aPlat).map((item) => {
+                  {(isError || isLoading ? [] : aPlat).map((item, rang) => {
                     if (item.type === 'groupe') {
-                      return <LigneGroupe groupe={item.groupe} key={`g-${item.groupe.cle}`} />;
+                      return (
+                        <LigneGroupe
+                          estPremier={rang === 0}
+                          groupe={item.groupe}
+                          key={`g-${item.groupe.cle}`}
+                        />
+                      );
                     }
                     const p = item.p;
                     const enCours = idEnCours === p.id;
