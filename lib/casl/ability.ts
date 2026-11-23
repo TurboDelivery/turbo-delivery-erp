@@ -3,7 +3,13 @@ import { AbilityBuilder, createMongoAbility, type ExtractSubjectType, type Infer
 // 'fusionner' : le seul geste de la base clients que le Marketing n'a PAS. Il existe
 // parce que 'manage' couvrirait tout, y compris ce que le serveur lui refuse — et un
 // menu qui mene a un refus est un bouton mort.
-export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier' | 'update-inclusion' | 'fusionner';
+// Les sept dernières (2026-11, SPEC-ERP-TURBO-PLANNING-SITES) portent les droits du
+// programme des livreurs. Elles sont énumérées plutôt que couvertes par 'manage', pour
+// la raison dite juste au-dessus à propos de 'fusionner', et elles vivent sur le sujet
+// 'ProgrammeLivreur' et non sur 'Creneau' : neuf rôles possèdent déjà 'manage Creneau',
+// qui leur aurait donné d'un coup le carburant, la suppression et les surplus.
+export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier' | 'update-inclusion' | 'fusionner'
+  | 'ajuster-carburant' | 'supprimer-programme' | 'accorder-surplus' | 'valider-preuve' | 'relancer-preuve' | 'affecter-site' | 'configurer-secteur';
 
 export type AppSubjects =
   | 'ChargeFixe'
@@ -88,6 +94,16 @@ export type AppSubjects =
   | 'Virement'
   | 'Notification'
   | 'Creneau'
+  // 2026-11 (SPEC-ERP-TURBO-PLANNING-SITES) — les gestes du programme hebdomadaire des
+  // livreurs qui ENGAGENT DE L'ARGENT ou détruisent : ajuster le carburant, supprimer un
+  // programme, accorder un surplus, valider une preuve Wave, relancer, affecter un site
+  // en cours d'opérations, configurer secteurs et couvertures.
+  //
+  // ⚠ Sujet DISTINCT de 'Creneau', délibérément. Neuf rôles portent déjà
+  // 'manage Creneau' ; y accrocher ces actions les leur aurait toutes données d'un coup,
+  // alors que RG-M03, RG-M04, RG-C03, RG-W04 et RG-K07 les réservent à quatre profils.
+  // La lecture de l'écran reste sur 'Creneau' : on ne ferme pas la consultation.
+  | 'ProgrammeLivreur'
   | 'Performance'
   // 2026-05 — "Finance > Dashboard Performance" isolé sur son propre sujet (au
   // lieu de 'Performance' partagé) pour pouvoir le masquer au
@@ -125,7 +141,11 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1','RESPONSABLE_AUTH_COUPONS','ASSISTANT_COMPTABLE','MARKETING','SUPERVISEUR_OPS'] as const;
+// Les quatre derniers (2026-11) viennent du programme des livreurs. « Chef aux
+// opérations » est bien un rôle NOUVEAU : il ne se confond ni avec OPS_MANAGER, ni avec
+// DIRECTEUR_OPERATIONS, ni avec SUPERVISEUR_OPS, qui restent inchangés.
+// ⚠ « Admin » de la spec n'est pas un rôle : côté front, Admin est le DG (alias ci-dessous).
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1','RESPONSABLE_AUTH_COUPONS','ASSISTANT_COMPTABLE','MARKETING','SUPERVISEUR_OPS','CHEF_OPERATIONS','COORDINATEUR','ADJOINT_ABIDJAN_NORD','ADJOINT_ABIDJAN_SUD'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -176,6 +196,28 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   "CENTRALE D'APPEL": 'STANDARD',
   'RESPONSABLE V&A': 'RESPONSABLE_VA',
   'RESPONSBALE V&A': 'RESPONSABLE_VA',
+  // 2026-11 — Profils du programme des livreurs (SPEC-ERP-TURBO-PLANNING-SITES).
+  // ⚠ Voir l'avertissement plus haut : un libellé absent d'ici ferme TOUT l'ERP au
+  // compte. normalizeRole met en majuscules et coupe les espaces de bord, mais ne
+  // retire PAS les accents : « OPÉRATIONS » et « OPERATIONS » sont deux clés
+  // différentes et les deux doivent figurer, comme pour DIRECTEUR_OPERATIONS.
+  CHEF_OPERATIONS: 'CHEF_OPERATIONS',
+  'CHEF AUX OPERATIONS': 'CHEF_OPERATIONS',
+  'CHEF AUX OPÉRATIONS': 'CHEF_OPERATIONS',
+  'CHEF OPERATIONS': 'CHEF_OPERATIONS',
+  'CHEF OPÉRATIONS': 'CHEF_OPERATIONS',
+  'CHEF DES OPERATIONS': 'CHEF_OPERATIONS',
+  'CHEF DES OPÉRATIONS': 'CHEF_OPERATIONS',
+  COORDINATEUR: 'COORDINATEUR',
+  COORDONNATEUR: 'COORDINATEUR',
+  'COORDINATEUR OPERATIONS': 'COORDINATEUR',
+  'COORDINATEUR OPÉRATIONS': 'COORDINATEUR',
+  ADJOINT_ABIDJAN_NORD: 'ADJOINT_ABIDJAN_NORD',
+  'ADJOINT ABIDJAN NORD': 'ADJOINT_ABIDJAN_NORD',
+  'ADJOINT NORD': 'ADJOINT_ABIDJAN_NORD',
+  ADJOINT_ABIDJAN_SUD: 'ADJOINT_ABIDJAN_SUD',
+  'ADJOINT ABIDJAN SUD': 'ADJOINT_ABIDJAN_SUD',
+  'ADJOINT SUD': 'ADJOINT_ABIDJAN_SUD',
 };
 
 export function normalizeRole(raw?: string | { libelle?: string } | null): AppRole | null {
@@ -219,6 +261,13 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     // La garde du backend range le DGA parmi les superviseurs de la base clients :
     // sans cette ligne, il aurait le droit de fusionner sans voir l'ecran qui le fait.
     { action: 'fusionner', subject: 'PageBddClients' },
+    // Programme des livreurs (2026-11). 'read all' ci-dessus lui donne la consultation,
+    // pas ces gestes : ils sont énumérés, un par un, comme la spec les attribue.
+    {
+      action: ['ajuster-carburant', 'supprimer-programme', 'accorder-surplus',
+               'valider-preuve', 'relancer-preuve', 'affecter-site', 'configurer-secteur'],
+      subject: 'ProgrammeLivreur',
+    },
     { action: 'update', subject: 'Incident' },
     { action: 'create', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
     { action: 'update', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
@@ -242,6 +291,14 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   COMPTABLE: [
     { action: 'read', subject: 'Reporting' },
     { action: 'read', subject: ['ChargeFixe', 'ChargeVariable', 'Depense', 'Paiement', 'Livreur', 'Restaurant'] },
+    // Programme des livreurs (2026-11) : le Comptable est l'un des quatre profils du
+    // carburant (RG-M03, RG-M04, RG-C03, RG-W04, RG-W07). Il ne configure PAS les
+    // secteurs ni les couvertures, que RG-K07 réserve à DG, Chef aux opérations et DGA.
+    {
+      action: ['ajuster-carburant', 'supprimer-programme', 'accorder-surplus',
+               'valider-preuve', 'relancer-preuve', 'affecter-site'],
+      subject: 'ProgrammeLivreur',
+    },
     { action: 'create', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
     { action: 'update', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
     { action: 'delete', subject: ['ChargeFixe', 'ChargeVariable'] },
@@ -451,6 +508,67 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'read', subject: ['Livreur', 'Restaurant', 'Reporting'] },
     { action: 'manage', subject: 'Trafic' },
     { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+
+  // ── Programme des livreurs, 2026-11 (SPEC-ERP-TURBO-PLANNING-SITES) ────────────
+  //
+  // Quatre rôles nouveaux. Ils ne touchent à aucun des dix-sept existants : les trois
+  // rôles opérations déjà en place (OPS_MANAGER, DIRECTEUR_OPERATIONS, SUPERVISEUR_OPS)
+  // gardent exactement ce qu'ils avaient.
+  //
+  // ⚠ Le droit de LIRE l'écran passe par 'Creneau', que l'entrée de menu exige. Les
+  // gestes qui engagent de l'argent ou détruisent passent par 'ProgrammeLivreur'. Un
+  // rôle qui a l'un n'a pas l'autre : c'est ce qui permet au Coordinateur de voir les
+  // preuves Wave sans pouvoir les valider (CA-55).
+
+  CHEF_OPERATIONS: [
+    // Le quatrième profil du carburant, avec DG, Comptable et DGA. Il configure en
+    // plus les secteurs et les couvertures (RG-K07).
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Reporting', 'Trafic', 'Commande'] },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: ['read', 'update'], subject: 'Incident' },
+    { action: 'read', subject: 'HistoriqueCreneaux' },
+    {
+      action: ['ajuster-carburant', 'supprimer-programme', 'accorder-surplus',
+               'valider-preuve', 'relancer-preuve', 'affecter-site', 'configurer-secteur'],
+      subject: 'ProgrammeLivreur',
+    },
+    { action: 'access', subject: ['Menu', 'Route', 'Notification'] },
+  ],
+
+  COORDINATEUR: [
+    // Terrain : il affecte un livreur à un autre site une fois la semaine commencée
+    // (RG-S08), et c'est tout ce qu'il écrit sur le programme. Il VOIT les preuves
+    // Wave — la lecture passe par 'Creneau' — mais n'a ni 'valider-preuve' ni
+    // 'relancer-preuve', donc les boutons n'apparaissent pas (CA-55).
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Trafic'] },
+    { action: 'read', subject: 'Creneau' },
+    { action: 'read', subject: 'HistoriqueCreneaux' },
+    { action: 'affecter-site', subject: 'ProgrammeLivreur' },
+    { action: 'access', subject: ['Menu', 'Route', 'Notification'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+
+  ADJOINT_ABIDJAN_NORD: [
+    // Mêmes droits que le Coordinateur. Le périmètre géographique n'est PAS porté ici :
+    // CASL dit ce qu'on peut faire, pas sur quelles lignes. Un filtrage par secteur, si
+    // on le veut un jour, se pose côté serveur, sur les données.
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Trafic'] },
+    { action: 'read', subject: 'Creneau' },
+    { action: 'read', subject: 'HistoriqueCreneaux' },
+    { action: 'affecter-site', subject: 'ProgrammeLivreur' },
+    { action: 'access', subject: ['Menu', 'Route', 'Notification'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+
+  ADJOINT_ABIDJAN_SUD: [
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Trafic'] },
+    { action: 'read', subject: 'Creneau' },
+    { action: 'read', subject: 'HistoriqueCreneaux' },
+    { action: 'affecter-site', subject: 'ProgrammeLivreur' },
+    { action: 'access', subject: ['Menu', 'Route', 'Notification'] },
     { effect: 'cannot', action: 'access', subject: 'Analytics' },
   ],
 };
