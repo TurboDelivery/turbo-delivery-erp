@@ -5,10 +5,11 @@ import { parseAsInteger, useQueryStates } from 'nuqs';
 import React from 'react';
 import { toast } from 'sonner';
 
+import { AffectationSiteDialog } from './affectation-site-dialog';
 import { CarburantRapideModal } from './carburant-rapide-modal';
 import { DuplicationSemaineDialog } from './duplication-semaine-dialog';
 import { EngagementCarburantConnecte } from './engagement-carburant';
-import { ProgrammeApercuModal } from './programme-apercu-modal';
+import { ProgrammeApercuPanneau } from './programme-apercu-panneau';
 import { ProgrammeFormModal } from './programme-form-modal';
 import { ProgrammeHistoriqueModal } from './programme-historique-modal';
 import { joursAvecDates } from './weekly-jours-editor';
@@ -18,6 +19,8 @@ import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.qu
 import { creerProgrammeAction } from '@/features/turboys/actions/programme.actions';
 import {
   useAutosuffisanceSemaineQuery,
+  useBandeauCarburantQuery,
+  useDupliquerSurSemaineSuivanteMutation,
   useDupliquerSemaineMutation,
   useEnvoyerProgrammeMutation,
   usePlanifierProgrammeMutation,
@@ -75,6 +78,9 @@ export default function ProgrammesSection() {
   const { data, isError, isLoading, refetch } = useProgrammesSemaineQuery(annee, semaine);
   const independantsQuery = useProgrammesIndependantsQuery(annee, semaine);
   const autosuffisanceQuery = useAutosuffisanceSemaineQuery(annee, semaine);
+  // Le bandeau du haut de page (§8.2) : lui seul connaît les surplus accordés et la
+  // dotation FIGÉE à la publication, que l'écran ne peut pas recalculer.
+  const bandeauQuery = useBandeauCarburantQuery(annee, semaine);
 
   // L'écart de carburant contre la semaine précédente : le document papier le donnait,
   // avec sa raison. La raison reste à l'opérateur ; le chiffre, lui, se calcule.
@@ -87,17 +93,30 @@ export default function ProgrammesSection() {
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<IProgramme | null>(null);
-  const [apercu, setApercu] = React.useState<IProgramme | null>(null);
+  /**
+   * L'aperçu : le programme regardé, et l'ordre dans lequel l'écran le montrait.
+   *
+   * <p>L'ordre vient de la liste, qui seule connaît son regroupement. Les flèches ‹ › du
+   * panneau s'y déplacent sans le fermer.</p>
+   */
+  const [apercu, setApercu] = React.useState<{ index: number; liste: IProgramme[] } | null>(null);
+  const programmeApercu = apercu ? (apercu.liste[apercu.index] ?? null) : null;
   const [historiqueDe, setHistoriqueDe] = React.useState<IProgramme | null>(null);
   const [carburantDe, setCarburantDe] = React.useState<IProgramme[]>([]);
   const [pendingId, setPendingId] = React.useState<string | null>(null);
   const [lotEnCours, setLotEnCours] = React.useState(false);
+  /** Affectation en cours d'opérations (§3.3) : le programme visé, et ce que la case cliquée disait. */
+  const [affectation, setAffectation] = React.useState<{
+    prefill: { jour?: string; siteId?: string } | null;
+    programme: IProgramme;
+  } | null>(null);
 
   const planifier = usePlanifierProgrammeMutation();
   const publier = usePublierProgrammeMutation();
   const envoyer = useEnvoyerProgrammeMutation();
   const renvoyerWhatsApp = useRenvoyerWhatsAppMutation();
   const supprimer = useSupprimerProgrammeMutation();
+  const dupliquerSuivante = useDupliquerSurSemaineSuivanteMutation();
 
   const changeWeek = (delta: number) => setWeek(semaineDecalee(annee, semaine, delta));
 
@@ -172,6 +191,19 @@ export default function ProgrammesSection() {
     [restaurantsQuery.data, carburantSemainePrecedente],
   );
   const livreursQuery = useLivreursListQuery();
+
+  /*
+   * UN SEUL BANDEAU WHATSAPP (§5.2). La mention se répétait sur chaque ligne : trente-huit
+   * fois le même avertissement, qui finissait par ne plus rien signaler.
+   *
+   * ⚠ Pas de bouton « Configurer » : cet ERP n'a AUCUN écran de configuration WhatsApp —
+   * le réglage vit côté serveur. Un bouton qui n'ouvre rien serait pire que son absence,
+   * et le bandeau dit donc où est le réglage plutôt que de prétendre y mener.
+   */
+  const whatsappNonConfigure = React.useMemo(
+    () => (Array.isArray(data) ? data : []).some((p) => p.whatsappStatut === 'NON_CONFIGURE'),
+    [data],
+  );
 
   const programmesFiltres = React.useMemo(() => {
     // Durcissement : une réponse non-tableau (erreur backend renvoyée en 200,
@@ -269,6 +301,8 @@ export default function ProgrammesSection() {
       >
         <SemaineProgrammes
           annee={annee}
+          bandeau={bandeauQuery.data ?? null}
+          bandeauEnCours={bandeauQuery.isLoading}
           autosuffisance={Array.isArray(autosuffisanceQuery.data) ? autosuffisanceQuery.data : []}
           autosuffisanceIsError={autosuffisanceQuery.isError}
           autosuffisanceIsLoading={autosuffisanceQuery.isLoading}
@@ -289,10 +323,39 @@ export default function ProgrammesSection() {
           isError={isError}
           isLoading={isLoading}
           lotEnCours={lotEnCours}
-          onApercu={setApercu}
+          onAffecterRenfort={(siteId, jour) => {
+            /*
+             * Depuis une case de la vue Couverture : on connaît le site et le jour, pas
+             * encore QUI y envoyer. On propose le premier livreur publié qui travaille ce
+             * jour-là et n'est pas déjà sur ce site — la fenêtre laisse changer.
+             */
+            const candidat = (Array.isArray(data) ? data : []).find(
+              (p) =>
+                (p.statut === 'NOTIFIE' || p.statut === 'ACCEPTE') &&
+                (p.jours ?? []).some((j) => j.jour === jour && j.actif) &&
+                !(p.complement?.sitesParJour?.[jour] ?? []).includes(siteId) &&
+                p.siteId !== siteId,
+            );
+            if (!candidat) {
+              toast.warning('Aucun livreur publié ne travaille ce jour-là en dehors de ce site.');
+              return;
+            }
+            setAffectation({ prefill: { jour, siteId }, programme: candidat });
+          }}
+          onAffecterSite={(p) => setAffectation({ prefill: null, programme: p })}
+          onApercu={(p, ordre) =>
+            setApercu(
+              ordre && ordre.index >= 0
+                ? ordre
+                : // Repli : l'appelant n'a pas d'ordre à donner, le panneau s'ouvre seul
+                  // et ses flèches sont inactives plutôt qu'absentes.
+                  { index: 0, liste: [p] },
+            )
+          }
           onCarburant={(p) => setCarburantDe([p])}
           onCarburantLot={setCarburantDe}
           onDupliquerSemainePrecedente={() => setDupliquerOuvert(true)}
+          onDupliquerSuivante={(p) => runAction(p.id, dupliquerSuivante.mutateAsync)}
           onEditer={setEditing}
           onEnvoyer={(p) => runAction(p.id, envoyer.mutateAsync)}
           onExporterExcel={() => exporterProgrammesExcel(programmesFiltres, annee, semaine, contexteExport)}
@@ -334,6 +397,7 @@ export default function ProgrammesSection() {
           semaine={semaine}
           typeFiltre={typeFiltre}
           typeOptions={TYPE_OPTIONS}
+          whatsappNonConfigure={whatsappNonConfigure}
         />
       </ErrorBoundary>
 
@@ -359,16 +423,24 @@ export default function ProgrammesSection() {
         }}
         programmes={carburantDe}
       />
-      <ProgrammeApercuModal
+      <ProgrammeApercuPanneau
         annee={annee}
-        isOpen={!!apercu}
-        onOpenChange={(open) => {
-          if (!open) setApercu(null);
+        nomSite={nomSite}
+        onEditer={(p) => {
+          setApercu(null);
+          setEditing(p);
         }}
-        programme={apercu}
+        onFermer={() => setApercu(null)}
+        onPrecedent={apercu && apercu.index > 0 ? () => setApercu({ ...apercu, index: apercu.index - 1 }) : undefined}
+        onSuivant={
+          apercu && apercu.index < apercu.liste.length - 1
+            ? () => setApercu({ ...apercu, index: apercu.index + 1 })
+            : undefined
+        }
+        position={apercu && apercu.liste.length > 1 ? { index: apercu.index, total: apercu.liste.length } : null}
+        programme={programmeApercu}
         semaine={semaine}
-        siteNom={apercu?.siteId ? (nomSite.get(apercu.siteId) ?? null) : null}
-        telephone={(livreursQuery.data ?? []).find((l) => l.id === apercu?.livreurId)?.telephone ?? null}
+        telephone={(livreursQuery.data ?? []).find((l) => l.id === programmeApercu?.livreurId)?.telephone ?? null}
       />
       <ProgrammeHistoriqueModal
         isOpen={!!historiqueDe}
@@ -377,6 +449,12 @@ export default function ProgrammesSection() {
         }}
         programme={historiqueDe}
         sites={nomSite}
+      />
+      <AffectationSiteDialog
+        onFermer={() => setAffectation(null)}
+        prefill={affectation?.prefill ?? null}
+        programme={affectation?.programme ?? null}
+        sites={restaurants}
       />
       <DuplicationSemaineDialog
         enAttente={dupliquer.isPending}

@@ -1,11 +1,15 @@
 'use client';
 
 import { Button, Card, Checkbox, Chip, ComboBox, Dropdown, Input, Label, ListBox, SearchField, type Selection, Separator, Spinner, Table, ToggleButton, ToggleButtonGroup, Tooltip } from '@heroui-v3/react';
-import { ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, TriangleAlert } from 'lucide-react';
 import React from 'react';
 
-import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
+import { EnteteSemaine } from './entete-semaine';
+import { VueCouverture } from './vue-couverture';
+
+import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
+import { aRecuUnSurplus } from '@/features/turboys/utils/couverture.utils';
 import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
 import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
@@ -71,7 +75,16 @@ export interface SemaineProgrammesProps {
   onPartenaireFiltre: (v: string) => void;
   partenairesEnCours?: boolean;
 
-  onApercu: (p: IProgramme) => void;
+  /**
+   * Ouvrir l'aperçu sur ce programme.
+   *
+   * <p>Le second argument porte la POSITION DANS L'ORDRE AFFICHÉ, parce que seule la
+   * liste la connaît : elle regroupe par base, met « À compléter » en premier et trie
+   * par nom. L'appelant qui voudrait recalculer cet ordre devrait dupliquer ce
+   * regroupement, et les flèches ‹ › du panneau finiraient par sauter des lignes ou
+   * revenir en arrière.</p>
+   */
+  onApercu: (p: IProgramme, ordre?: { index: number; liste: IProgramme[] }) => void;
   /** Le carburant du programme, en un geste : un montant par jour travaillé. */
   onCarburant: (p: IProgramme) => void;
   /** Le même geste sur les lignes cochées. */
@@ -124,6 +137,22 @@ export interface SemaineProgrammesProps {
   carburantSemainePrecedente?: number | null;
   /** La ligne d'engagement dans le circuit finance, rendue par l'appelant : elle porte ses propres requêtes. */
   engagement?: React.ReactNode;
+
+  /** Le bandeau carburant du serveur (§8.2). Null tant qu'il n'est pas lu. */
+  bandeau?: IBandeauCarburant | null;
+  bandeauEnCours?: boolean;
+
+  /**
+   * L'envoi WhatsApp n'est pas configuré : un seul bandeau en tête de page (§5.2), au
+   * lieu de la mention répétée sur chaque ligne.
+   */
+  whatsappNonConfigure?: boolean;
+  onConfigurerWhatsApp?: () => void;
+
+  /** Affecter un renfort sur un site, un jour, depuis la vue Couverture (RG-S08). */
+  onAffecterRenfort?: (siteId: string, jour: string) => void;
+  /** Ouvrir la configuration des couvertures (§8.5). */
+  onConfigurerCouvertures?: () => void;
 }
 
 const JOURS = [
@@ -172,7 +201,10 @@ const formatEcart = (n: number) => (n === 0 ? formatMontant(0) : `${n > 0 ? '+' 
 const COLONNES_INDEPENDANTS = ['livreur', ...JOURS.map((j) => j.cle)];
 
 /** Les onglets de la liste (§5.2). « À compléter », « Renforts » et « Superviseurs » sont nouveaux. */
-type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS';
+type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS' | 'AVEC_SURPLUS';
+
+/** Les deux lectures de la semaine (§5.2) : par livreur, ou par site. */
+type Vue = 'LIVREURS' | 'COUVERTURE';
 
 /**
  * À COMPLÉTER (RG-L01, RG-L03) : il manque quelque chose pour que le programme puisse
@@ -433,11 +465,19 @@ export function SemaineProgrammes({
   autosuffisanceIsError = false,
   carburantSemainePrecedente = null,
   engagement = null,
+  bandeau = null,
+  bandeauEnCours = false,
+  whatsappNonConfigure = false,
+  onConfigurerWhatsApp,
+  onAffecterRenfort,
+  onConfigurerCouvertures,
 }: SemaineProgrammesProps) {
   const [recherche, setRecherche] = React.useState('');
   const [seulement, setSeulement] = React.useState<Onglet>('TOUS');
   /** RG-L01 — « Sans regroupement » revient à la liste simple, et un tri par colonne reste possible. */
   const [grouper, setGrouper] = React.useState(true);
+  /** Par livreur, ou par site (§5.2). La liste reste l'entrée par défaut : c'est elle qu'on vient éditer. */
+  const [vue, setVue] = React.useState<Vue>('LIVREURS');
   const [coches, setCoches] = React.useState<Selection>(new Set());
   /** Le nom d'un site par son identifiant : la grille l'écrit sur chaque ligne. */
   const nomSite = React.useMemo(() => new Map(partenaires.map((x) => [x.id, x.nom])), [partenaires]);
@@ -461,6 +501,7 @@ export function SemaineProgrammes({
       if (seulement === 'A_COMPLETER' && !estACompleter(p)) return false;
       if (seulement === 'RENFORTS' && !aDesRenforts(p)) return false;
       if (seulement === 'SUPERVISEURS' && p.typeLivreur !== 'SUPERVISEUR_LIVREUR') return false;
+      if (seulement === 'AVEC_SURPLUS' && !aRecuUnSurplus(p)) return false;
       return true;
     });
   }, [programmes, recherche, seulement]);
@@ -513,6 +554,18 @@ export function SemaineProgrammes({
     [grouper, groupes, lignes],
   );
 
+  /**
+   * Les programmes DANS L'ORDRE OÙ L'ÉCRAN LES MONTRE, en-têtes de groupe retirés.
+   *
+   * <p>C'est ce que les flèches ‹ › de l'aperçu suivent. Dérivé de `aPlat` et non de
+   * `lignes` : avec le regroupement actif, l'ordre affiché n'est pas l'ordre du filtre —
+   * « À compléter » passe devant, les superviseurs ensuite, puis une base par groupe.</p>
+   */
+  const ordreAffiche = React.useMemo(
+    () => aPlat.filter((e): e is { p: IProgramme; type: 'ligne' } => e.type === 'ligne').map((e) => e.p),
+    [aPlat],
+  );
+
   const aPublier = React.useMemo(() => programmes.filter(estAPublier), [programmes]);
   const refuses = React.useMemo(() => programmes.filter((p) => p.statut === 'REFUSE'), [programmes]);
   const compteACompleter = React.useMemo(() => programmes.filter(estACompleter).length, [programmes]);
@@ -522,6 +575,29 @@ export function SemaineProgrammes({
     [programmes],
   );
   const carburant = React.useMemo(() => totauxCarburant(programmes), [programmes]);
+
+  /*
+   * Les compteurs des cartes (§5.2). Calculés sur TOUS les programmes de la semaine, et
+   * non sur les lignes filtrées : une carte qui changerait de valeur selon le filtre posé
+   * ne serait plus un indicateur de la semaine mais un décompte de l'écran, et cliquer
+   * dessus ferait fondre son propre nombre.
+   */
+  const comptePublies = React.useMemo(
+    () => programmes.filter((p) => p.statut === 'NOTIFIE' || p.statut === 'ACCEPTE').length,
+    [programmes],
+  );
+  /** Le programme ne concerne que les journaliers (§5.2, 2e carte). */
+  const compteJournaliers = React.useMemo(
+    () => programmes.filter((p) => p.typeLivreur === 'JOURNALIER').length,
+    [programmes],
+  );
+  const compteSansCarburant = React.useMemo(() => programmes.filter(estSansCarburant).length, [programmes]);
+  const compteAvecSurplus = React.useMemo(() => programmes.filter(aRecuUnSurplus).length, [programmes]);
+  /** Les surplus VIVANTS de la semaine : un surplus annulé ne coûte rien (RG-C04). */
+  const totalSurplusSemaine = React.useMemo(
+    () => programmes.reduce((t, p) => t + totalSurplusVivant(p), 0),
+    [programmes],
+  );
   const ecart = carburantSemainePrecedente === null || carburantSemainePrecedente === undefined ? null : carburant.total - carburantSemainePrecedente;
 
   /*
@@ -541,117 +617,129 @@ export function SemaineProgrammes({
 
   const maxAutosuffisance = Math.max(1, ...autosuffisance.map((j) => j.total));
 
+  /**
+   * L'ACTION PRINCIPALE, UNE SEULE, ET CONTEXTUELLE (§5.2).
+   *
+   * <p>L'écran portait sept boutons de même poids dans sa barre d'outils. Il n'y a
+   * pourtant jamais qu'un geste qui fait avancer la semaine : publier ce qui reste, puis,
+   * quand tout est parti, engager le carburant en comptabilité. Le bouton dit lequel, et
+   * son nombre : « Publier 3 programmes » ne demande pas d'aller compter.</p>
+   *
+   * <p>L'engagement reste possible programme par programme depuis le menu d'une ligne
+   * (§5.2) : attendre que TOUTE la semaine soit publiée n'est pas une règle, c'est
+   * seulement le cas le plus fréquent.</p>
+   */
+  const actionPrincipale = React.useMemo(() => {
+    if (isLoading || isError) return null;
+    if (aPublier.length > 0) {
+      return (
+        <Button
+          className="w-full"
+          isPending={lotEnCours}
+          onPress={() => onPublierLot(aPublier.map((p) => p.id))}
+          variant="primary"
+        >
+          {lotEnCours ? <Spinner size="sm" /> : null}
+          Publier {aPublier.length} programme{aPublier.length > 1 ? 's' : ''}
+        </Button>
+      );
+    }
+    return engagement;
+  }, [aPublier, engagement, isError, isLoading, lotEnCours, onPublierLot]);
+
   return (
     <div className="flex flex-col gap-4">
       {/*
-       * OU EN EST LA SEMAINE. L'ecran s'ouvrait sur un titre et sept boutons ; il
-       * s'ouvre sur les deux nombres qui disent s'il reste du travail, et sur le
-       * geste qui le fait — en lot.
+       * ⚠ UN SEUL BANDEAU WHATSAPP, en tête de page (§5.2). La mention se répétait sur
+       * CHAQUE ligne : trente-huit fois le même avertissement de configuration, qui
+       * finissait par ne plus rien signaler. Le statut d'envoi, lui, reste sur la ligne,
+       * parce qu'il est propre à chaque livreur.
        */}
-      <Card className={cn(refuses.length > 0 && 'border-danger/30')}>
-        <Card.Content className="gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-              <span className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular-nums text-foreground">{isError || isLoading ? '—' : aPublier.length}</span>
-                <span className="text-sm text-muted">à publier</span>
-              </span>
-              <span className="flex items-baseline gap-2">
-                <span className={cn('text-2xl font-bold tabular-nums', refuses.length > 0 ? 'text-danger-soft-foreground' : 'text-foreground')}>{isError || isLoading ? '—' : refuses.length}</span>
-                <span className="text-sm text-muted">{refuses.length > 1 ? 'refusés' : 'refusé'}</span>
-              </span>
-              <span className="text-sm text-muted">sur {isError || isLoading ? '—' : programmes.length} programmes</span>
-            </div>
-
-            {/* La semaine EST le sujet de l'ecran : son selecteur passe en tete. */}
-            <div className="flex flex-nowrap items-center gap-1">
-              <Button aria-label="Semaine précédente" isIconOnly onPress={() => onSemaine(-1)} size="sm" variant="ghost">
-                <ChevronLeft aria-hidden="true" className="size-4" />
+      {whatsappNonConfigure && (
+        <Card className="border-warning/40 bg-warning/5">
+          <Card.Content className="flex-row flex-wrap items-center gap-3 py-2.5">
+            <TriangleAlert aria-hidden="true" className="size-4 shrink-0 text-warning-soft-foreground" />
+            <p className="flex-1 text-sm text-foreground">
+              Envoi WhatsApp non configuré : les livreurs ne reçoivent pas leur programme. Le réglage se fait
+              côté serveur.
+            </p>
+            {/* ⚠ Pas de bouton par défaut : cet ERP n'a pas d'écran de configuration WhatsApp,
+                et un bouton qui n'ouvre rien serait pire que son absence. */}
+            {onConfigurerWhatsApp ? (
+              <Button onPress={onConfigurerWhatsApp} size="sm" variant="outline">
+                Configurer
               </Button>
-              <span className="whitespace-nowrap px-1 text-sm font-medium text-foreground">
-                Semaine {semaine} / {annee}
-              </span>
-              <Button aria-label="Semaine suivante" isIconOnly onPress={() => onSemaine(1)} size="sm" variant="ghost">
-                <ChevronRight aria-hidden="true" className="size-4" />
+            ) : null}
+          </Card.Content>
+        </Card>
+      )}
+
+      {/* ── LE HAUT DE PAGE ─────────────────────────────────────────────────────── */}
+      <EnteteSemaine
+        actionPrincipale={actionPrincipale}
+        annee={annee}
+        bandeau={bandeau}
+        bandeauEnCours={bandeauEnCours}
+        carburantEcran={carburant.total}
+        compteurs={{
+          aPublier: aPublier.length,
+          avecSurplus: compteAvecSurplus,
+          journaliers: compteJournaliers,
+          publies: comptePublies,
+          refuses: refuses.length,
+          sansCarburant: compteSansCarburant,
+          totalSurplus: totalSurplusSemaine,
+        }}
+        filtre={seulement}
+        isError={isError}
+        isLoading={isLoading}
+        onFiltre={(cle) => {
+          // La carte « Trous de couverture » n'est pas un filtre de liste : elle ouvre la
+          // vue qui montre les trous. Les autres cartes filtrent.
+          if (cle === 'TROUS') {
+            setVue('COUVERTURE');
+            return;
+          }
+          setSeulement(cle as Onglet);
+        }}
+        onImporter={onDupliquerSemainePrecedente}
+        onNouveau={onNouveau}
+        onSemaine={onSemaine}
+        programmes={programmes}
+        semaine={semaine}
+      />
+
+      {/*
+       * LA BARRE DE SÉLECTION (§5.2). Elle n'existe que quand quelque chose est coché,
+       * et rien ne l'est à l'ouverture. « Carburant des cochés » était un bouton
+       * permanent qui, sans sélection, ne pouvait rien faire : il occupait la place et
+       * l'attention d'une action principale sans en être une.
+       */}
+      {programmesCoches.length > 0 && (
+        <Card className="border-primary/40 bg-primary/5">
+          <Card.Content className="flex-row flex-wrap items-center gap-2 py-2.5">
+            <span className="text-sm font-medium text-foreground">
+              {programmesCoches.length} sélectionné{programmesCoches.length > 1 ? 's' : ''}
+            </span>
+            <Separator className="hidden h-5 sm:block" orientation="vertical" />
+            {idsCoches.length > 0 && (
+              <Button isPending={lotEnCours} onPress={() => onPublierLot(idsCoches)} size="sm" variant="primary">
+                {lotEnCours ? <Spinner size="sm" /> : null}
+                Publier {idsCoches.length}
               </Button>
-            </div>
-          </div>
-
-          {/*
-           * COMBIEN ON DECAISSE. Le second nombre que l'operateur cherche, apres « ou en
-           * est la semaine » : le total carburant, ses sous-totaux par population, et
-           * l'ecart contre la semaine precedente — les quatre lignes du document papier.
-           */}
-          {!isLoading && !isError && programmes.length > 0 && (
-            <>
-              <Separator />
-              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                <span className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold tabular-nums text-foreground">{formatMontant(carburant.total)}</span>
-                  <span className="text-sm text-muted">de carburant cette semaine</span>
-                </span>
-                {TYPES_CARBURANT.filter((t) => carburant.parType[t] !== undefined).map((t) => (
-                  <span className="flex items-baseline gap-1.5 text-sm" key={t}>
-                    <span className="text-muted">{getTurboyTypeDisplay(t).labelPlural}</span>
-                    <span className="font-medium tabular-nums text-foreground">{formatMontant(carburant.parType[t])}</span>
-                  </span>
-                ))}
-                {ecart !== null && (
-                  <span className="flex items-baseline gap-1.5 text-sm">
-                    <span className="text-muted">écart vs semaine précédente</span>
-                    <span className="font-medium tabular-nums text-foreground">{formatEcart(ecart)}</span>
-                  </span>
-                )}
-                {carburant.previsionnel > 0 && (
-                  <span className="text-xs text-muted">
-                    dont {formatMontant(carburant.previsionnel)} prévisionnels, figés à la publication
-                  </span>
-                )}
-                {carburant.sansMontant > 0 && (
-                  <span className="text-xs text-muted">
-                    {carburant.sansMontant} programme{carburant.sansMontant > 1 ? 's' : ''} sans montant
-                  </span>
-                )}
-              </div>
-              {/* L'ENGAGEMENT : le seul geste de l'ecran qui engage de l'argent, sous les totaux qu'il engage. */}
-              {engagement}
-            </>
-          )}
-
-          {!isLoading && !isError && (aPublier.length > 0 || refuses.length > 0 || programmesCoches.length > 0) && (
-            <>
-              <Separator />
-              <div className="flex flex-wrap items-center gap-2">
-                {/*
-                 * LES GESTES EN LOT. « Publier » se repetait une fois par
-                 * ligne : quarante clics pour lancer une semaine. Le carburant,
-                 * pareil : un montant pour toutes les lignes cochees.
-                 */}
-                {idsCoches.length > 0 && (
-                  <Button isPending={lotEnCours} onPress={() => onPublierLot(idsCoches)} variant="primary">
-                    {lotEnCours ? <Spinner size="sm" /> : null}
-                    Publier les {idsCoches.length} programme{idsCoches.length > 1 ? 's' : ''} publiable{idsCoches.length > 1 ? 's' : ''} coché{idsCoches.length > 1 ? 's' : ''}
-                  </Button>
-                )}
-                {programmesCoches.length > 0 && (
-                  <Button onPress={() => onCarburantLot(programmesCoches)} variant={idsCoches.length > 0 ? 'outline' : 'primary'}>
-                    Carburant des {programmesCoches.length} coché{programmesCoches.length > 1 ? 's' : ''}
-                  </Button>
-                )}
-                {programmesCoches.length === 0 && aPublier.length > 0 && (
-                  <span className="text-sm text-muted">Cochez des lignes pour publier, ou poser le carburant, en une fois.</span>
-                )}
-
-                {refuses.length > 0 && (
-                  <Button onPress={() => setSeulement(seulement === 'REFUSE' ? 'TOUS' : 'REFUSE')} size="sm" variant={seulement === 'REFUSE' ? 'primary' : 'outline'}>
-                    {seulement === 'REFUSE' ? 'Voir toute la semaine' : `Voir les ${refuses.length} refus`}
-                  </Button>
-                )}
-              </div>
-            </>
-          )}
-        </Card.Content>
-      </Card>
+            )}
+            <Button onPress={() => onCarburantLot(programmesCoches)} size="sm" variant="outline">
+              Carburant ({formatMontant(totauxCarburant(programmesCoches).total)})
+            </Button>
+            <Button onPress={onExporterExcel} size="sm" variant="outline">
+              Exporter
+            </Button>
+            <Button className="ms-auto" onPress={() => setCoches(new Set())} size="sm" variant="ghost">
+              Annuler la sélection
+            </Button>
+          </Card.Content>
+        </Card>
+      )}
 
       {/*
        * LA BARRE D'OUTILS. Sept controles de meme poids ; il en reste quatre, et
@@ -744,11 +832,6 @@ export function SemaineProgrammes({
               </Dropdown.Menu>
             </Dropdown.Popover>
           </Dropdown>
-
-          <Button onPress={onNouveau} variant="primary">
-            <Plus aria-hidden="true" className="size-4" />
-            Nouveau programme
-          </Button>
         </div>
       </div>
 
@@ -775,14 +858,47 @@ export function SemaineProgrammes({
           <ToggleButton id="SANS_CARBURANT">Sans carburant</ToggleButton>
           <ToggleButton id="RENFORTS">Renforts {compteRenforts > 0 ? compteRenforts : ''}</ToggleButton>
           <ToggleButton id="SUPERVISEURS">Superviseurs {compteSuperviseurs > 0 ? compteSuperviseurs : ''}</ToggleButton>
+          <ToggleButton id="AVEC_SURPLUS">Surplus {compteAvecSurplus > 0 ? compteAvecSurplus : ''}</ToggleButton>
         </ToggleButtonGroup>
 
-        <Button className="ms-auto" onPress={() => setGrouper((g) => !g)} size="sm" variant="ghost">
-          {grouper ? 'Sans regroupement' : 'Regrouper par base'}
-        </Button>
+        {/*
+         * LA BASCULE DE VUE (§5.2). Deux lectures de la même semaine : par livreur, pour
+         * éditer, et par site, pour savoir qui est où. La seconde répond à la question du
+         * terrain, que trente-huit lignes de livreurs ne permettaient pas de poser.
+         */}
+        <ToggleButtonGroup
+          className="ms-auto"
+          onSelectionChange={(sel) => {
+            const v = Array.from(sel)[0];
+            if (v) setVue(String(v) as Vue);
+          }}
+          selectedKeys={new Set([vue])}
+          selectionMode="single"
+        >
+          <ToggleButton id="LIVREURS">Livreurs</ToggleButton>
+          <ToggleButton id="COUVERTURE">Couverture</ToggleButton>
+        </ToggleButtonGroup>
+
+        {vue === 'LIVREURS' ? (
+          <Button onPress={() => setGrouper((g) => !g)} size="sm" variant="ghost">
+            {grouper ? 'Sans regroupement' : 'Regrouper par base'}
+          </Button>
+        ) : null}
       </div>
 
+      {/* ── LA COUVERTURE (§5.2) : les sites en lignes, les jours en colonnes ───── */}
+      {vue === 'COUVERTURE' && (
+        <VueCouverture
+          isLoading={isLoading}
+          nomSite={nomSite}
+          onAffecterRenfort={onAffecterRenfort}
+          onConfigurer={onConfigurerCouvertures}
+          programmes={programmes}
+        />
+      )}
+
       {/* ── LA GRILLE ────────────────────────────────────────────────────────────── */}
+      {vue === 'LIVREURS' && (
       <Card>
         <Card.Content className="p-0">
           <Table>
@@ -974,8 +1090,18 @@ export function SemaineProgrammes({
                              * survole pas, elle se lit.
                              */}
                             {p.statut === 'REFUSE' && p.motifRefus && <span className="max-w-[14rem] text-xs text-muted">{p.motifRefus}</span>}
-                            {/* Ce que l'envoi WhatsApp a donne : parti, ou pourquoi pas. */}
+                            {/*
+                             * Ce que l'envoi WhatsApp a donne : parti, ou pourquoi pas.
+                             *
+                             * ⚠ SAUF « non configuré », qui n'est pas propre a ce livreur : c'est
+                             * un reglage de l'ERP, le meme pour les trente-huit lignes. Repete
+                             * ici, il occupait chaque ligne pour dire trente-huit fois la meme
+                             * chose, et finissait par ne plus rien signaler. Il est desormais
+                             * dans le bandeau unique du haut de page (§5.2). Le reste — envoye,
+                             * echec, pas de numero — reste ici, parce que c'est propre au livreur.
+                             */}
                             {(() => {
+                              if (p.whatsappStatut === 'NON_CONFIGURE') return null;
                               const w = libelleWhatsApp(p);
                               if (!w) return null;
                               return (
@@ -1025,7 +1151,12 @@ export function SemaineProgrammes({
                                     ...(estAPublier(p) ? ['affecter'] : []),
                                   ]}
                                   onAction={(k) => {
-                                    if (k === 'apercu') onApercu(p);
+                                    if (k === 'apercu') {
+                                      onApercu(p, {
+                                        index: ordreAffiche.findIndex((x) => x.id === p.id),
+                                        liste: ordreAffiche,
+                                      });
+                                    }
                                     if (k === 'historique') onHistorique(p);
                                     if (k === 'editer') onEditer(p);
                                     if (k === 'carburant') onCarburant(p);
@@ -1075,6 +1206,7 @@ export function SemaineProgrammes({
           </Table>
         </Card.Content>
       </Card>
+      )}
 
       {/*
        * L'AUTOSUFFISANCE (RG-32), en jetons du theme : les barres etaient peintes

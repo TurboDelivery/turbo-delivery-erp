@@ -1,6 +1,8 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 import type { IAuditAction } from '@/features/supervision/types';
 import {
+  IAffecterSitePayload,
+  IBandeauCarburant,
   IProgramme,
   ICreerProgrammePayload,
   IModifierProgrammePayload,
@@ -124,6 +126,44 @@ export const programmeAPI = {
     await apiClientHttp.request<void>({
       endpoint: `/api/erp/programmes/${id}`,
       method: 'DELETE',
+    });
+  },
+
+  /**
+   * Affecter à un autre site aujourd'hui (§3.3, RG-S08).
+   *
+   * Ne fait PAS repasser le programme en « à publier » : le reste de la semaine ne bouge
+   * pas, il n'y a rien à re-valider. Le livreur est notifié par le serveur.
+   */
+  async affecterSite(id: string, payload: IAffecterSitePayload): Promise<IProgramme> {
+    return apiClientHttp.request<IProgramme>({
+      data: payload,
+      endpoint: `/api/erp/programmes/${id}/affectations`,
+      method: 'POST',
+    });
+  },
+
+  /** Dupliquer CE programme sur la semaine suivante (§6.2). 409 si le livreur y en a déjà un. */
+  async dupliquerSurSemaineSuivante(id: string): Promise<IProgramme> {
+    return apiClientHttp.request<IProgramme>({
+      endpoint: `/api/erp/programmes/${id}/dupliquer-semaine-suivante`,
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Le bandeau du haut de page (§8.2) : total à décaisser surplus compris, dotation
+   * validée, surplus, répartition journaliers / superviseurs, et les quatre compteurs de
+   * preuves Wave.
+   *
+   * Distinct de `etatCarburant`, qui ne regarde que l'engagement comptable : celui-ci
+   * additionne aussi les surplus, que l'engagement ignore par construction.
+   */
+  async bandeauCarburant(annee: number, semaine: number): Promise<IBandeauCarburant> {
+    return apiClientHttp.request<IBandeauCarburant>({
+      endpoint: '/api/erp/programmes/bandeau-carburant',
+      method: 'GET',
+      params: { annee, semaine },
     });
   },
 

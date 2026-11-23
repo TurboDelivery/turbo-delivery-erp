@@ -273,3 +273,47 @@ export interface IAutosuffisanceJour {
   planifies: number;
   total: number;
 }
+
+/**
+ * Le bandeau carburant du haut de page (§8.2, RG-W05).
+ *
+ * Il répond à une seule question : combien faut-il décaisser cette semaine, et d'où vient
+ * ce chiffre. D'où la décomposition — dotation validée, surplus, puis la répartition entre
+ * journaliers et superviseurs-livreurs, qui ne passent pas par le même circuit de paiement.
+ *
+ * ⚠ Les quatre compteurs de preuves ne portent QUE sur les programmes publiés et les jours
+ * déjà passés. Compter une preuve pour demain la ferait voir « manquante » alors que
+ * l'argent n'est pas encore versé.
+ */
+export interface IBandeauCarburant {
+  annee: number;
+  semaine: number;
+  /** Chiffre principal : dotation publiée + surplus non annulés. */
+  totalADecaisser: number;
+  /** Ce que les programmes publiés portaient, avant tout surplus. */
+  dotationValidee: number;
+  totalSurplus: number;
+  totalJournaliers: number;
+  nbProgrammesJournaliers: number;
+  totalSuperviseurs: number;
+  nbProgrammesSuperviseurs: number;
+  /** Ce qui est réellement engagé en comptabilité, `null` tant que rien ne l'est. */
+  montantEngage: number | null;
+  preuvesAttendues: number;
+  preuvesRecues: number;
+  preuvesValidees: number;
+  preuvesManquantes: number;
+}
+
+/**
+ * Affecter un livreur à un autre site EN COURS D'OPÉRATIONS (§3.3, RG-S08).
+ *
+ * ⚠ Le motif est obligatoire, et ce n'est pas de la paperasse : c'est la seule chose qui,
+ * trois semaines plus tard, dira si ce renfort était un dépannage ou le signe qu'un site
+ * est durablement sous-doté.
+ */
+export interface IAffecterSitePayload {
+  siteId: string;
+  jour: string;
+  motif: string;
+}

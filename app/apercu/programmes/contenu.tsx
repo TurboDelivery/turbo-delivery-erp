@@ -7,7 +7,7 @@ import React from 'react';
 import { CarburantRapideModal } from '@/components/turboys/programmes/carburant-rapide-modal';
 import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplication-semaine-dialog';
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
-import { ProgrammeApercuModal } from '@/components/turboys/programmes/programme-apercu-modal';
+import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
@@ -331,22 +331,52 @@ function BancExports({ programmes }: { programmes: IProgramme[] }) {
     );
 }
 
-/** L'aperçu individuel, avec un numéro pour voir le partage WhatsApp. */
-function BancApercu({ programme }: { programme: IProgramme }) {
-    const [ouvert, setOuvert] = React.useState(false);
+/**
+ * L'aperçu individuel, en panneau latéral.
+ *
+ * <p>Le banc en ouvre DEUX : un seul livreur, pour voir le panneau sans flèches, et une
+ * liste de trois, pour voir la navigation ‹ › qui ne ferme pas le panneau. C'est le
+ * comportement de §6.3 qu'on ne peut pas vérifier sur un élément unique.</p>
+ */
+function BancApercu({ liste }: { liste: IProgramme[] }) {
+    const [seul, setSeul] = React.useState(false);
+    const [parcours, setParcours] = React.useState<number | null>(null);
+    const noms = new Map(Array.from(SITES, ([id, s]) => [id, s.nom] as const));
+
     return (
         <section className="mt-6 rounded-lg border border-separator p-4">
-            <h2 className="mb-3 text-sm font-semibold">L&apos;aperçu individuel</h2>
-            <Button onPress={() => setOuvert(true)} size="sm" variant="outline">
-                Ouvrir l&apos;aperçu de {programme.livreurNom}
-            </Button>
-            <ProgrammeApercuModal
+            <h2 className="mb-3 text-sm font-semibold">L&apos;aperçu individuel (panneau 420 px)</h2>
+            <div className="flex flex-wrap gap-2">
+                <Button onPress={() => setSeul(true)} size="sm" variant="outline">
+                    Un seul livreur ({liste[0]?.livreurNom})
+                </Button>
+                <Button isDisabled={liste.length < 2} onPress={() => setParcours(0)} size="sm" variant="outline">
+                    Parcourir {Math.min(3, liste.length)} livreurs aux flèches
+                </Button>
+            </div>
+
+            <ProgrammeApercuPanneau
                 annee={2026}
-                isOpen={ouvert}
-                onOpenChange={setOuvert}
-                programme={programme}
+                nomSite={noms}
+                onFermer={() => setSeul(false)}
+                programme={seul ? (liste[0] ?? null) : null}
                 semaine={35}
-                siteNom={programme.siteId ? (SITES.get(programme.siteId)?.nom ?? null) : null}
+                telephone="07 00 00 00 00"
+            />
+
+            <ProgrammeApercuPanneau
+                annee={2026}
+                nomSite={noms}
+                onFermer={() => setParcours(null)}
+                onPrecedent={parcours !== null && parcours > 0 ? () => setParcours(parcours - 1) : undefined}
+                onSuivant={
+                    parcours !== null && parcours < Math.min(3, liste.length) - 1
+                        ? () => setParcours(parcours + 1)
+                        : undefined
+                }
+                position={parcours !== null ? { index: parcours, total: Math.min(3, liste.length) } : null}
+                programme={parcours !== null ? (liste[parcours] ?? null) : null}
+                semaine={35}
                 telephone="07 00 00 00 00"
             />
         </section>
@@ -474,12 +504,15 @@ export default function ApercuProgrammes() {
                             { cle: 'SUPERVISEUR_LIVREUR', libelle: 'Superviseurs' },
                             { cle: 'INDEPENDANT', libelle: 'Indépendants' },
                         ]}
+                        /* Le bandeau unique du haut de page : le banc doit le montrer,
+                           puisqu'il remplace la mention qui était sur chaque ligne. */
+                        whatsappNonConfigure={JEUX[jeu].lignes.some((p) => p.whatsappStatut === 'NON_CONFIGURE')}
                     />
                     <BancEditeur />
                     <BancExports programmes={JEUX.ordinaire.lignes} />
                     <BancDuplication />
                     <BancHistorique />
-                    <BancApercu programme={JEUX.ordinaire.lignes[1]} />
+                    <BancApercu liste={JEUX.ordinaire.lignes} />
                     <BancCarburantRapide programmes={[JEUX.ordinaire.lignes[5], JEUX.ordinaire.lignes[3], JEUX.ordinaire.lignes[4]]} />
                 </main>
             </div>

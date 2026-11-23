@@ -7,6 +7,8 @@ import {
   ICreerProgrammePayload,
   IModifierProgrammePayload,
   IAutosuffisanceJour,
+  IAffecterSitePayload,
+  IBandeauCarburant,
   IEtatCarburantSemaine,
   IDupliquerSemainePayload,
   IDuplicationSemaine,
@@ -93,6 +95,39 @@ export async function supprimerProgrammeAction(id: string): Promise<ActionRespon
 
 export async function listerIndependantsAction(annee: number, semaine: number): Promise<IProgramme[]> {
   return programmeAPI.independants(annee, semaine);
+}
+
+/**
+ * Affecter à un autre site aujourd'hui (§3.3, RG-S08).
+ *
+ * Le message du serveur est RENVOYÉ TEL QUEL : il dit lequel des refus s'applique —
+ * programme non publié, livreur au repos ce jour-là, site déjà prévu. Le remplacer par
+ * un libellé générique obligerait l'opérateur à deviner lequel des trois.
+ */
+export async function affecterSiteAction(
+  id: string,
+  payload: IAffecterSitePayload,
+): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.affecterSite(id, payload);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, "Erreur lors de l'affectation du site");
+  }
+}
+
+/** Dupliquer CE programme sur la semaine suivante (§6.2). */
+export async function dupliquerSurSemaineSuivanteAction(id: string): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.dupliquerSurSemaineSuivante(id);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la duplication sur la semaine suivante');
+  }
+}
+
+export async function bandeauCarburantAction(annee: number, semaine: number): Promise<IBandeauCarburant> {
+  return programmeAPI.bandeauCarburant(annee, semaine);
 }
 
 export async function etatCarburantAction(annee: number, semaine: number): Promise<IEtatCarburantSemaine> {

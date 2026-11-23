@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import {
+  affecterSiteAction,
+  bandeauCarburantAction,
+  dupliquerSurSemaineSuivanteAction,
   etatCarburantAction,
   listerProgrammesSemaineAction,
   listerAutosuffisanceAction,
@@ -22,6 +25,7 @@ import { engagerCarburant } from '@/features/turboys/apis/carburant-engagement.a
 import {
   ICreerProgrammePayload,
   IDupliquerSemainePayload,
+  IAffecterSitePayload,
   IEngagerCarburantPayload,
   IModifierProgrammePayload,
 } from '@/features/turboys/types/programme.types';
@@ -33,6 +37,7 @@ export const programmeKeys = {
   autosuffisance: (annee: number, semaine: number) => [...programmeKeys.all, 'autosuffisance', annee, semaine] as const,
   independants: (annee: number, semaine: number) => [...programmeKeys.all, 'independants', annee, semaine] as const,
   carburant: (annee: number, semaine: number) => [...programmeKeys.all, 'carburant', annee, semaine] as const,
+  bandeau: (annee: number, semaine: number) => [...programmeKeys.all, 'bandeau', annee, semaine] as const,
   historique: (id: string) => [...programmeKeys.all, 'historique', id] as const,
 };
 
@@ -43,6 +48,20 @@ export const useHistoriqueProgrammeQuery = (id: string | null | undefined) =>
     queryFn: () => historiqueProgrammeAction(id!),
     enabled: !!id,
     staleTime: 10 * 1000,
+  });
+
+/**
+ * Le bandeau carburant du haut de page (§8.2).
+ *
+ * Même fraîcheur que l'état d'engagement : ces deux chiffres se lisent côte à côte, et
+ * l'un vieillissant plus vite que l'autre donnerait un écart qui n'existe pas.
+ */
+export const useBandeauCarburantQuery = (annee: number, semaine: number) =>
+  useQuery({
+    queryKey: programmeKeys.bandeau(annee, semaine),
+    queryFn: () => bandeauCarburantAction(annee, semaine),
+    enabled: !!annee && !!semaine,
+    staleTime: 30 * 1000,
   });
 
 export const useEtatCarburantQuery = (annee: number, semaine: number) =>
@@ -124,6 +143,48 @@ export const usePlanifierProgrammeMutation = (onDone?: () => void) => {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: programmeKeys.all });
       toast.success('Programme planifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+/**
+ * Affecter à un autre site aujourd'hui (§3.3, RG-S08).
+ *
+ * <p>Le succès le dit explicitement : le programme n'est PAS repassé en « à publier ».
+ * C'est la question que se pose l'opérateur juste après avoir cliqué, et ne pas y
+ * répondre le pousse à aller vérifier.</p>
+ */
+export const useAffecterSiteMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: IAffecterSitePayload }) => {
+      const r = await affecterSiteAction(id, payload);
+      if (!r.success) throw new Error(r.error || "Erreur lors de l'affectation du site");
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Site affecté. Le livreur est prévenu ; le programme reste publié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+/** Dupliquer CE programme sur la semaine suivante (§6.2). */
+export const useDupliquerSurSemaineSuivanteMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const r = await dupliquerSurSemaineSuivanteAction(id);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la duplication');
+      return r.data!;
+    },
+    onSuccess: async (data) => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success(`Programme dupliqué en brouillon sur la semaine ${data.semaine}.`);
       onDone?.();
     },
     onError: (error) => toast.error(messageErreur(error)),
