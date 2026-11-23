@@ -426,10 +426,8 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
  */
 function LigneGroupe({
   groupe,
-  estPremier,
 }: {
   groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string };
-  estPremier: boolean;
 }) {
   const totaux = totauxCarburant(groupe.programmes);
   const presents = (cle: string) =>
@@ -438,20 +436,22 @@ function LigneGroupe({
   /*
    * ⚠ LE FOND VA SUR LES CELLULES, PAS SUR LA LIGNE. Mesuré à l'écran : la ligne portait
    * bien `bg-surface-secondary`, mais chaque cellule du Table v3 repeint `oklch(1 0 0)`,
-   * du blanc pur, par-dessus. Le fond existait et ne se voyait pas, et l'opérateur ne
-   * distinguait plus une section d'une ligne de données.
+   * du blanc pur, par-dessus. Le fond existait et ne se voyait pas.
    *
-   * Le filet du haut est ce qui FERME le bloc précédent : sans lui, deux sections se
-   * touchent et la coupure ne se lit pas. Il est retiré sur la première, qui s'appuie
-   * déjà sur l'en-tête du tableau — deux traits à la suite feraient un trait double.
+   * ⚠ ET IL DOIT ÊTRE FRANC. Une première version posait `bg-surface-tertiary` : 1,20 de
+   * contraste avec le blanc des lignes, c'est-à-dire rien à l'œil. `bg-default-300` donne
+   * 1,48, un vrai gris. Mesuré, pas estimé.
+   *
+   * ⚠ Le filet du haut est sur TOUTES les sections, la première comprise. Je l'en avais
+   * retiré pour éviter un double trait sous l'en-tête du tableau — sauf que la première
+   * section est justement celle qu'on a sous les yeux en arrivant, et elle se retrouvait
+   * sans aucune séparation. Un détail d'esthétique ne vaut pas la lisibilité du cas le
+   * plus fréquent.
    */
-  const cellule = cn(
-    'bg-surface-tertiary',
-    !estPremier && 'border-t-2 border-default-300',
-  );
+  const cellule = 'bg-default-300 border-t-2 border-default-400';
 
   return (
-    <Table.Row className="bg-surface-tertiary" id={`g-${groupe.cle}`}>
+    <Table.Row className="bg-default-300" id={`g-${groupe.cle}`}>
       <Table.Cell className={cn(cellule, 'pe-0')}>{''}</Table.Cell>
       <Table.Cell className={cellule}>
         {/* Capitales espacées : un nom de section ne doit pas se lire comme un nom de
@@ -1184,15 +1184,9 @@ export function SemaineProgrammes({
                       ))
                     : null}
 
-                  {(isError || isLoading ? [] : aPlat).map((item, rang) => {
+                  {(isError || isLoading ? [] : aPlat).map((item) => {
                     if (item.type === 'groupe') {
-                      return (
-                        <LigneGroupe
-                          estPremier={rang === 0}
-                          groupe={item.groupe}
-                          key={`g-${item.groupe.cle}`}
-                        />
-                      );
+                      return <LigneGroupe groupe={item.groupe} key={`g-${item.groupe.cle}`} />;
                     }
                     const p = item.p;
                     const enCours = idEnCours === p.id;
