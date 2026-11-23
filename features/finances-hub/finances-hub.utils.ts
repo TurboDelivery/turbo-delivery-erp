@@ -16,6 +16,11 @@ export interface IFinanceItem {
   justif: boolean;
   src: string; // 'Auto' | 'Manuel' | 'RH'
   dyn: boolean; // montant dynamique (masse salariale RH)
+  /**
+   * Le jour où la charge a été DÉCAISSÉE (ISO), ou null tant qu'elle ne l'est pas. C'est la
+   * colonne « Payée le » des exports. Facultatif : les fixtures d'avant n'en portent pas.
+   */
+  payeeLe?: string | null;
 }
 
 /** Mappe les statuts backend (fixe & variable) vers le statut unifié du template. */
@@ -63,6 +68,7 @@ export function mapChargeFixe(cf: any): IFinanceItem {
     justif: true,
     src: cf.codeSysteme ? 'RH' : cf.automatique ? 'Auto' : 'Manuel',
     dyn: !!cf.codeSysteme,
+    payeeLe: cf.dateDecaissement ?? null,
   };
 }
 
@@ -80,6 +86,7 @@ export function mapChargeVariable(cv: any): IFinanceItem {
     justif: !!cv.justificatif,
     src: 'Manuel',
     dyn: false,
+    payeeLe: cv.dateDecaissement ?? null,
   };
 }
 

@@ -128,6 +128,22 @@ export default function ApercuHistoriqueFusions() {
     c.setQueryData(['depenses', 'fusions', 'historique'], vide ? [] : JOURNAL);
     // La liste des catégories et leurs volumes : ce que <CategorieDepenseList /> lit.
     c.setQueryData(['categorieDepense', 'list'], vide ? [] : CATEGORIES);
+    // La comparaison que la fenêtre de fusion lit quand on coche les deux premières lignes.
+    c.setQueryData(
+      ['categorie-donnees-rattachees', 'c-1', 'c-2'],
+      [
+        { chargesFixes: 0, chargesVariables: 41, depenses: 37, description: CATEGORIES[0].description ?? null, id: 'c-1', nomCategorie: 'REPARATIONS MOTOS', total: 78 },
+        { chargesFixes: 0, chargesVariables: 9, depenses: 8, description: null, id: 'c-2', nomCategorie: 'REPARATION MOTO', total: 17 },
+      ],
+    );
+    // L'historique de la première catégorie, tel que l'audit central le rend.
+    c.setQueryData(
+      ['depenses', 'categories', 'historique', 'c-1'],
+      [
+        { occurredAt: '2026-03-05T09:00:00Z', typeAction: 'CREATION', utilisateur: 'Koné', valeursApres: { nomCategorie: 'REPARATION DES MOTOS' }, valeursAvant: null },
+        { occurredAt: '2026-06-12T14:20:00Z', typeAction: 'MODIFICATION', utilisateur: 'Koné', valeursApres: { nomCategorie: 'REPARATIONS MOTOS' }, valeursAvant: { nomCategorie: 'REPARATION DES MOTOS' } },
+      ],
+    );
     c.setQueryData(
       ['depenses', 'categories', 'donnees-rattachees', CATEGORIES.map((x) => x.id).sort().join(',')],
       CATEGORIES.map((x, i) => ({

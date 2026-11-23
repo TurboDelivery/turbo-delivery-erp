@@ -1,8 +1,8 @@
 'use client';
 
-import { Button, Checkbox, Chip, Modal, Radio, RadioGroup, Spinner } from '@heroui-v3/react';
+import { Button, Chip, Modal, Radio, RadioGroup, Spinner } from '@heroui-v3/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { AlertTriangle, GitMerge } from 'lucide-react';
+import { GitMerge } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -12,6 +12,8 @@ import {
   fusionnerCategoriesRequest,
   type ICategorieDonneesRattachees,
 } from '@/features/depenses/apis/fusion-categorie.api';
+import { ChampTexte } from '@/components/commons/champs-formulaire';
+import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { useInvalidateDepenseQuery } from '@/features/depenses/queries/category/index.query';
 import { cn } from '@/lib/utils';
 
@@ -70,20 +72,50 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
     if (isOpen && suggereId) setGardeId(suggereId);
   }, [isOpen, suggereId]);
 
-  const [confirme, setConfirme] = useState(false);
+  /*
+   * TEMPS 2 (maquette) : le libellé et la description FINAUX de la catégorie gardée. Ils
+   * partent du nom de celle qu'on garde, et se réinitialisent si l'on change de gardée —
+   * sinon on fusionnerait dans B en gardant le nom tapé pour A.
+   */
+  const [libelle, setLibelle] = useState('');
+  const [description, setDescription] = useState('');
   useEffect(() => {
-    if (!isOpen) setConfirme(false);
+    const gardee = cats.find((c) => c.id === gardeId);
+    setLibelle(gardee?.nomCategorie ?? '');
+    setDescription(gardee?.description ?? '');
+  }, [gardeId, cats]);
+
+  /** Le code secret à 4 chiffres. Vérifié par le SERVEUR ; l'écran ne fait que le transmettre. */
+  const [code, setCode] = useState('');
+  useEffect(() => {
+    if (!isOpen) setCode('');
   }, [isOpen]);
+
+  // Les MONTANTS viennent du référentiel (déjà en cache) : le point d'accès de comparaison
+  // ne rend que des nombres de lignes.
+  const { categories: referentiel } = useCategorieDepense();
+  const montantDe = (id: string) => referentiel.find((c) => c.id === id)?.totalDepense ?? 0;
+  const fcfa = (n: number) => `${Math.round(n).toLocaleString('fr-FR')} FCFA`;
+  const apresN = cats.reduce((s, c) => s + c.chargesFixes + c.chargesVariables, 0);
+  const apresMontant = cats.reduce((s, c) => s + montantDe(c.id), 0);
 
   const aSupprimer = useMemo(() => cats.filter((c) => c.id !== gardeId), [cats, gardeId]);
 
   const fusion = useMutation({
     mutationFn: () => {
       const supprimeIds = ids.filter((id) => id !== gardeId);
-      return fusionnerCategoriesRequest(gardeId, supprimeIds, userId ?? '');
+      return fusionnerCategoriesRequest(gardeId, supprimeIds, userId ?? '', {
+        codeSecret: code,
+        descriptionFinale: description,
+        libelleFinal: libelle,
+      });
     },
-    onSuccess: async (r) => {
-      toast.success(`Fusion effectuée : ${r.fusionnes} catégorie(s) fusionnée(s).`);
+    onSuccess: async () => {
+      // Le message dit ce qui a bougé, chiffré (maquette). L'annulation se trouve dans
+      // l'onglet « Fusionnées », juste à côté.
+      toast.success(
+        `${cats.length} catégories fusionnées dans ${libelle.trim().toUpperCase()} · ${apresN} dépenses réaffectées · ${fcfa(apresMontant)}. Annulation possible dans l'onglet « Fusionnées ».`,
+      );
       await invalider();
       onOpenChange(false);
       onDone?.();
@@ -104,11 +136,11 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
               <Modal.Heading className="flex flex-col gap-1">
                 <span className="flex items-center gap-2">
                   <GitMerge aria-hidden="true" className="size-5" />
-                  Fusionner des catégories en doublon
+                  Fusionner {cats.length || ids.length} catégories
                 </span>
                 <span className="text-xs font-normal text-muted">
-                  La catégorie retenue reçoit les charges et dépenses des autres, qui sont
-                  ensuite supprimées définitivement.
+                  Les dépenses changent de catégorie. Montants, dates, statuts et validations ne
+                  bougent pas.
                 </span>
               </Modal.Heading>
               <Modal.CloseTrigger />
@@ -129,6 +161,8 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                   Une fusion demande au moins deux catégories.
                 </p>
               ) : (
+                <>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">1 · Catégorie à conserver</p>
                 <RadioGroup onChange={setGardeId} value={gardeId}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {cats.map((c) => {
@@ -146,13 +180,19 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                          */
                         <Radio
                           className={cn(
-                            'w-full items-start rounded-xl border p-3 transition-colors',
+                            // ⚠ `flex-wrap` ICI, sur la carte : c'est ELLE le conteneur flex (mesuré), et sans
+                            // retour à la ligne le bloc du nom tombait à 0 px de large, écrasé par
+                            // les compteurs en pleine largeur qui venaient se superposer à lui.
+                            'w-full flex-wrap items-start rounded-xl border p-3 transition-colors',
                             estGarde ? 'border-accent bg-accent-soft/30' : 'border-separator',
                           )}
                           key={c.id}
                           value={c.id}
                         >
-                            <Radio.Content className="flex w-full items-start gap-3">
+                            {/* `flex-wrap` : le bloc des compteurs est en pleine largeur et doit passer SOUS
+                                le nom. Sans retour à la ligne il restait sur la même rangée et se
+                                superposait à la description — vu à l'écran, sur la carte gardée. */}
+                            <Radio.Content className="flex w-full flex-wrap items-start gap-x-3">
                               <Radio.Control className="mt-1">
                                 <Radio.Indicator />
                               </Radio.Control>
@@ -191,6 +231,82 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                     })}
                   </div>
                 </RadioGroup>
+
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                  2 · Libellé et description finaux
+                </p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <ChampTexte label="Libellé" onChange={setLibelle} valeur={libelle} />
+                  <ChampTexte
+                    label="Description"
+                    onChange={setDescription}
+                    placeholder="Ce qu'on met dans cette catégorie"
+                    valeur={description}
+                  />
+                </div>
+
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">3 · Aperçu d&apos;impact</p>
+                {/* Un document qui se LIT (lignes fixes, ni tri ni sélection) : un <table>
+                    simple, comme l'état financier — l'exception documentée du projet. */}
+                <div className="overflow-x-auto rounded-lg border border-separator">
+                  <table className="w-full text-sm">
+                    <thead className="bg-surface-secondary text-xs text-muted">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-semibold" scope="col">Catégorie</th>
+                        <th className="px-3 py-2 text-left font-semibold" scope="col">Rôle</th>
+                        <th className="px-3 py-2 text-right font-semibold" scope="col">Dépenses</th>
+                        <th className="px-3 py-2 text-right font-semibold" scope="col">Fixes / variables</th>
+                        <th className="px-3 py-2 text-right font-semibold" scope="col">Montant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cats.map((c) => (
+                        <tr className="border-t border-separator" key={c.id}>
+                          <th className="px-3 py-2 text-left font-medium" scope="row">{c.nomCategorie}</th>
+                          <td className="px-3 py-2">
+                            <Chip color={c.id === gardeId ? 'success' : 'default'} size="sm" variant="soft">
+                              <Chip.Label>{c.id === gardeId ? 'Conservée' : 'Absorbée'}</Chip.Label>
+                            </Chip>
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums">{c.chargesFixes + c.chargesVariables}</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-muted">
+                            {c.chargesFixes} / {c.chargesVariables}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium tabular-nums">{fcfa(montantDe(c.id))}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted">
+                  Après fusion :{' '}
+                  <b className="text-foreground">
+                    1 catégorie · {apresN} dépenses · {fcfa(apresMontant)}
+                  </b>
+                  . Le total des dépenses de chaque mois reste identique : il est contrôlé avant et
+                  après, et tout est annulé au moindre écart.
+                </p>
+
+                <div className="mt-1 flex flex-col gap-1 sm:max-w-xs">
+                  <label className="text-xs font-medium text-muted" htmlFor="code-fusion">
+                    Votre code secret de validation
+                  </label>
+                  <input
+                    autoComplete="off"
+                    className="rounded-lg border border-separator bg-surface px-3 py-2 text-base tracking-[0.4em] tabular-nums"
+                    id="code-fusion"
+                    inputMode="numeric"
+                    maxLength={4}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="••••"
+                    type="password"
+                    value={code}
+                  />
+                  <span className="text-[11px] text-muted">
+                    Distinct du mot de passe · même mécanisme que les déductions
+                  </span>
+                </div>
+                </>
               )}
 
               {/*
@@ -198,34 +314,6 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                * peint en `bg-warning-50 text-warning-800` : deux teintes de l'ancienne
                * palette pour un avertissement qui, lui, dit bien quelque chose.
                */}
-              {pretALire && (
-                <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-foreground">
-                  <AlertTriangle
-                    aria-hidden="true"
-                    className="mt-0.5 size-4 shrink-0 text-warning-soft-foreground"
-                  />
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <Checkbox isSelected={confirme} onChange={setConfirme}>
-                      <Checkbox.Content className="items-start">
-                        <Checkbox.Control className="mt-0.5">
-                          <Checkbox.Indicator />
-                        </Checkbox.Control>
-                        <span className="flex-1 text-left">
-                          Je confirme la suppression définitive de {aSupprimer.length} catégorie
-                          {aSupprimer.length > 1 ? 's' : ''}, dont les lignes seront réassignées à
-                          celle retenue.
-                        </span>
-                      </Checkbox.Content>
-                    </Checkbox>
-                    {aSupprimer.length > 0 && (
-                      <p className="pl-6 text-muted">
-                        {aSupprimer.map((c) => c.nomCategorie).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Le bouton restait inerte sans un mot quand la session ne portait pas
                   d'identifiant : l'en-tete X-User-Id part vide et le serveur refuse. */}
               {pretALire && !userId && (
@@ -245,7 +333,7 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                 Annuler
               </Button>
               <Button
-                isDisabled={!gardeId || !confirme || cats.length < 2 || !userId}
+                isDisabled={!gardeId || code.length !== 4 || libelle.trim() === '' || cats.length < 2 || !userId}
                 isPending={fusion.isPending}
                 onPress={() => fusion.mutate()}
                 variant="danger"
@@ -255,7 +343,7 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                 ) : (
                   <GitMerge aria-hidden="true" className="size-4" />
                 )}
-                Fusionner dans cette catégorie
+                Fusionner dans {libelle.trim().toUpperCase() || 'cette catégorie'}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

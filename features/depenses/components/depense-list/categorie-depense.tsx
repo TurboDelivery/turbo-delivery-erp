@@ -12,7 +12,12 @@ import { ColonneResponsive, TableauResponsive } from '@/components/commons/Table
 import { FusionCategoriesDialog } from '@/components/finance/configuration/fusion-categories-dialog';
 import { HistoriqueFusions } from '@/components/finance/configuration/historique-fusions';
 import { ChampTexte } from '@/components/commons/champs-formulaire';
-import { donneesRattacheesCategoriesRequest, historiqueFusionsRequest } from '@/features/depenses/apis/fusion-categorie.api';
+import {
+  donneesRattacheesCategoriesRequest,
+  historiqueCategorieRequest,
+  historiqueFusionsRequest,
+  type IFusionCategorie,
+} from '@/features/depenses/apis/fusion-categorie.api';
 import { normaliserTexte } from '@/features/finances-hub';
 import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';
@@ -147,6 +152,79 @@ function MontantCumule({ valeur }: { valeur: number }) {
  * tabulaire, alignes a droite. Le composant de la maison rend des cartes sur telephone et
  * sait dire un echec de lecture autrement que par une liste vide.</p>
  */
+/**
+ * L'historique d'une catégorie : sa création, ses renommages, ce qu'elle a absorbé.
+ *
+ * <p>Deux sources fondues en une suite datée : l'audit central (création, renommages,
+ * description), qui retenait déjà chaque modification avec ses valeurs avant et après, et
+ * le journal des fusions (ce qu'elle a absorbé). Si l'audit ne répond pas, l'écran le DIT :
+ * une liste sans renommage se lirait « jamais renommée ».</p>
+ */
+function HistoriqueCategorie({ categorie, fusions }: { categorie: ICategorieDepense; fusions: IFusionCategorie[] }) {
+  const { data, isError, isLoading } = useQuery({
+    queryFn: () => historiqueCategorieRequest(categorie.id),
+    queryKey: ['depenses', 'categories', 'historique', categorie.id],
+    staleTime: 30 * 1000,
+  });
+
+  const texte = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : '—');
+  const lignes: { cle: string; quand: string; quoi: string }[] = [];
+  for (const e of data ?? []) {
+    const avant = e.valeursAvant ?? {};
+    const apres = e.valeursApres ?? {};
+    const par = e.utilisateur?.trim() ? ` par ${e.utilisateur.trim()}` : '';
+    if (e.typeAction === 'CREATION') {
+      lignes.push({ cle: 'Créée', quand: e.occurredAt, quoi: par.trim() });
+    } else if ('nomCategorie' in apres && texte(avant.nomCategorie) !== texte(apres.nomCategorie)) {
+      lignes.push({
+        cle: 'Renommée',
+        quand: e.occurredAt,
+        quoi: `${texte(avant.nomCategorie)} → ${texte(apres.nomCategorie)}${par}`,
+      });
+    } else if ('description' in apres) {
+      lignes.push({ cle: 'Description modifiée', quand: e.occurredAt, quoi: par.trim() });
+    }
+  }
+  for (const f of fusions.filter((x) => x.categorieCibleId === categorie.id)) {
+    lignes.push({
+      cle: 'A absorbé',
+      quand: f.createdAt,
+      quoi: `« ${f.categorieSourceNom} »${f.annuleeAt ? ` (fusion annulée le ${formatDate(f.annuleeAt)})` : ''}`,
+    });
+  }
+  // L'audit ne connaît pas les catégories créées avant lui : la date du référentiel reste
+  // alors la seule trace de la création, et on la donne.
+  if (!lignes.some((l) => l.cle === 'Créée')) {
+    lignes.push({ cle: 'Créée', quand: categorie.createdAt, quoi: '' });
+  }
+  lignes.sort((a, b) => (a.quand < b.quand ? 1 : -1));
+
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      {isLoading && <p className="text-muted">Lecture de l&apos;historique…</p>}
+      {isError && (
+        <p className="text-danger-soft-foreground">
+          L&apos;historique des renommages n&apos;a pas pu être lu. Ce qui suit vient du référentiel seul.
+        </p>
+      )}
+      <ul className="flex flex-col gap-2">
+        {lignes.map((l, i) => (
+          <li className="flex flex-wrap gap-x-2" key={`${l.quand}-${i}`}>
+            <span className="tabular-nums text-muted">{formatDate(l.quand)}</span>
+            <span>
+              <b>{l.cle}</b>
+              {l.quoi ? ` ${l.cle === 'Renommée' ? ': ' : ''}${l.quoi}` : ''}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {!isLoading && !isError && !lignes.some((l) => l.cle === 'Renommée') && (
+        <p className="text-xs text-muted">Aucun renommage enregistré.</p>
+      )}
+    </div>
+  );
+}
+
 export function CategorieDepenseList() {
   const { categories, isError, isFetching, isLoading, refetch } = useCategorieDepense();
 
@@ -391,25 +469,7 @@ export function CategorieDepenseList() {
         ouvert={historiqueDe !== null}
         titre={`Historique de ${historiqueDe?.nomCategorie ?? ''}`}
       >
-        {historiqueDe && (
-          <ul className="flex flex-col gap-2 text-sm">
-            <li>
-              <b>Créée</b> le {formatDate(historiqueDe.createdAt)}
-            </li>
-            {fusions
-              .filter((f) => f.categorieCibleId === historiqueDe.id)
-              .map((f) => (
-                <li key={f.id}>
-                  <b>A absorbé</b> « {f.categorieSourceNom} » le {formatDate(f.createdAt)}
-                  {f.annuleeAt ? ` (fusion annulée le ${formatDate(f.annuleeAt)})` : ''}
-                </li>
-              ))}
-            <li className="text-xs text-muted">
-              Les renommages ne sont pas encore enregistrés : seule la dernière modification est connue
-              ({formatDate(historiqueDe.updatedAt)}).
-            </li>
-          </ul>
-        )}
+        {historiqueDe && <HistoriqueCategorie categorie={historiqueDe} fusions={fusions} />}
       </FenetreAction>
 
 

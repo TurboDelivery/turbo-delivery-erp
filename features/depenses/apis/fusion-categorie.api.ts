@@ -28,13 +28,35 @@ export async function fusionnerCategoriesRequest(
   gardeId: string,
   supprimeIds: string[],
   userId: string,
+  options: { codeSecret: string; descriptionFinale?: string; libelleFinal?: string },
 ): Promise<{ fusionnes: number; gardeId: string }> {
   return await apiClientHttp.request({
     endpoint: '/api/finance/categories/fusionner',
     method: 'POST',
     service: 'backend',
-    data: { gardeId, supprimeIds },
-    config: { headers: { 'X-User-Id': userId } },
+    data: { descriptionFinale: options.descriptionFinale, gardeId, libelleFinal: options.libelleFinal, supprimeIds },
+    // Le code secret part en EN-TÊTE, jamais dans l'URL ni dans le corps journalisé : c'est
+    // le même canal que la suppression d'une déduction, et le serveur le vérifie.
+    config: { headers: { 'X-Code-Secret': options.codeSecret, 'X-User-Id': userId } },
+  });
+}
+
+/** L'historique d'une catégorie tel que l'audit central le retient : création, renommages. */
+export interface IEvenementCategorie {
+  occurredAt: string;
+  typeAction: string;
+  /** Qui a agi. Vide sur les écritures antérieures à l'audit nominatif. */
+  utilisateur: string | null;
+  /** Les SEULS champs modifiés, avant puis après : un renommage y porte `nomCategorie`. */
+  valeursAvant: Record<string, unknown> | null;
+  valeursApres: Record<string, unknown> | null;
+}
+
+export async function historiqueCategorieRequest(id: string): Promise<IEvenementCategorie[]> {
+  return await apiClientHttp.request<IEvenementCategorie[]>({
+    endpoint: `/api/finance/categories/${id}/historique`,
+    method: 'GET',
+    service: 'backend',
   });
 }
 

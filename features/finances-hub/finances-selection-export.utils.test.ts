@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { IFinanceItem, STATUTS_PAR_DEFAUT } from './finances-hub.utils';
-import { ligneFiltres, lignesExportees, nomFichierSelection } from './finances-selection-export.utils';
+import { ligneFiltres, lignesExportees, nomFichierSelection, payeeLe } from './finances-selection-export.utils';
 
 const maintenant = new Date(2026, 10, 20, 16, 45);
 const ctx = {
@@ -49,5 +49,18 @@ describe('ce qui part dans le fichier', () => {
   it('⚠ une rejetée affichée n\'est PAS exportée', () => {
     const l = (statut: IFinanceItem['statut']) => ({ statut }) as IFinanceItem;
     expect(lignesExportees([l('paye'), l('rejete'), l('pending')])).toHaveLength(2);
+  });
+});
+
+describe('« Payée le »', () => {
+  it('le jour du décaissement, JJ/MM', () => {
+    expect(payeeLe({ payeeLe: '2026-08-27T10:15:00Z' })).toBe('27/08');
+  });
+  it('un tiret tant que rien n\'est sorti', () => {
+    expect(payeeLe({ payeeLe: null })).toBe('—');
+    expect(payeeLe({})).toBe('—');
+  });
+  it('⚠ 23 h 30 UTC reste le même jour, quel que soit le poste qui exporte', () => {
+    expect(payeeLe({ payeeLe: '2026-08-31T23:30:00Z' })).toBe('31/08');
   });
 });

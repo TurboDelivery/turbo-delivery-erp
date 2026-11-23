@@ -80,6 +80,14 @@ export function ligneFiltres(ctx: ContexteExportSelection): string {
 export const lignesExportees = (selection: IFinanceItem[]) => selection.filter((i) => i.statut !== 'rejete');
 
 const typeLibelle = (t: IFinanceItem['type']) => (t === 'fixe' ? 'Fixe' : 'Variable');
+/**
+ * « Payée le » : le jour du décaissement, JJ/MM, ou un tiret tant que rien n'est sorti.
+ *
+ * <p>⚠ Lu en UTC sur la chaîne ISO, sans passer par un objet Date local : un décaissement
+ * enregistré à 23 h 30 UTC ne doit pas glisser au lendemain selon le poste qui exporte.</p>
+ */
+export const payeeLe = (i: Pick<IFinanceItem, 'payeeLe'>) =>
+  i.payeeLe && /^\d{4}-\d{2}-\d{2}/.test(i.payeeLe) ? `${i.payeeLe.slice(8, 10)}/${i.payeeLe.slice(5, 7)}` : '—';
 /** Visa et accord se LISENT sur le statut : visée dès « Visé DGA », accordée dès « Approuvé DG ». */
 const visaDga = (s: FinanceStatut) => (s === 'vise' || s === 'approuve' || s === 'paye' ? 'Oui' : '—');
 const accordDg = (s: FinanceStatut) => (s === 'approuve' || s === 'paye' ? 'Oui' : '—');
@@ -112,6 +120,7 @@ export function genererSelectionXlsx(selection: IFinanceItem[], ctx: ContexteExp
   const detail = lignes.map((i, rang) => ({
     'N°': rang + 1,
     'Échéance': i.echeance,
+    'Payée le': payeeLe(i),
     'Désignation': i.designation,
     'Catégorie': i.categorie,
     'Type': typeLibelle(i.type),
@@ -144,9 +153,10 @@ const winAnsi = (t: string) =>
 /** Les colonnes du tableau PDF, largeurs en mm (A4 paysage : 297 − 2 × 12 de marge = 273). */
 const COLONNES: { titre: string; w: number; droite?: boolean; valeur: (i: IFinanceItem, rang: number) => string }[] = [
   { titre: 'N°', valeur: (_i, r) => String(r + 1), w: 11 },
-  { titre: 'ÉCHÉANCE', valeur: (i) => i.echeance, w: 24 },
-  { titre: 'DÉSIGNATION', valeur: (i) => i.designation, w: 72 },
-  { titre: 'CATÉGORIE', valeur: (i) => i.categorie, w: 54 },
+  { titre: 'ÉCHÉANCE', valeur: (i) => i.echeance, w: 22 },
+  { titre: 'PAYÉE LE', valeur: (i) => payeeLe(i), w: 18 },
+  { titre: 'DÉSIGNATION', valeur: (i) => i.designation, w: 64 },
+  { titre: 'CATÉGORIE', valeur: (i) => i.categorie, w: 46 },
   { titre: 'TYPE', valeur: (i) => typeLibelle(i.type), w: 20 },
   { droite: true, titre: 'MONTANT', valeur: (i) => fcfa(i.montant), w: 32 },
   { titre: 'STATUT', valeur: (i) => LIBELLE_STATUT[i.statut], w: 26 },
@@ -157,10 +167,10 @@ const COLONNES: { titre: string; w: number; droite?: boolean; valeur: (i: IFinan
 /**
  * Le PDF « État des dépenses », A4 paysage (maquette, planche 3).
  *
- * <p>⚠ Deux colonnes de la maquette ne sont PAS produites : « Payée le » et « Compte ». Le
- * serveur ne transmet ni la date de décaissement ni le compte débité pour ces lignes ;
- * écrire une date supposée ou « Caisse physique » partout serait inventer une pièce
- * comptable. Elles viendront quand la donnée existera.</p>
+ * <p>⚠ UNE colonne de la maquette n'est PAS produite : « Compte ». Le compte débité n'est
+ * enregistré nulle part au décaissement ; écrire « Caisse physique » sur chaque ligne
+ * serait inventer une pièce comptable. « Payée le », elle, vient de la date de décaissement
+ * que le serveur transmet déjà.</p>
  */
 export function genererSelectionPdf(selection: IFinanceItem[], ctx: ContexteExportSelection): jsPDF {
   const lignes = lignesExportees(selection);
@@ -260,7 +270,7 @@ export function genererSelectionPdf(selection: IFinanceItem[], ctx: ContexteExpo
   doc.setFillColor(244, 244, 245).rect(M, y, L - 2 * M, 8, 'F');
   doc.setFont('helvetica', 'bold').setFontSize(8).setTextColor(24, 24, 27);
   ecrire(`TOTAL · ${st.n} opération${st.n > 1 ? 's' : ''} (égal à la synthèse)`, M + 2, y + 5.3);
-  const xMontant = M + COLONNES.slice(0, 6).reduce((s, c) => s + c.w, 0) - 2;
+  const xMontant = M + COLONNES.slice(0, COLONNES.findIndex((c) => c.titre === 'MONTANT') + 1).reduce((s, c) => s + c.w, 0) - 2;
   ecrire(fcfa(st.total), xMontant, y + 5.3, { align: 'right' });
 
   // Pied de page : la pagination se pose à la fin, quand on connaît le nombre de pages.
