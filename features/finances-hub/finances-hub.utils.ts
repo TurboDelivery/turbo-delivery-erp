@@ -192,3 +192,108 @@ export function filtrerItems(
     return nextAction(i, seuil) === etape;
   });
 }
+
+// ── La sélection de la planche « Dépenses — analyse par catégorie » ──────────────
+
+/** Les cinq statuts, dans l'ordre du circuit. Ce sont les bascules du filtre Statut. */
+export const STATUTS_FINANCE: { cle: FinanceStatut; libelle: string }[] = [
+  { cle: 'pending', libelle: 'En attente' },
+  { cle: 'vise', libelle: 'Visé DGA' },
+  { cle: 'approuve', libelle: 'Approuvé DG' },
+  { cle: 'paye', libelle: 'Payé' },
+  { cle: 'rejete', libelle: 'Rejeté' },
+];
+
+/** Par défaut : tout sauf Rejeté (maquette). Une rejetée ne se montre que si on la demande. */
+export const STATUTS_PAR_DEFAUT: FinanceStatut[] = ['pending', 'vise', 'approuve', 'paye'];
+
+/**
+ * Réduit le mois à la sélection : statuts cochés ET recherche.
+ *
+ * <p>C'est LA sélection. Les onglets, les cartes, le tableau, son pied et l'export en
+ * partent tous : deux chemins de filtrage, c'est deux totaux qui finissent par diverger.</p>
+ */
+export function filtrerSelection(
+  items: IFinanceItem[],
+  critere: { recherche: string; statuts: FinanceStatut[] },
+): IFinanceItem[] {
+  const q = normaliserTexte(critere.recherche.trim());
+  const statuts = new Set(critere.statuts);
+  return items.filter((i) => {
+    if (!statuts.has(i.statut)) return false;
+    return !q || normaliserTexte(`${i.designation} ${i.categorie}`).includes(q);
+  });
+}
+
+export interface IStatsSelection {
+  /** Opérations comptées : les rejetées n'en sont pas. */
+  n: number;
+  total: number;
+  moyenne: number;
+  min: number;
+  max: number;
+  paye: number;
+  nbPayees: number;
+  reste: number;
+  nbReste: number;
+  /** Rejetées AFFICHÉES dans la sélection, mais non comptées. */
+  nbRejetees: number;
+  parCategorie: { categorie: string; n: number; total: number }[];
+}
+
+/**
+ * Les chiffres de la sélection.
+ *
+ * <p>⚠ UNE REJETÉE S'AFFICHE MAIS NE SE COMPTE PAS (maquette) : elle n'a rien coûté et ne
+ * coûtera rien. La compter gonflerait le total de sommes qui ne sortiront jamais.</p>
+ */
+export function statsSelection(items: IFinanceItem[]): IStatsSelection {
+  const comptees = items.filter((i) => i.statut !== 'rejete');
+  const somme = (l: IFinanceItem[]) => l.reduce((s, i) => s + i.montant, 0);
+  const payees = comptees.filter((i) => i.statut === 'paye');
+  const restantes = comptees.filter((i) => i.statut !== 'paye');
+  const montants = comptees.map((i) => i.montant);
+  const total = somme(comptees);
+
+  const parCle = new Map<string, { categorie: string; n: number; total: number }>();
+  for (const i of comptees) {
+    const c = parCle.get(i.categorie) ?? { categorie: i.categorie, n: 0, total: 0 };
+    c.n += 1;
+    c.total += i.montant;
+    parCle.set(i.categorie, c);
+  }
+
+  return {
+    max: montants.length ? Math.max(...montants) : 0,
+    min: montants.length ? Math.min(...montants) : 0,
+    moyenne: comptees.length ? total / comptees.length : 0,
+    n: comptees.length,
+    nbPayees: payees.length,
+    nbRejetees: items.length - comptees.length,
+    nbReste: restantes.length,
+    parCategorie: Array.from(parCle.values()).sort((a, b) => b.total - a.total),
+    paye: somme(payees),
+    reste: somme(restantes),
+    total,
+  };
+}
+
+export type CleTri = 'echeance' | 'montant';
+
+/**
+ * Trie la sélection sur l'échéance ou le montant.
+ *
+ * <p>⚠ L'échéance se trie sur la DATE brute, pas sur son libellé : « 07/04 » et « le 7 »
+ * rangés comme du texte mettraient le 10 avant le 2. Une charge sans date (récurrente)
+ * va à la fin, dans les deux sens.</p>
+ */
+export function trierSelection(items: IFinanceItem[], cle: CleTri, sens: 'asc' | 'desc'): IFinanceItem[] {
+  const f = sens === 'asc' ? 1 : -1;
+  return items.slice().sort((a, b) => {
+    if (cle === 'montant') return (a.montant - b.montant) * f;
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) * f;
+  });
+}

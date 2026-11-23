@@ -4,9 +4,9 @@ import { Button } from '@heroui-v3/react';
 import { ListFilter, RotateCcw } from 'lucide-react';
 import React from 'react';
 
-import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
+import { ChampTexte } from '@/components/commons/champs-formulaire';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
-import { ETAPES } from '@/features/finances-hub';
+import { FinanceStatut, STATUTS_FINANCE } from '@/features/finances-hub';
 
 /**
  * LA BARRE DE FILTRES DU TABLEAU FINANCE.
@@ -32,14 +32,14 @@ import { ETAPES } from '@/features/finances-hub';
 export function BarreFiltresFinance({
   aDesFiltres,
   categories,
-  etape,
   montantRetenu,
   onCategories,
-  onEtape,
   onRecherche,
   onReinitialiser,
+  onStatuts,
   recherche,
   retenues,
+  statuts,
   total,
   /**
    * La recherche et l'étape ne valent que pour le tableau des charges.
@@ -52,15 +52,15 @@ export function BarreFiltresFinance({
 }: {
   aDesFiltres: boolean;
   categories: string[];
-  etape: string;
   /** Somme des lignes retenues. Affichée seulement quand un filtre est posé. */
   montantRetenu?: string;
   onCategories: (c: null | string[]) => void;
-  onEtape: (v: string) => void;
+  onStatuts: (s: FinanceStatut[]) => void;
   onRecherche: (v: string) => void;
   onReinitialiser: () => void;
   recherche: string;
   retenues?: number;
+  statuts: FinanceStatut[];
   surLeTableau?: boolean;
   total?: number;
 }) {
@@ -84,9 +84,9 @@ export function BarreFiltresFinance({
         {surLeTableau && (
           <div className="w-full min-w-[12rem] flex-1 sm:w-auto sm:max-w-xs">
             <ChampTexte
-              label="Rechercher"
+              label="Recherche"
               onChange={onRecherche}
-              placeholder="Désignation ou catégorie…"
+              placeholder="Désignation, ex. pneu, Yamaha…"
               valeur={recherche}
             />
           </div>
@@ -96,14 +96,34 @@ export function BarreFiltresFinance({
           <CategoriesSelectFilter onCategoriesChange={onCategories} selectedCategories={categories} />
         </div>
 
+        {/*
+          * LE STATUT : cinq bascules à sélection MULTIPLE (maquette), et non plus une liste
+          * à choix unique. On coche « En attente » ET « Visé DGA » pour voir tout ce qui
+          * n'est pas encore accordé, ce qu'une liste ne permettait pas.
+          *
+          * <p>Par défaut tout est coché SAUF « Rejeté » : une rejetée ne se montre que si on
+          * la demande, et même affichée elle n'entre dans aucun total.</p>
+          */}
         {surLeTableau && (
-          <div className="w-full sm:w-56">
-            <ChampListe
-              label="Étape"
-              onChange={(v) => onEtape(v || 'tous')}
-              options={ETAPES}
-              valeur={etape}
-            />
+          <div className="w-full sm:w-auto">
+            <span className="mb-1.5 block text-xs font-medium text-muted">Statut</span>
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5" role="group" aria-label="Statuts affichés">
+              {STATUTS_FINANCE.map((o) => {
+                const actif = statuts.includes(o.cle);
+                return (
+                  <Button
+                    aria-pressed={actif}
+                    className="shrink-0"
+                    key={o.cle}
+                    onPress={() => onStatuts(actif ? statuts.filter((x) => x !== o.cle) : [...statuts, o.cle])}
+                    size="sm"
+                    variant={actif ? 'secondary' : 'outline'}
+                  >
+                    {o.libelle}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
         )}
 

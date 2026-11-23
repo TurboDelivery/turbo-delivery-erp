@@ -7,6 +7,7 @@ import {
   Checkbox,
   Chip,
   ComboBox,
+  Dropdown,
   Input,
   Label,
   ListBox,
@@ -42,7 +43,16 @@ import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 import {
   FinanceStatut,
   IFinanceItem,
-  filtrerItems,
+  filtrerSelection,
+  genererSelectionPdf,
+  genererSelectionXlsx,
+  lignesExportees,
+  nomFichierSelection,
+  statsSelection,
+  STATUTS_FINANCE,
+  STATUTS_PAR_DEFAUT,
+  trierSelection,
+  type CleTri,
   fmtFcfa,
   generateFinancesPdf,
   generateFinancesXlsx,
@@ -116,10 +126,12 @@ function Stepper({ item, seuil }: { item: IFinanceItem; seuil: number }) {
 }
 
 const TABS = [
+  // « Toutes » ouvre la rangée et s'ouvre par défaut (maquette) : on arrive sur l'ensemble,
+  // puis on réduit. Ouvrir sur « Charges fixes » cachait les dépenses variables à l'arrivée.
+  { k: 'all', label: 'Toutes' },
   { k: 'fixe', label: 'Charges fixes' },
   { k: 'variable', label: 'Dépenses variables' },
   { k: 'bap', label: 'Bon à payer' },
-  { k: 'all', label: 'Toutes' },
   /*
    * ⚠ GRAND LIVRE : les lignes de `depenses`, pas des charges.
    *
@@ -133,13 +145,14 @@ const TABS = [
   { k: 'histo', label: 'Mon historique' },
 ] as const;
 
-const PAGE_SIZE = 12;
+/** Les tailles de page proposées (maquette). */
+const TAILLES_PAGE = [10, 25, 50] as const;
 
 export function FinanceHubView() {
   const [monthKey, setMonthKey] = useState(CUR_MONTH_KEY);
   const [jour, setJour] = useState(Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY)));
   const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY))));
-  const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
+  const [tab, setTab] = useState<(typeof TABS)[number]['k']>('all');
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   /*
@@ -151,7 +164,10 @@ export function FinanceHubView() {
    * qu'on le demande, et la frappe au clavier reecrirait l'URL a chaque lettre.</p>
    */
   const [recherche, setRecherche] = useState('');
-  const [etape, setEtape] = useState<string>('tous');
+  const [statuts, setStatuts] = useState<FinanceStatut[]>(STATUTS_PAR_DEFAUT);
+  /** Tri de la liste. Par défaut l'échéance, la plus récente d'abord (maquette). */
+  const [tri, setTri] = useState<{ cle: CleTri; sens: 'asc' | 'desc' }>({ cle: 'echeance', sens: 'desc' });
+  const [parPage, setParPage] = useState<number>(TAILLES_PAGE[0]);
   // Filtre catégorie partagé (nuqs) — même source que le graphique de répartition.
   const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
   const categorieFilter = depenseFilters.categoriesDepense ?? [];
@@ -264,18 +280,24 @@ export function FinanceHubView() {
     // masquerait la depense sur laquelle le courriel fait atterrir, et l'ecran repondrait
     // « aucune depense ne correspond » a un lien qu'il vient lui-meme d'envoyer.
     setRecherche('');
-    setEtape('tous');
+    // Les CINQ statuts, Rejeté compris : la dépense visée par le courriel peut justement
+    // être une rejetée, que le filtre par défaut masque.
+    setStatuts(STATUTS_FINANCE.map((o) => o.cle));
     const targetTab = (nextAction(it, seuil) === 'pay' ? 'bap' : it.type) as (typeof TABS)[number]['k'];
-    const targetList = targetTab === 'bap'
-      ? items.filter((i) => nextAction(i, seuil) === 'pay')
-      : items.filter((i) => i.type === targetTab);
+    // ⚠ La page se calcule dans l'ordre AFFICHÉ, donc trié comme la liste : sans le tri, le
+    // rang serait celui du serveur et le lien ouvrirait une page où la ligne n'est pas.
+    const targetList = trierSelection(
+      targetTab === 'bap' ? items.filter((i) => nextAction(i, seuil) === 'pay') : items.filter((i) => i.type === targetTab),
+      tri.cle,
+      tri.sens,
+    );
     const idx = targetList.findIndex((i) => i.id === it.id);
     setTab(targetTab);
-    setPage(idx >= 0 ? Math.floor(idx / PAGE_SIZE) + 1 : 1);
+    setPage(idx >= 0 ? Math.floor(idx / parPage) + 1 : 1);
     setHighlightId(it.id);
     setTimeout(() => document.getElementById(`dep-row-${it.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     setTimeout(() => setHighlightId(null), 4500);
-  }, [focus.depense, isLoading, items, seuil]);
+  }, [focus.depense, isLoading, items, seuil, tri.cle, tri.sens, parPage]);
 
   const [payTargets, setPayTargets] = useState<IFinanceItem[]>([]);
   const [acc, setAcc] = useState('Caisse physique');
@@ -315,8 +337,8 @@ export function FinanceHubView() {
    * donc reduire ne coute aucun aller-retour et repond a la frappe.
    */
   const itemsVus = useMemo(
-    () => filtrerItems(items, { etape, recherche }, seuil),
-    [items, recherche, etape, seuil],
+    () => filtrerSelection(items, { recherche, statuts }),
+    [items, recherche, statuts],
   );
 
   /*
@@ -330,24 +352,37 @@ export function FinanceHubView() {
   const bapVus = useMemo(() => itemsVus.filter((i) => nextAction(i, seuil) === 'pay'), [itemsVus, seuil]);
 
   const list = useMemo(() => {
-    if (tab === 'fixe') return itemsVus.filter((i) => i.type === 'fixe');
-    if (tab === 'variable') return itemsVus.filter((i) => i.type === 'variable');
-    if (tab === 'bap') return bapVus;
-    return itemsVus;
-  }, [itemsVus, tab, bapVus]);
-  const listTotal = useMemo(() => list.reduce((s, i) => s + i.montant, 0), [list]);
+    const deLOnglet =
+      tab === 'fixe' ? itemsVus.filter((i) => i.type === 'fixe')
+      : tab === 'variable' ? itemsVus.filter((i) => i.type === 'variable')
+      : tab === 'bap' ? bapVus
+      : itemsVus;
+    return trierSelection(deLOnglet, tri.cle, tri.sens);
+  }, [itemsVus, tab, bapVus, tri]);
+  /*
+   * LES CHIFFRES DE LA SÉLECTION (maquette) : onglet, catégories, statuts et recherche
+   * compris. Les quatre cartes, le pied du tableau et l'export lisent CE calcul et aucun
+   * autre — c'est ce qui garantit qu'ils disent le même montant.
+   */
+  const stats = useMemo(() => statsSelection(list), [list]);
+  const listTotal = stats.total;
 
   const estTableauCharges = tab !== 'histo' && tab !== 'livre';
-  const aDesFiltres = recherche.trim() !== '' || etape !== 'tous' || categorieFilter.length > 0;
+  const statutsParDefaut =
+    statuts.length === STATUTS_PAR_DEFAUT.length && STATUTS_PAR_DEFAUT.every((x) => statuts.includes(x));
+  const aDesFiltres = recherche.trim() !== '' || !statutsParDefaut || categorieFilter.length > 0;
   const reinitialiser = () => {
     setRecherche('');
-    setEtape('tous');
+    setStatuts(STATUTS_PAR_DEFAUT);
     handleCategoriesChange(null);
+    // Réinitialiser ramène aussi sur « Toutes » (maquette) : sinon on « réinitialise » en
+    // restant sur un onglet qui continue de cacher la moitié des lignes.
+    if (tab !== 'livre' && tab !== 'histo') setTab('all');
   };
 
   // Pagination
-  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-  const paged = useMemo(() => list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [list, page]);
+  const pageCount = Math.max(1, Math.ceil(list.length / parPage));
+  const paged = useMemo(() => list.slice((page - 1) * parPage, page * parPage), [list, page, parPage]);
 
   const catKey = categorieFilter.join(',');
   // Changement d'onglet : on efface juste la sélection (la page reste, utile pour le deep-link).
@@ -362,7 +397,7 @@ export function FinanceHubView() {
    * barre de selection annonce combien de lignes cochees sont masquees, et les actions
    * groupees n'agissent QUE sur ce qui est visible (`selItems`).</p>
    */
-  useEffect(() => { setPage(1); }, [recherche, etape]);
+  useEffect(() => { setPage(1); }, [recherche, statuts, tri, parPage]);
   useEffect(() => { if (page > pageCount) setPage(1); }, [page, pageCount]);
 
   // Sélection multiple (par id) + actions groupées sur la sélection de l'onglet.
@@ -485,28 +520,69 @@ export function FinanceHubView() {
     bapTotal,
   });
 
-  // Excel : vrai fichier .xlsx (Synthèse + Dépenses), montants en nombres sommables.
-  const exportXlsx = () => {
-    const data = generateFinancesXlsx(items, exportMeta());
-    const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  /*
+   * L'EXPORT DE LA SÉLECTION (maquette) : ce que les filtres laissent voir — onglet,
+   * catégories, statuts, recherche —, TOUTES PAGES confondues, rejetées exclues.
+   *
+   * ⚠ Il exportait `items`, le mois entier : on filtrait sur une catégorie, on exportait, et
+   * le fichier contenait tout le reste. Il part maintenant de `list`, la liste affichée, et
+   * du même calcul que les cartes.
+   */
+  const contexteExport = () => {
+    const noms = Array.from(
+      new Set(items.filter((i) => i.categorieId && categorieFilter.includes(i.categorieId)).map((i) => i.categorie)),
+    );
+    return {
+      auteur: actor,
+      // Un filtre posé sur une catégorie SANS ligne ce mois-ci n'a pas de nom à montrer :
+      // on garde le compte, pour que le fichier ne s'appelle pas « TOUTES » à tort.
+      categories: noms.length > 0 ? noms : categorieFilter.map((_c, i) => `CATEGORIE ${i + 1}`),
+      maintenant: new Date(),
+      moisCle: monthKey,
+      moisLibelle: (monthOptions.find((m) => m.key === monthKey)?.label ?? monthKey).toLowerCase(),
+      recherche,
+      statuts,
+      typeLibelle: TABS.find((t) => t.k === tab)?.label ?? 'Toutes',
+    };
+  };
+  const telecharger = (blob: Blob, nom: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Finances_${monthKey}.xlsx`;
+    a.download = nom;
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  // PDF : document HTML isolé imprimé dans une nouvelle fenêtre (pas la page entière).
+  /** La phrase qui confirme : le nom du fichier, ce qu'il contient, pour combien. */
+  const confirmerExport = (nom: string) => {
+    const n = lignesExportees(list).length;
+    toast.success(`Export prêt : ${nom} · ${n} opération${n > 1 ? 's' : ''} · ${fmtFcfa(stats.total)}`);
+  };
+  const exportXlsx = () => {
+    const ctx = contexteExport();
+    const nom = `${nomFichierSelection(ctx)}.xlsx`;
+    telecharger(
+      new Blob([genererSelectionXlsx(list, ctx)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      nom,
+    );
+    confirmerExport(nom);
+  };
+  /** Un VRAI fichier PDF A4 paysage, et plus une fenêtre d'impression que le navigateur bloque. */
   const exportPdf = () => {
-    const w = window.open('', '_blank');
-    if (!w) {
-      toast.error('Autorisez les pop-ups pour exporter en PDF.');
-      return;
-    }
-    w.document.write(generateFinancesPdf(items, exportMeta()));
-    w.document.close();
-    setTimeout(() => w.print(), 250);
+    const ctx = contexteExport();
+    const nom = `${nomFichierSelection(ctx)}.pdf`;
+    genererSelectionPdf(list, ctx).save(nom);
+    confirmerExport(nom);
+  };
+  /**
+   * Les indicateurs du MOIS (CA, dépenses cumulées, marge, bon à payer) : l'export d'avant.
+   * Il répond à une autre question que la sélection, et reste donc disponible tel quel.
+   */
+  const exportMois = () => {
+    telecharger(
+      new Blob([generateFinancesXlsx(items, exportMeta())], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      `Finances_${monthKey}.xlsx`,
+    );
   };
 
   /*
@@ -569,14 +645,6 @@ export function FinanceHubView() {
               </ListBox>
             </ComboBox.Popover>
           </ComboBox>
-          <Button onPress={exportXlsx} size="sm" variant="outline">
-            <Download aria-hidden="true" className="size-4" />
-            Excel
-          </Button>
-          <Button onPress={exportPdf} size="sm" variant="outline">
-            <FileText aria-hidden="true" className="size-4" />
-            PDF
-          </Button>
         </div>
       </div>
 
@@ -712,16 +780,87 @@ export function FinanceHubView() {
         * regarde, les filtres COMMENT on la reduit. Separes, chacun se lit pour ce qu'il
         * est ; et la barre, encadree et titree, annonce ce qu'elle a retenu.</p>
         */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex gap-1.5 overflow-x-auto" role="tablist">
         {TABS.map((t) => {
           const c = countFor(t.k);
           return (
-            <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}>
+            <button aria-selected={tab === t.k} key={t.k} onClick={() => { setTab(t.k); setPage(1); }} role="tab" className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}>
               {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary text-muted'}`}>{c}</span>}
             </button>
           );
         })}
       </div>
+
+      {/*
+        * UN SEUL MENU « EXPORTER », sur la rangée des onglets (maquette). Il dit d'abord CE
+        * QU'IL EXPORTE : la sélection filtrée, toutes pages confondues, avec son compte et
+        * son total. Deux boutons nus « Excel » et « PDF » dans l'en-tête ne disaient rien du
+        * périmètre, et exportaient en réalité le mois entier.
+        *
+        * Sur téléphone il s'efface : la barre du bas porte le total et les deux exports.
+        */}
+      {estTableauCharges && (
+        <div className="hidden sm:block">
+          <Dropdown>
+            <Button size="sm" variant="outline">
+              <Download aria-hidden="true" className="size-4" />
+              Exporter
+            </Button>
+            <Dropdown.Popover className="max-w-xs">
+              <p className="border-b border-separator px-3 py-2 text-xs text-muted">
+                Exporte toute la sélection filtrée ({stats.n} opération{stats.n > 1 ? 's' : ''} ·{' '}
+                {fmtFcfa(stats.total)}), toutes pages confondues.
+              </p>
+              <Dropdown.Menu
+                aria-label="Exporter la sélection"
+                onAction={(k) => {
+                  if (k === 'xlsx') exportXlsx();
+                  if (k === 'pdf') exportPdf();
+                  if (k === 'mois') exportMois();
+                }}
+              >
+                <Dropdown.Item id="xlsx" textValue="Excel">
+                  <div>
+                    <span className="block text-sm font-semibold">Excel (.xlsx)</span>
+                    <span className="block text-xs text-muted">Montants numériques, synthèse + détail</span>
+                  </div>
+                </Dropdown.Item>
+                <Dropdown.Item id="pdf" textValue="PDF paysage">
+                  <div>
+                    <span className="block text-sm font-semibold">PDF paysage</span>
+                    <span className="block text-xs text-muted">Synthèse en page 1, pagination</span>
+                  </div>
+                </Dropdown.Item>
+                <Dropdown.Item id="mois" textValue="Indicateurs du mois">
+                  <div>
+                    <span className="block text-sm font-semibold">Indicateurs du mois (Excel)</span>
+                    <span className="block text-xs text-muted">CA, dépenses cumulées, marge : le mois entier</span>
+                  </div>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
+        </div>
+      )}
+      </div>
+
+      {/* LA BARRE DU BAS, au téléphone (maquette 1m) : le total de la sélection reste sous le
+          pouce, avec ses deux exports. Elle porte le MÊME total que les cartes et le pied. */}
+      {estTableauCharges && !isLoading && !isError && (
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-separator bg-surface px-4 py-2.5 shadow-lg sm:hidden">
+          <div>
+            <p className="text-[11px] text-muted">
+              Total · {stats.n} opération{stats.n > 1 ? 's' : ''}
+            </p>
+            <p className="text-base font-bold tabular-nums text-foreground">{fmtFcfa(stats.total)}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button onPress={exportXlsx} size="sm" variant="outline">Excel</Button>
+            <Button onPress={exportPdf} size="sm" variant="outline">PDF</Button>
+          </div>
+        </div>
+      )}
 
       {/*
         * ⚠ `items-end` ET NON `items-center` : chaque champ porte son libelle AU-DESSUS,
@@ -733,14 +872,14 @@ export function FinanceHubView() {
         <BarreFiltresFinance
           aDesFiltres={aDesFiltres}
           categories={categorieFilter}
-          etape={etape}
           montantRetenu={fmtFcfa(listTotal)}
           onCategories={handleCategoriesChange}
-          onEtape={setEtape}
+          onStatuts={setStatuts}
           onRecherche={setRecherche}
           onReinitialiser={reinitialiser}
           recherche={recherche}
           retenues={list.length}
+          statuts={statuts}
           surLeTableau={estTableauCharges}
           total={items.length}
         />
@@ -759,6 +898,12 @@ export function FinanceHubView() {
         // sans cette branche le tableau tombait a zero ligne et se lisait comme "rien a traiter"
         <EtatErreur quoi="les charges et dépenses" onReessayer={() => refetch()} enCours={isFetching} />
       ) : (
+        <>
+        <CartesSelection
+          libelle={`${categorieFilter.length > 0 && stats.parCategorie.length > 0 ? stats.parCategorie.map((c) => c.categorie).join(' + ') : 'Toutes catégories'} · ${monthOptions.find((m) => m.key === monthKey)?.label ?? monthKey}`}
+          plusieursCategories={categorieFilter.length > 1}
+          stats={stats}
+        />
         <Card className="border border-separator">
           {/* Barre d'actions GROUPÉES sur la sélection (tous les onglets) */}
           {sel.size > 0 && (
@@ -849,10 +994,18 @@ export function FinanceHubView() {
                     <Table.Column id="designation" isRowHeader>
                       Désignation
                     </Table.Column>
-                    <Table.Column id="categorie">{tab === 'bap' ? 'Type' : 'Catégorie'}</Table.Column>
-                    <Table.Column id="montant">Montant</Table.Column>
-                    <Table.Column id="echeance">Échéance</Table.Column>
-                    {tab !== 'bap' ? <Table.Column id="validation">Validation</Table.Column> : null}
+                    {/* Les MÊMES colonnes sur tous les onglets (maquette). « Bon à payer »
+                        remplaçait la catégorie par le type et retirait la validation : passer
+                        d'un onglet à l'autre déplaçait les colonnes sous les yeux. */}
+                    <Table.Column id="categorie">Catégorie</Table.Column>
+                    <Table.Column id="type">Type</Table.Column>
+                    <Table.Column id="echeance">
+                      <EnTeteTri cle="echeance" libelle="Échéance" onTri={setTri} tri={tri} />
+                    </Table.Column>
+                    <Table.Column id="montant">
+                      <EnTeteTri cle="montant" libelle="Montant" onTri={setTri} tri={tri} />
+                    </Table.Column>
+                    <Table.Column id="validation">Validation</Table.Column>
                     <Table.Column id="statut">Statut</Table.Column>
                     <Table.Column id="action">Action</Table.Column>
                   </Table.Header>
@@ -860,7 +1013,12 @@ export function FinanceHubView() {
                   <Table.Body
                     renderEmptyState={() => (
                       <p className="py-10 text-center text-sm text-muted">
-                        Aucune dépense ne correspond à ces filtres.
+                        Aucune dépense pour ces filtres.{' '}
+                        {aDesFiltres && (
+                          <button className="font-semibold text-accent underline" onClick={reinitialiser} type="button">
+                            Réinitialiser les filtres
+                          </button>
+                        )}
                       </p>
                     )}
                   >
@@ -898,17 +1056,17 @@ export function FinanceHubView() {
                         </Table.Cell>
 
                         <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
-                          {tab === 'bap' ? (
-                            <Chip
-                              color={item.type === 'fixe' ? 'default' : 'warning'}
-                              size="sm"
-                              variant="soft"
-                            >
-                              <Chip.Label>{item.type === 'fixe' ? 'Fixe' : 'Variable'}</Chip.Label>
-                            </Chip>
-                          ) : (
-                            <span className="text-muted">{item.categorie}</span>
-                          )}
+                          <span className="text-muted">{item.categorie}</span>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <span className="whitespace-nowrap text-muted">
+                            {item.type === 'fixe' ? 'Charge fixe' : 'Dépense variable'}
+                          </span>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <span className="tabular-nums text-muted">{item.echeance}</span>
                         </Table.Cell>
 
                         <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
@@ -918,14 +1076,8 @@ export function FinanceHubView() {
                         </Table.Cell>
 
                         <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
-                          <span className="text-muted">{item.echeance}</span>
+                          <Stepper item={item} seuil={seuil} />
                         </Table.Cell>
-
-                        {tab !== 'bap' ? (
-                          <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
-                            <Stepper item={item} seuil={seuil} />
-                          </Table.Cell>
-                        ) : null}
 
                         <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
                           <Chip
@@ -1011,16 +1163,42 @@ export function FinanceHubView() {
               </div>
             ))}
           </div>
-          {/* Pagination */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-separator px-4 py-3">
-            <span className="text-xs text-muted">
-              {list.length} ligne{list.length > 1 ? 's' : ''}
-              {aDesFiltres ? ` sur ${items.length}` : ''}
-              {selItems.length > 0 ? ` · ${selItems.length} sélectionnée${selItems.length > 1 ? 's' : ''}` : ''}
+          {/*
+            * LE PIED DE TABLEAU (maquette) : le total de la SÉLECTION, toutes pages confondues.
+            *
+            * ⚠ Ce n'est pas le total de la page affichée. Un total qui changerait en tournant
+            * la page se lirait comme le total du mois, et serait faux dix fois sur onze. Il
+            * vient de `stats`, le même calcul que les cartes et que l'export.
+            *
+            * (Le Table v3 n'a pas de pied fusionnable : c'est une rangée sous la grille.)
+            */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-separator bg-surface-secondary px-4 py-3">
+            <span className="text-sm font-semibold text-foreground">
+              Total de la sélection · {stats.n} opération{stats.n > 1 ? 's' : ''}{' '}
+              <span className="text-xs font-normal text-muted">(toutes pages, rejetées exclues)</span>
             </span>
-            {pageCount > 1 && <PaginationTableau onPage={setPage} page={page} total={pageCount} />}
+            <span className="text-sm font-bold tabular-nums text-foreground">{fmtFcfa(stats.total)}</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator px-4 py-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              Lignes par page
+              {TAILLES_PAGE.map((v) => (
+                <Button key={v} onPress={() => setParPage(v)} size="sm" variant={parPage === v ? 'secondary' : 'outline'}>
+                  {v}
+                </Button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs tabular-nums text-muted">
+                {list.length} ligne{list.length > 1 ? 's' : ''}
+                {aDesFiltres ? ` sur ${items.length}` : ''} · page {page} sur {pageCount}
+                {selItems.length > 0 ? ` · ${selItems.length} sélectionnée${selItems.length > 1 ? 's' : ''}` : ''}
+              </span>
+              {pageCount > 1 && <PaginationTableau onPage={setPage} page={page} total={pageCount} />}
+            </div>
           </div>
         </Card>
+        </>
       )}
 
       {/* Modal décaissement */}
@@ -1144,6 +1322,101 @@ export function FinanceHubView() {
         </p>
       </ConfirmModal>
     </div>
+  );
+}
+
+/**
+ * Les quatre cartes de la SÉLECTION, et le détail par catégorie (maquette, planche 1).
+ *
+ * <p>Elles suivent l'onglet, les catégories, les statuts et la recherche : ce sont les
+ * chiffres de ce que le tableau montre, pas ceux du mois. Les cartes du haut de page (CA,
+ * rentabilité) parlent du MOIS et restent où elles sont ; celles-ci répondent à une autre
+ * question, « combien pèse ce que j'ai filtré ».</p>
+ *
+ * <p>⚠ Une rejetée affichée n'est PAS comptée, et la carte le dit : sans cette phrase,
+ * treize lignes à l'écran pour « 12 opérations » se lirait comme une erreur de calcul.</p>
+ */
+function CartesSelection({
+  libelle,
+  plusieursCategories,
+  stats,
+}: {
+  libelle: string;
+  plusieursCategories: boolean;
+  stats: ReturnType<typeof statsSelection>;
+}) {
+  const carte = (titre: string, valeur: string, pied: string) => (
+    <div className="rounded-xl border border-separator bg-surface p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{titre}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums text-foreground">{valeur}</p>
+      <p className="mt-0.5 text-xs text-muted">{pied}</p>
+    </div>
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {carte('Total cumulé', fmtFcfa(stats.total), libelle)}
+        {carte(
+          "Nombre d'opérations",
+          String(stats.n),
+          stats.nbRejetees > 0
+            ? `dont ${stats.nbRejetees} rejetée${stats.nbRejetees > 1 ? 's' : ''} affichée${stats.nbRejetees > 1 ? 's' : ''}, non comptée${stats.nbRejetees > 1 ? 's' : ''}`
+            : 'rejetées exclues du calcul',
+        )}
+        {carte('Montant moyen', fmtFcfa(Math.round(stats.moyenne)), `min ${fmtFcfa(stats.min)} · max ${fmtFcfa(stats.max)}`)}
+        {carte(
+          'Payé / Reste à payer',
+          fmtFcfa(stats.paye),
+          `${stats.nbPayees} payée${stats.nbPayees > 1 ? 's' : ''} · reste ${fmtFcfa(stats.reste)} (${stats.nbReste})`,
+        )}
+      </div>
+      {plusieursCategories && stats.parCategorie.length > 0 && (
+        <div className="rounded-xl border border-separator bg-surface px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Détail par catégorie</p>
+          <div className="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            {stats.parCategorie.map((c) => (
+              <span key={c.categorie}>
+                <b className="text-foreground">{c.categorie}</b>
+                <span className="tabular-nums text-muted"> · {c.n} op. · {fmtFcfa(c.total)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Un en-tête de colonne qui trie (maquette : Échéance et Montant).
+ *
+ * <p>Un premier clic trie du plus grand au plus petit, le suivant inverse. La flèche dit le
+ * sens en cours ; les deux flèches disent « triable, pas trié ».</p>
+ */
+function EnTeteTri({
+  cle,
+  libelle,
+  onTri,
+  tri,
+}: {
+  cle: CleTri;
+  libelle: string;
+  onTri: (t: { cle: CleTri; sens: 'asc' | 'desc' }) => void;
+  tri: { cle: CleTri; sens: 'asc' | 'desc' };
+}) {
+  const actif = tri.cle === cle;
+  return (
+    <button
+      aria-label={`Trier par ${libelle.toLowerCase()}`}
+      className="inline-flex items-center gap-1 font-[inherit] text-[inherit] hover:text-foreground"
+      onClick={() => onTri({ cle, sens: actif && tri.sens === 'desc' ? 'asc' : 'desc' })}
+      type="button"
+    >
+      {libelle}
+      <span aria-hidden="true" className={actif ? 'text-foreground' : 'text-muted'}>
+        {actif ? (tri.sens === 'asc' ? '↑' : '↓') : '↕'}
+      </span>
+    </button>
   );
 }
 

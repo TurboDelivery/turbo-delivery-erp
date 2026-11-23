@@ -6,7 +6,7 @@ import React from 'react';
 
 import { BarreFiltresFinance } from '@/components/finance/hub/barre-filtres-finance';
 import { categorieDepenseKeyQuery } from '@/features/depenses/queries/category/index.query';
-import { fmtFcfa } from '@/features/finances-hub';
+import { FinanceStatut, fmtFcfa, STATUTS_PAR_DEFAUT } from '@/features/finances-hub';
 
 /**
  * LE BANC DE LA BARRE DE FILTRES.
@@ -51,7 +51,7 @@ function useTheme(): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
 export default function ApercuFiltresFinance() {
   const [sombre, setSombre] = useTheme();
   const [recherche, setRecherche] = React.useState('');
-  const [etape, setEtape] = React.useState('tous');
+  const [statuts, setStatuts] = React.useState<FinanceStatut[]>(STATUTS_PAR_DEFAUT);
   const [categories, setCategories] = React.useState<string[]>([]);
   const [surLeTableau, setSurLeTableau] = React.useState(true);
 
@@ -63,7 +63,7 @@ export default function ApercuFiltresFinance() {
     return c;
   }, []);
 
-  const aDesFiltres = recherche.trim() !== '' || etape !== 'tous' || categories.length > 0;
+  const aDesFiltres = recherche.trim() !== '' || statuts.length !== STATUTS_PAR_DEFAUT.length || categories.length > 0;
   // Résultat simulé : la barre ne calcule rien, elle affiche ce que le tableau lui donne.
   const retenues = aDesFiltres ? 37 : 74;
 
@@ -86,7 +86,7 @@ export default function ApercuFiltresFinance() {
 
       <p className="text-xs text-muted">
         {surLeTableau
-          ? 'Onglet de charges : recherche, catégories et étape.'
+          ? 'Onglet de charges : recherche, catégories et statuts.'
           : 'Onglet Grand livre : seule la catégorie reste, elle part au serveur. La recherche en mémoire ne verrait que la page courante.'}
       </p>
 
@@ -94,25 +94,25 @@ export default function ApercuFiltresFinance() {
         <BarreFiltresFinance
           aDesFiltres={aDesFiltres}
           categories={categories}
-          etape={etape}
           montantRetenu={fmtFcfa(retenues * 66_000)}
           onCategories={(c) => setCategories(c ?? [])}
-          onEtape={setEtape}
+          onStatuts={setStatuts}
           onRecherche={setRecherche}
           onReinitialiser={() => {
             setRecherche('');
-            setEtape('tous');
+            setStatuts(STATUTS_PAR_DEFAUT);
             setCategories([]);
           }}
           recherche={recherche}
           retenues={retenues}
+          statuts={statuts}
           surLeTableau={surLeTableau}
           total={74}
         />
       </QueryClientProvider>
 
       <pre className="rounded-lg bg-surface-secondary p-3 text-xs text-muted">
-        {JSON.stringify({ categories, etape, recherche }, null, 2)}
+        {JSON.stringify({ categories, recherche, statuts }, null, 2)}
       </pre>
     </main>
   );
