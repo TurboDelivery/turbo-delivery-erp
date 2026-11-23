@@ -1,15 +1,19 @@
 'use client';
 
 import { Button, Card, Checkbox, Tooltip } from '@heroui-v3/react';
+import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AlertTriangle, GitMerge, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { FenetreAction } from '@/components/commons/FenetreAction';
 import { ColonneResponsive, TableauResponsive } from '@/components/commons/TableauResponsive';
 import { FusionCategoriesDialog } from '@/components/finance/configuration/fusion-categories-dialog';
 import { HistoriqueFusions } from '@/components/finance/configuration/historique-fusions';
+import { ChampTexte } from '@/components/commons/champs-formulaire';
+import { donneesRattacheesCategoriesRequest, historiqueFusionsRequest } from '@/features/depenses/apis/fusion-categorie.api';
+import { normaliserTexte } from '@/features/finances-hub';
 import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
@@ -148,6 +152,43 @@ export function CategorieDepenseList() {
 
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [fusionOpen, setFusionOpen] = useState(false);
+  /** Actives ou Fusionnées (maquette) : deux populations, deux onglets, chacune avec son compte. */
+  const [onglet, setOnglet] = useState<'actives' | 'fusionnees'>('actives');
+  const [recherche, setRecherche] = useState('');
+  const [historiqueDe, setHistoriqueDe] = useState<ICategorieDepense | null>(null);
+
+  // Même clé que <HistoriqueFusions /> : une seule lecture, partagée par le cache.
+  const fusionsQ = useQuery({
+    queryFn: historiqueFusionsRequest,
+    queryKey: ['depenses', 'fusions', 'historique'],
+    staleTime: 60 * 1000,
+  });
+  const fusions = fusionsQ.data ?? [];
+  const nbFusionnees = fusions.filter((f) => !f.annuleeAt).length;
+
+  /*
+   * LE NOMBRE DE DÉPENSES PAR CATÉGORIE (colonne « Dépenses » de la maquette). Le serveur
+   * le sait déjà : c'est le point d'accès que la fusion interroge pour comparer deux
+   * doublons. Une seule requête pour tout le référentiel.
+   */
+  const idsCategories = useMemo(() => categories.map((c) => c.id).sort(), [categories]);
+  const comptesQ = useQuery({
+    enabled: idsCategories.length > 0,
+    queryFn: () => donneesRattacheesCategoriesRequest(idsCategories),
+    queryKey: ['depenses', 'categories', 'donnees-rattachees', idsCategories.join(',')],
+    staleTime: 60 * 1000,
+  });
+  const nbDepenses = useMemo(
+    () => new Map((comptesQ.data ?? []).map((d) => [d.id, d.chargesFixes + d.chargesVariables])),
+    [comptesQ.data],
+  );
+  const nomsCategories = useMemo(() => new Map(categories.map((c) => [c.id, c.nomCategorie])), [categories]);
+
+  /** La recherche porte sur le nom ET la description, sans accents ni casse (maquette). */
+  const visibles = useMemo(() => {
+    const q = normaliserTexte(recherche.trim());
+    return q ? categories.filter((c) => normaliserTexte(`${c.nomCategorie} ${c.description ?? ''}`).includes(q)) : categories;
+  }, [categories, recherche]);
   const basculer = (id: string, coche: boolean) =>
     setSel((precedent) => {
       const suivant = new Set(precedent);
@@ -202,7 +243,15 @@ export function CategorieDepenseList() {
     {
       cle: 'date',
       libelle: 'Créée le',
-      rendu: (c) => <span className="tabular-nums">{formatDate(c.createdAt)}</span>,
+      // Le JOUR seul (maquette) : l'heure de création d'une catégorie n'apprend rien, et elle
+      // cassait la cellule sur deux lignes.
+      rendu: (c) => <span className="whitespace-nowrap tabular-nums">{formatDate(c.createdAt).slice(0, 10)}</span>,
+    },
+    {
+      cle: 'nombre',
+      libelle: 'Dépenses',
+      nombre: true,
+      rendu: (c) => <span className="tabular-nums">{nbDepenses.has(c.id) ? nbDepenses.get(c.id) : '—'}</span>,
     },
     {
       cle: 'total',
@@ -215,9 +264,14 @@ export function CategorieDepenseList() {
       cle: 'actions',
       libelle: 'Actions',
       rendu: (c) => (
-        <div className="flex flex-wrap items-center justify-end gap-1">
+        // `flex-nowrap` : empilées, les actions triplaient la hauteur de CHAQUE ligne. Sur un
+        // écran étroit c'est le tableau qui défile, pas la ligne qui s'étire.
+        <div className="flex flex-nowrap items-center justify-end gap-1 whitespace-nowrap">
           <CategorieDetailModal categorie={c} />
           <ModifierCategorieModal categorieDepense={c} />
+          <Button onPress={() => setHistoriqueDe(c)} size="sm" variant="ghost">
+            Historique
+          </Button>
           <SupprimerCategorie categorie={c} />
         </div>
       ),
@@ -230,26 +284,59 @@ export function CategorieDepenseList() {
     <div className="w-full">
       <Card>
         <Card.Header className="flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <div className="flex items-baseline gap-2">
+          <div className="flex flex-col gap-2">
             <Card.Title>Catégories de dépenses</Card.Title>
-            {!isLoading && !isError && (
-              <span className="text-sm tabular-nums text-muted">{categories.length}</span>
-            )}
+            <div className="flex gap-1.5" role="tablist">
+              {(
+                [
+                  ['actives', 'Actives', isLoading || isError ? null : categories.length],
+                  ['fusionnees', 'Fusionnées', fusionsQ.isLoading || fusionsQ.isError ? null : nbFusionnees],
+                ] as const
+              ).map(([cle, libelle, n]) => (
+                <button
+                  aria-selected={onglet === cle}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold ${onglet === cle ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}
+                  key={cle}
+                  onClick={() => setOnglet(cle)}
+                  role="tab"
+                  type="button"
+                >
+                  {libelle}
+                  {n != null && (
+                    <span className={`rounded-full px-1.5 text-[11px] font-bold tabular-nums ${onglet === cle ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary text-muted'}`}>
+                      {n}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-          <CreerCategorieModal />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end">
+            {onglet === 'actives' && (
+              <div className="w-full sm:w-64">
+                <ChampTexte
+                  label="Rechercher une catégorie"
+                  onChange={setRecherche}
+                  placeholder="Rechercher une catégorie, ex. moto"
+                  valeur={recherche}
+                />
+              </div>
+            )}
+            <CreerCategorieModal />
+          </div>
         </Card.Header>
 
-        {sel.size > 0 && (
+        {onglet === 'actives' && sel.size > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-separator pt-2">
             <span className="text-sm text-foreground">
-              <span className="font-semibold tabular-nums">{sel.size}</span> sélectionnée
-              {sel.size > 1 ? 's' : ''}
-              {!assezPourFusionner && (
-                <span className="text-muted">
-                  {' '}
-                  · cochez-en une seconde pour fusionner deux doublons
-                </span>
-              )}
+              <span className="font-semibold tabular-nums">{sel.size}</span> catégorie{sel.size > 1 ? 's' : ''}{' '}
+              sélectionnée{sel.size > 1 ? 's' : ''}
+              <span className="text-muted">
+                {' · '}
+                {assezPourFusionner
+                  ? 'Choisissez ensuite la catégorie à conserver'
+                  : 'Cochez au moins 2 catégories pour fusionner'}
+              </span>
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -262,35 +349,69 @@ export function CategorieDepenseList() {
                 Fusionner
               </Button>
               <Button onPress={() => setSel(new Set())} size="sm" variant="ghost">
-                Effacer
+                Annuler la sélection
               </Button>
             </div>
           </div>
         )}
 
         <Card.Content>
-          <TableauResponsive
-            cleLigne={(c) => c.id}
-            colonnes={colonnes}
-            enChargement={isLoading}
-            enCoursDeRelance={isFetching}
-            erreur={isError}
-            libelle="Catégories de dépenses"
-            lignes={categories}
-            onReessayer={() => refetch()}
-            quoi="les catégories de dépenses"
-            vide="Aucune catégorie"
-          />
+          {onglet === 'actives' ? (
+            <TableauResponsive
+              cleLigne={(c) => c.id}
+              colonnes={colonnes}
+              enChargement={isLoading}
+              enCoursDeRelance={isFetching}
+              erreur={isError}
+              libelle="Catégories de dépenses"
+              lignes={visibles}
+              onReessayer={() => refetch()}
+              quoi="les catégories de dépenses"
+              vide={recherche.trim() ? `Aucune catégorie ne correspond à « ${recherche.trim()} »` : 'Aucune catégorie'}
+            />
+          ) : (
+            /* L'onglet FUSIONNÉES (maquette) : en lecture seule, avec ce dans quoi chacune a
+               été fusionnée, et l'annulation. C'était une carte posée sous la liste, qu'on
+               ne trouvait qu'en faisant défiler. */
+            <HistoriqueFusions nomsCategories={nomsCategories} />
+          )}
         </Card.Content>
       </Card>
 
       {/*
-        * L'historique vient APRES le referentiel, pas avant : on arrive sur cet onglet
-        * pour lire ou corriger ses categories, pas pour consulter des fusions passees.
-        * C'est aussi la ou l'on cherche l'annulation, juste sous la liste dont elle
-        * change le contenu.
+        * L'HISTORIQUE D'UNE CATÉGORIE (maquette). Il dit ce que les données savent : sa
+        * création, et ce qu'elle a absorbé par fusion.
+        *
+        * ⚠ Les RENOMMAGES n'y figurent pas : le serveur ne les enregistre pas encore, et
+        * l'écran le dit au lieu de laisser croire qu'il n'y en a jamais eu.
         */}
-      <HistoriqueFusions />
+      <FenetreAction
+        libelleFermer="Fermer"
+        onFermer={() => setHistoriqueDe(null)}
+        ouvert={historiqueDe !== null}
+        titre={`Historique de ${historiqueDe?.nomCategorie ?? ''}`}
+      >
+        {historiqueDe && (
+          <ul className="flex flex-col gap-2 text-sm">
+            <li>
+              <b>Créée</b> le {formatDate(historiqueDe.createdAt)}
+            </li>
+            {fusions
+              .filter((f) => f.categorieCibleId === historiqueDe.id)
+              .map((f) => (
+                <li key={f.id}>
+                  <b>A absorbé</b> « {f.categorieSourceNom} » le {formatDate(f.createdAt)}
+                  {f.annuleeAt ? ` (fusion annulée le ${formatDate(f.annuleeAt)})` : ''}
+                </li>
+              ))}
+            <li className="text-xs text-muted">
+              Les renommages ne sont pas encore enregistrés : seule la dernière modification est connue
+              ({formatDate(historiqueDe.updatedAt)}).
+            </li>
+          </ul>
+        )}
+      </FenetreAction>
+
 
       <FusionCategoriesDialog
         ids={Array.from(sel)}

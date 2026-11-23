@@ -6,6 +6,8 @@ import { SessionProvider } from 'next-auth/react';
 import React from 'react';
 
 import { HistoriqueFusions } from '@/components/finance/configuration/historique-fusions';
+import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
+import type { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
 import type { IFusionCategorie } from '@/features/depenses/apis/fusion-categorie.api';
 
 /**
@@ -74,6 +76,25 @@ const JOURNAL: IFusionCategorie[] = [
   },
 ];
 
+/** Le référentiel de la maquette (planche 2), avec ses doublons à fusionner. */
+const CATEGORIES: ICategorieDepense[] = [
+  ['c-1', 'REPARATIONS MOTOS', 'Entretien et réparation des motos de la flotte', 742500, '2026-03-05'],
+  ['c-2', 'REPARATION MOTO', '', 156000, '2026-05-12'],
+  ['c-3', 'ENTRETIEN MOTO', '', 87000, '2026-07-02'],
+  ['c-4', 'LOYERS', '', 5000000, '2026-02-01'],
+  ['c-5', 'LOYER', '', 1000000, '2026-04-14'],
+  ['c-6', 'DOTATION CARBURANT HEBDO SUPERVISEURS', 'Chaque semaine, nous déboursons une somme pour le carburant de nos superviseurs.', 5124000, '2026-02-01'],
+  ['c-7', 'VIGNETTE', 'VIGNETTE DE MOTO', 0, '2026-05-20'],
+].map(([id, nomCategorie, description, totalDepense, jour]) => ({
+  createdAt: `${jour}T09:00:00Z`,
+  description: description as string,
+  id: id as string,
+  nomCategorie: nomCategorie as string,
+  totalDepense: totalDepense as number,
+  updatedAt: `${jour}T09:00:00Z`,
+}));
+const NB = [41, 9, 6, 10, 2, 42, 0];
+
 function useTheme(): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
   const [sombre, setSombre] = React.useState(false);
   React.useEffect(() => {
@@ -105,6 +126,20 @@ export default function ApercuHistoriqueFusions() {
       },
     });
     c.setQueryData(['depenses', 'fusions', 'historique'], vide ? [] : JOURNAL);
+    // La liste des catégories et leurs volumes : ce que <CategorieDepenseList /> lit.
+    c.setQueryData(['categorieDepense', 'list'], vide ? [] : CATEGORIES);
+    c.setQueryData(
+      ['depenses', 'categories', 'donnees-rattachees', CATEGORIES.map((x) => x.id).sort().join(',')],
+      CATEGORIES.map((x, i) => ({
+        chargesFixes: i >= 3 && i <= 5 ? NB[i] : 0,
+        chargesVariables: i >= 3 && i <= 5 ? 0 : NB[i],
+        depenses: NB[i],
+        description: x.description ?? null,
+        id: x.id,
+        nomCategorie: x.nomCategorie,
+        total: x.totalDepense,
+      })),
+    );
     return c;
   }, [vide]);
 
@@ -150,6 +185,11 @@ export default function ApercuHistoriqueFusions() {
           }}
         >
           <QueryClientProvider client={client} key={vide ? 'vide' : 'plein'}>
+            {/* LA LISTE ENTIÈRE (planche 2) : onglets Actives / Fusionnées, recherche,
+                nombre de dépenses, Renommer, Historique. C'est elle que l'écran de
+                configuration monte ; le journal seul, dessous, reste pour comparaison. */}
+            <CategorieDepenseList />
+            <div className="h-6" />
             <HistoriqueFusions />
           </QueryClientProvider>
         </SessionProvider>

@@ -53,7 +53,7 @@ const lignesDeplacees = (f: IFusionCategorie) =>
  * bon. Un journal vide ne veut donc pas dire qu'il n'y a jamais eu de fusion, et l'état
  * vide le dit plutôt que de laisser croire le contraire.</p>
  */
-export function HistoriqueFusions() {
+export function HistoriqueFusions({ nomsCategories }: { nomsCategories?: Map<string, string> } = {}) {
   const { data: session } = useSession();
   const userId = session?.user?.id as string | undefined;
   const queryClient = useQueryClient();
@@ -112,6 +112,16 @@ export function HistoriqueFusions() {
             {f.chargesVariablesIds?.length ?? 0} variable(s)
           </span>
         </div>
+      ),
+    },
+    {
+      // « Fusionnée dans » (maquette) : le journal ne retient que l'IDENTIFIANT de la
+      // catégorie gardée ; son nom est lu dans le référentiel, donc toujours à jour même si
+      // elle a été renommée depuis.
+      cle: 'cible',
+      libelle: 'Fusionnée dans',
+      rendu: (f) => (
+        <span className="text-sm font-medium">{nomsCategories?.get(f.categorieCibleId) ?? '—'}</span>
       ),
     },
     {

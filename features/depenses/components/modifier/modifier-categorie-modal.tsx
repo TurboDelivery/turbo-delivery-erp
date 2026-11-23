@@ -1,8 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Tooltip } from '@heroui-v3/react';
-import { Pencil } from 'lucide-react';
+import { Button } from '@heroui-v3/react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -107,26 +106,19 @@ export function ModifierCategorieModal({ categorieDepense }: ModifierCategorieMo
 
   return (
     <>
-      <Tooltip>
-        <Button
-          aria-label={`Modifier la catégorie ${categorieDepense.nomCategorie}`}
-          isIconOnly
-          onPress={() => setOuvert(true)}
-          size="sm"
-          variant="ghost"
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-        </Button>
-        <Tooltip.Content>Modifier</Tooltip.Content>
-      </Tooltip>
+      {/* « Renommer », écrit (maquette) : un crayon sans libellé se lit « modifier quoi ? »,
+          et l'écran porte déjà trois icônes par ligne. */}
+      <Button onPress={() => setOuvert(true)} size="sm" variant="ghost">
+        Renommer
+      </Button>
 
       <FenetreAction
         enAttente={enAttente}
-        libelleAction={enAttente ? 'Modification…' : 'Modifier'}
+        libelleAction={enAttente ? 'Enregistrement…' : 'Enregistrer'}
         onAction={() => void soumettre()}
         onFermer={() => setOuvert(false)}
         ouvert={ouvert}
-        titre="Modifier la catégorie"
+        titre="Renommer la catégorie"
       >
         <p className="text-sm text-muted">
           Modifiez les informations de la catégorie {categorieDepense.nomCategorie}
