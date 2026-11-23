@@ -2,6 +2,9 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import type { IAuditAction } from '@/features/supervision/types';
 import {
   IAccorderSurplusPayload,
+  IPreuveCarburant,
+  IRelancePreuves,
+  IValiderPreuvePayload,
   IAffecterSitePayload,
   ISoumissionSurplus,
   ISurplus,
@@ -129,6 +132,51 @@ export const programmeAPI = {
     await apiClientHttp.request<void>({
       endpoint: `/api/erp/programmes/${id}`,
       method: 'DELETE',
+    });
+  },
+
+  // ── Preuves de versement Wave (§9) ─────────────────────────────────────────
+
+  /** Toutes les preuves d'un programme, REJETÉES COMPRISES (RG-W03). */
+  async listerPreuves(programmeId: string): Promise<IPreuveCarburant[]> {
+    return apiClientHttp.request<IPreuveCarburant[]>({
+      endpoint: `/api/erp/programmes/${programmeId}/preuves`,
+      method: 'GET',
+    });
+  },
+
+  async validerPreuve(programmeId: string, preuveId: string, payload: IValiderPreuvePayload): Promise<IPreuveCarburant> {
+    return apiClientHttp.request<IPreuveCarburant>({
+      data: payload,
+      endpoint: `/api/erp/programmes/${programmeId}/preuves/${preuveId}/valider`,
+      method: 'POST',
+    });
+  },
+
+  /** Demander une nouvelle capture (CA-54). La capture refusée reste lisible. */
+  async rejeterPreuve(programmeId: string, preuveId: string, motif: string): Promise<IPreuveCarburant> {
+    return apiClientHttp.request<IPreuveCarburant>({
+      data: { motif },
+      endpoint: `/api/erp/programmes/${programmeId}/preuves/${preuveId}/rejeter`,
+      method: 'POST',
+    });
+  },
+
+  /** Qui est en retard, et sur quoi : l'écran le montre AVANT d'envoyer. */
+  async etatRelancePreuves(annee: number, semaine: number): Promise<IRelancePreuves> {
+    return apiClientHttp.request<IRelancePreuves>({
+      endpoint: '/api/erp/programmes/preuves/relance',
+      method: 'GET',
+      params: { annee, semaine },
+    });
+  },
+
+  /** Relancer (RG-W07). Liste vide = tous ceux qui ont une preuve manquante. */
+  async relancerPreuves(annee: number, semaine: number, programmeIds?: string[]): Promise<IRelancePreuves> {
+    return apiClientHttp.request<IRelancePreuves>({
+      data: { annee, programmeIds: programmeIds ?? [], semaine },
+      endpoint: '/api/erp/programmes/preuves/relance',
+      method: 'POST',
     });
   },
 

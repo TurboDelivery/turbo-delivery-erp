@@ -8,6 +8,9 @@ import {
   IModifierProgrammePayload,
   IAutosuffisanceJour,
   IAccorderSurplusPayload,
+  IPreuveCarburant,
+  IRelancePreuves,
+  IValiderPreuvePayload,
   IAffecterSitePayload,
   ISoumissionSurplus,
   ISurplus,
@@ -98,6 +101,57 @@ export async function supprimerProgrammeAction(id: string): Promise<ActionRespon
 
 export async function listerIndependantsAction(annee: number, semaine: number): Promise<IProgramme[]> {
   return programmeAPI.independants(annee, semaine);
+}
+
+// ── Preuves de versement Wave (§9) ──────────────────────────────────────────
+
+export async function listerPreuvesAction(programmeId: string): Promise<IPreuveCarburant[]> {
+  return programmeAPI.listerPreuves(programmeId);
+}
+
+export async function etatRelancePreuvesAction(annee: number, semaine: number): Promise<IRelancePreuves> {
+  return programmeAPI.etatRelancePreuves(annee, semaine);
+}
+
+export async function validerPreuveAction(
+  programmeId: string,
+  preuveId: string,
+  payload: IValiderPreuvePayload,
+): Promise<ActionResponse<IPreuveCarburant>> {
+  try {
+    const data = await programmeAPI.validerPreuve(programmeId, preuveId, payload);
+    return { success: true, data };
+  } catch (error) {
+    // Le message du serveur passe TEL QUEL : « cet ID a déjà servi » est l'information
+    // utile, et un libellé générique la ferait disparaître.
+    return erreurMetier(error, 'Erreur lors de la validation de la preuve');
+  }
+}
+
+export async function rejeterPreuveAction(
+  programmeId: string,
+  preuveId: string,
+  motif: string,
+): Promise<ActionResponse<IPreuveCarburant>> {
+  try {
+    const data = await programmeAPI.rejeterPreuve(programmeId, preuveId, motif);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la demande de nouvelle capture');
+  }
+}
+
+export async function relancerPreuvesAction(
+  annee: number,
+  semaine: number,
+  programmeIds?: string[],
+): Promise<ActionResponse<IRelancePreuves>> {
+  try {
+    const data = await programmeAPI.relancerPreuves(annee, semaine, programmeIds);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la relance');
+  }
 }
 
 // ── Surplus de carburant (§7) ───────────────────────────────────────────────

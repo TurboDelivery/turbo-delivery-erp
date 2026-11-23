@@ -349,3 +349,44 @@ export interface ISoumissionSurplus {
   empechement: string | null;
   chargeId: string | null;
 }
+
+/** Valider une capture Wave : les trois valeurs relevées DESSUS par la comptabilité. */
+export interface IValiderPreuvePayload {
+  montantRecu: number;
+  recuLe?: string | null;
+  /** ID de transaction Wave (ex. T_IA6OREV2MUG-QV6ZQ). Obligatoire : c'est le verrou. */
+  referenceTransaction: string;
+}
+
+/** Un versement dont la preuve manque. */
+export interface IVersementManquant {
+  jour: string;
+  montant: number;
+  /** Vrai = c'est un surplus ; faux = la dotation du jour. */
+  surplus: boolean;
+}
+
+export interface ILivreurEnRetard {
+  programmeId: string;
+  livreurId: string | null;
+  livreurNom: string;
+  telephone: string | null;
+  nbManquantes: number;
+  montantManquant: number;
+  versements: IVersementManquant[];
+  /** Dernière relance envoyée sur ce programme, en ISO, ou `null`. */
+  relanceLe: string | null;
+}
+
+/**
+ * Qui a des preuves Wave manquantes, et sur quoi (RG-W07, CA-56).
+ *
+ * La fenêtre de relance le montre AVANT d'envoyer : relancer quelqu'un sans savoir sur
+ * quoi, c'est l'obliger à chercher.
+ */
+export interface IRelancePreuves {
+  annee: number;
+  semaine: number;
+  nbManquantes: number;
+  livreurs: ILivreurEnRetard[];
+}

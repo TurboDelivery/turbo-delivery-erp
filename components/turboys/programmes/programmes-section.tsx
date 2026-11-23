@@ -11,7 +11,9 @@ import { DuplicationSemaineDialog } from './duplication-semaine-dialog';
 import { EngagementCarburantConnecte } from './engagement-carburant';
 import { ProgrammeApercuPanneau } from './programme-apercu-panneau';
 import { ProgrammeFormModal } from './programme-form-modal';
+import { PreuvesCarburantDialog } from './preuves-carburant-dialog';
 import { ProgrammeHistoriqueModal } from './programme-historique-modal';
+import { RelancePreuvesConnectee, RelancePreuvesDialog } from './relance-preuves-dialog';
 import { SoumissionSurplusConnectee } from './soumission-surplus';
 import { SurplusCarburantDialog } from './surplus-carburant-dialog';
 import { joursAvecDates } from './weekly-jours-editor';
@@ -118,6 +120,16 @@ export default function ProgrammesSection() {
   const ability = useAbility();
   const peutAccorderSurplus = ability.can('accorder-surplus', 'ProgrammeLivreur');
   const [surplusDe, setSurplusDe] = React.useState<IProgramme | null>(null);
+  /**
+   * Les preuves Wave d'un jour (RG-W03), et la relance.
+   *
+   * ⚠ CA-55 : le COORDINATEUR voit les preuves mais ne les valide pas. La fenêtre
+   * s'ouvre pour tous ; seuls les boutons disparaissent.
+   */
+  const peutValiderPreuve = ability.can('valider-preuve', 'ProgrammeLivreur');
+  const peutRelancerPreuve = ability.can('relancer-preuve', 'ProgrammeLivreur');
+  const [preuvesDe, setPreuvesDe] = React.useState<{ jour: string; programme: IProgramme } | null>(null);
+  const [relanceOuverte, setRelanceOuverte] = React.useState(false);
   /** Le jour pré-rempli quand le geste vient d'une ligne de l'éditeur. */
   const [surplusJour, setSurplusJour] = React.useState<string | null>(null);
 
@@ -401,8 +413,10 @@ export default function ProgrammesSection() {
           onPartenaireFiltre={setPartenaireFiltre}
           onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
           onPublier={(p) => runAction(p.id, publier.mutateAsync)}
+          onPreuves={(p, jour) => setPreuvesDe({ jour, programme: p })}
           onPublierLot={publierLot}
           onReessayer={() => void refetch()}
+          onRelancerPreuves={peutRelancerPreuve ? () => setRelanceOuverte(true) : undefined}
           onReessayerIndependants={() => void independantsQuery.refetch()}
           onSemaine={changeWeek}
           onSupprimer={demanderSuppression}
@@ -428,6 +442,7 @@ export default function ProgrammesSection() {
           partenaires={restaurants}
           partenairesEnCours={restaurantsQuery.isLoading}
           programmes={programmesFiltres}
+          relancePreuves={<RelancePreuvesConnectee annee={annee} semaine={semaine} />}
           semaine={semaine}
           typeFiltre={typeFiltre}
           typeOptions={TYPE_OPTIONS}
@@ -496,6 +511,21 @@ export default function ProgrammesSection() {
         }}
         programme={historiqueDe}
         sites={nomSite}
+      />
+      <PreuvesCarburantDialog
+        cible={preuvesDe}
+        nomSite={nomSite}
+        onFermer={() => setPreuvesDe(null)}
+        peutValider={peutValiderPreuve}
+      />
+      {/* La relance ouverte depuis le menu d'une ligne : la même fenêtre que celle du
+          bandeau, parce que relancer un livreur et relancer les sept est le même geste
+          avec une case en moins. */}
+      <RelancePreuvesDialog
+        annee={annee}
+        onFermer={() => setRelanceOuverte(false)}
+        ouvert={relanceOuverte}
+        semaine={semaine}
       />
       <SurplusCarburantDialog
         jourInitial={surplusJour}

@@ -67,6 +67,12 @@ export interface EnteteSemaineProps {
   onImporter: () => void;
   /** L'action principale, ou `null` quand il n'y a rien à faire. */
   actionPrincipale?: React.ReactNode;
+  /**
+   * Ce qui se lit SOUS les montants : l'état de l'engagement comptable, la soumission
+   * des surplus, la relance des preuves manquantes. Tout cela découle du bandeau et
+   * n'a pas de sens ailleurs.
+   */
+  complementBandeau?: React.ReactNode;
 
   isLoading?: boolean;
   isError?: boolean;
@@ -185,6 +191,7 @@ export function EnteteSemaine({
   onNouveau,
   onImporter,
   actionPrincipale = null,
+  complementBandeau = null,
   isLoading = false,
   isError = false,
 }: EnteteSemaineProps) {
@@ -415,6 +422,13 @@ export function EnteteSemaine({
                 </>
               )}
             </div>
+
+            {complementBandeau ? (
+              <>
+                <Separator />
+                {complementBandeau}
+              </>
+            ) : null}
           </Card.Content>
         </Card>
       )}

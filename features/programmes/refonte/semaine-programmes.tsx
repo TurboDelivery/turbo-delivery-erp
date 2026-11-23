@@ -4,12 +4,14 @@ import { Button, Card, Checkbox, Chip, ComboBox, Dropdown, Input, Label, ListBox
 import { ChevronDown, MoreHorizontal, TriangleAlert } from 'lucide-react';
 import React from 'react';
 
+import { BoutonOeilPreuves } from '@/components/turboys/programmes/preuves-carburant-dialog';
 import { EnteteSemaine } from './entete-semaine';
 import { VueCouverture } from './vue-couverture';
 
 import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
-import { aRecuUnSurplus } from '@/features/turboys/utils/couverture.utils';
+import { aRecuUnSurplus, JOURS_SEMAINE } from '@/features/turboys/utils/couverture.utils';
+import { preuvesManquantes } from '@/features/turboys/utils/preuves.utils';
 import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
 import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
@@ -160,6 +162,13 @@ export interface SemaineProgrammesProps {
   onAffecterRenfort?: (siteId: string, jour: string) => void;
   /** Ouvrir la configuration des couvertures (§8.5). */
   onConfigurerCouvertures?: () => void;
+
+  /** Ouvrir les preuves Wave d'un jour (RG-W02/W03). Absent = pas de bouton œil. */
+  onPreuves?: (p: IProgramme, jour: string) => void;
+  /** Relancer les preuves manquantes de CE programme (RG-W07). Absent = pas d'entrée. */
+  onRelancerPreuves?: (p: IProgramme) => void;
+  /** La ligne de relance groupée, rendue par l'appelant : elle porte ses propres requêtes. */
+  relancePreuves?: React.ReactNode;
 }
 
 const JOURS = [
@@ -208,7 +217,7 @@ const formatEcart = (n: number) => (n === 0 ? formatMontant(0) : `${n > 0 ? '+' 
 const COLONNES_INDEPENDANTS = ['livreur', ...JOURS.map((j) => j.cle)];
 
 /** Les onglets de la liste (§5.2). « À compléter », « Renforts » et « Superviseurs » sont nouveaux. */
-type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS' | 'AVEC_SURPLUS';
+type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS' | 'AVEC_SURPLUS' | 'PREUVES_MANQUANTES';
 
 /** Les deux lectures de la semaine (§5.2) : par livreur, ou par site. */
 type Vue = 'LIVREURS' | 'COUVERTURE';
@@ -258,7 +267,7 @@ function postesSemaine(p: IProgramme): string[] {
  * normale compte deux jours de repos : l'écran signalait donc deux fautes par ligne, et
  * quatre-vingts sur une flotte de quarante. Un jour sans service est un tiret.</p>
  */
-function CelluleJour({ jour, p, nomSite }: { jour?: IJourProgramme; nomSite: Map<string, string>; p: IProgramme }) {
+function CelluleJour({ jour, onPreuves, p, nomSite }: { jour?: IJourProgramme; nomSite: Map<string, string>; onPreuves?: (jour: string) => void; p: IProgramme }) {
   const c = p.complement ?? COMPLEMENT_VIDE;
 
   if (!jour?.actif) {
@@ -301,7 +310,13 @@ function CelluleJour({ jour, p, nomSite }: { jour?: IJourProgramme; nomSite: Map
           → {ailleurs.map((s) => nomSite.get(s) ?? s).join(', ')}
         </span>
       )}
-      {totalSurplus > 0 && <span className="text-[11px] tabular-nums text-warning">+{formatMontant(totalSurplus)}</span>}
+      <span className="flex items-center gap-1">
+        {totalSurplus > 0 && <span className="text-[11px] tabular-nums text-warning">+{formatMontant(totalSurplus)}</span>}
+        {/* L'œil des preuves Wave (RG-W02). Il ne s'affiche que si un versement est
+            attendu ce jour-là : un œil gris sur un jour sans argent se lirait comme un
+            manque. */}
+        {onPreuves ? <BoutonOeilPreuves jour={jour.jour} onOuvrir={() => onPreuves(jour.jour)} p={p} /> : null}
+      </span>
     </span>
   );
 }
@@ -479,6 +494,9 @@ export function SemaineProgrammes({
   onConfigurerWhatsApp,
   onAffecterRenfort,
   onConfigurerCouvertures,
+  onPreuves,
+  onRelancerPreuves,
+  relancePreuves = null,
 }: SemaineProgrammesProps) {
   const [recherche, setRecherche] = React.useState('');
   const [seulement, setSeulement] = React.useState<Onglet>('TOUS');
@@ -510,6 +528,7 @@ export function SemaineProgrammes({
       if (seulement === 'RENFORTS' && !aDesRenforts(p)) return false;
       if (seulement === 'SUPERVISEURS' && p.typeLivreur !== 'SUPERVISEUR_LIVREUR') return false;
       if (seulement === 'AVEC_SURPLUS' && !aRecuUnSurplus(p)) return false;
+      if (seulement === 'PREUVES_MANQUANTES' && preuvesManquantes(p, JOURS_SEMAINE) === 0) return false;
       return true;
     });
   }, [programmes, recherche, seulement]);
@@ -601,6 +620,10 @@ export function SemaineProgrammes({
   );
   const compteSansCarburant = React.useMemo(() => programmes.filter(estSansCarburant).length, [programmes]);
   const compteAvecSurplus = React.useMemo(() => programmes.filter(aRecuUnSurplus).length, [programmes]);
+  const comptePreuvesManquantes = React.useMemo(
+    () => programmes.filter((p) => preuvesManquantes(p, JOURS_SEMAINE) > 0).length,
+    [programmes],
+  );
   /** Les surplus VIVANTS de la semaine : un surplus annulé ne coûte rien (RG-C04). */
   const totalSurplusSemaine = React.useMemo(
     () => programmes.reduce((t, p) => t + totalSurplusVivant(p), 0),
@@ -637,6 +660,8 @@ export function SemaineProgrammes({
    * (§5.2) : attendre que TOUTE la semaine soit publiée n'est pas une règle, c'est
    * seulement le cas le plus fréquent.</p>
    */
+  const resteAPublier = !isLoading && !isError && aPublier.length > 0;
+
   const actionPrincipale = React.useMemo(() => {
     if (isLoading || isError) return null;
     if (aPublier.length > 0) {
@@ -652,8 +677,26 @@ export function SemaineProgrammes({
         </Button>
       );
     }
+    // Tout est publié : l'engagement DEVIENT l'action principale (§5.2).
     return engagement;
   }, [aPublier, engagement, isError, isLoading, lotEnCours, onPublierLot]);
+
+  /*
+   * ⚠ L'engagement est rendu À UN SEUL ENDROIT. Tant qu'il reste des programmes à
+   * publier il vit sous le bandeau, où son état se lit ; une fois tout publié il monte
+   * en action principale. Le rendre aux deux places doublerait sa fenêtre de
+   * confirmation et ses requêtes.
+   */
+  const complementBandeau = React.useMemo(
+    () =>
+      resteAPublier || relancePreuves ? (
+        <div className="flex flex-col gap-2">
+          {resteAPublier ? engagement : null}
+          {relancePreuves}
+        </div>
+      ) : null,
+    [engagement, relancePreuves, resteAPublier],
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -686,6 +729,7 @@ export function SemaineProgrammes({
       <EnteteSemaine
         actionPrincipale={actionPrincipale}
         annee={annee}
+        complementBandeau={complementBandeau}
         bandeau={bandeau}
         bandeauEnCours={bandeauEnCours}
         carburantEcran={carburant.total}
@@ -867,6 +911,9 @@ export function SemaineProgrammes({
           <ToggleButton id="RENFORTS">Renforts {compteRenforts > 0 ? compteRenforts : ''}</ToggleButton>
           <ToggleButton id="SUPERVISEURS">Superviseurs {compteSuperviseurs > 0 ? compteSuperviseurs : ''}</ToggleButton>
           <ToggleButton id="AVEC_SURPLUS">Surplus {compteAvecSurplus > 0 ? compteAvecSurplus : ''}</ToggleButton>
+          <ToggleButton id="PREUVES_MANQUANTES">
+            Preuves manquantes {comptePreuvesManquantes > 0 ? comptePreuvesManquantes : ''}
+          </ToggleButton>
         </ToggleButtonGroup>
 
         {/*
@@ -1062,6 +1109,7 @@ export function SemaineProgrammes({
                             <CelluleJour
                               jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)}
                               nomSite={nomSite}
+                              onPreuves={onPreuves ? (jour) => onPreuves(p, jour) : undefined}
                               p={p}
                             />
                           </Table.Cell>
@@ -1172,6 +1220,7 @@ export function SemaineProgrammes({
                                     if (k === 'affecter') onAffecterSite?.(p);
                                     if (k === 'dupliquer') onDupliquerSuivante?.(p);
                                     if (k === 'surplus') onSurplus?.(p);
+                                    if (k === 'relancer-preuves') onRelancerPreuves?.(p);
                                     if (k === 'envoyer') onEnvoyer(p);
                                     if (k === 'whatsapp') onRenvoyerWhatsApp(p);
                                     if (k === 'supprimer') onSupprimer(p);
@@ -1200,6 +1249,9 @@ export function SemaineProgrammes({
                                       {estAPublier(p) ? 'Envoyer au livreur' : 'Renvoyer au livreur'}
                                     </Dropdown.Item>
                                     <Dropdown.Item id="whatsapp">Renvoyer par WhatsApp</Dropdown.Item>
+                                    {onRelancerPreuves ? (
+                                      <Dropdown.Item id="relancer-preuves">Relancer les preuves Wave</Dropdown.Item>
+                                    ) : null}
                                   </Dropdown.Section>
                                   <Dropdown.Section>
                                     <Dropdown.Item id="supprimer">Supprimer le programme</Dropdown.Item>

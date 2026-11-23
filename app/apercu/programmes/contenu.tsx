@@ -8,6 +8,7 @@ import { CarburantRapideModal } from '@/components/turboys/programmes/carburant-
 import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplication-semaine-dialog';
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
 import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
+import { LigneRelancePreuves } from '@/components/turboys/programmes/relance-preuves-dialog';
 import { SoumissionSurplus } from '@/components/turboys/programmes/soumission-surplus';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
@@ -17,7 +18,9 @@ import type { IAuditAction } from '@/features/supervision/types';
 import type {
     IAutosuffisanceJour,
     IJourProgramme,
+    IPreuveCarburant,
     IProgramme,
+    ISurplus,
     StatutProgramme,
 } from '@/features/turboys/types/programme.types';
 import { exporterProgrammesExcel, exporterProgrammesPdf, libelleMontantGroupe, regrouperPourExport } from '@/features/turboys/utils/programmes-export.utils';
@@ -100,6 +103,52 @@ function fabriquer(graine: number, nb: number, statuts: StatutProgramme[]): IPro
             source: 'ERP',
             statut,
             typeLivreur: type,
+            /*
+             * Le complément : sites, surplus et preuves Wave.
+             *
+             * Les trois états du bouton œil doivent être visibles sur une même semaine,
+             * sinon on ne peut pas comparer leurs couleurs — et c'est précisément ce que
+             * ce banc sert à vérifier. Un livreur sur trois a sa preuve, un sur trois a
+             * un surplus non prouvé (donc orange, « 1/2 »), les autres restent gris.
+             */
+            complement: {
+                basesGerees: type === 'SUPERVISEUR_LIVREUR' ? [`r${i % RESTOS.length}`, `r${(i + 1) % RESTOS.length}`] : [],
+                preuvesParJour: (
+                    i % 3 !== 2 && jours[0].actif
+                        ? {
+                              LUNDI: [
+                                  {
+                                      envoyeLe: '2026-08-24T09:12:00Z',
+                                      fichierUrl: '/uploads/exemple-wave.jpg',
+                                      id: `pr-${i}`,
+                                      jour: 'LUNDI',
+                                      montantRecu: montantJour ?? 0,
+                                      referenceTransaction: `T_IA6OREV2MUG-QV6Z${i}`,
+                                      statut: i % 3 === 0 ? 'VALIDEE' : 'RECUE',
+                                      surplusId: null,
+                                  },
+                              ],
+                          }
+                        : {}) as Record<string, IPreuveCarburant[]>,
+                sitesDesservis: i % 4 === 1 ? [`r${(i + 2) % RESTOS.length}`] : [],
+                sitesParJour: (i % 4 === 1 ? { MERCREDI: [`r${(i + 2) % RESTOS.length}`] } : {}) as Record<string, string[]>,
+                surplusParJour: (
+                    i % 3 === 1 && jours[0].actif
+                        ? {
+                              LUNDI: [
+                                  {
+                                      accordeLe: '2026-08-24T11:00:00Z',
+                                      annule: false,
+                                      id: `su-${i}`,
+                                      jour: 'LUNDI',
+                                      montant: 2000,
+                                      motif: 'RENFORT_AUTRE_SITE',
+                                      siteId: `r${(i + 2) % RESTOS.length}`,
+                                  },
+                              ],
+                          }
+                        : {}) as Record<string, ISurplus[]>,
+            },
         } satisfies IProgramme;
     });
 }
@@ -371,6 +420,47 @@ function BancSoumissionSurplus() {
     );
 }
 
+/**
+ * La ligne de relance des preuves Wave, dans ses trois états.
+ *
+ * <p>Le troisième — rien ne manque — n'affiche RIEN, et c'est ce qu'il faut vérifier :
+ * un « 0 manquante » permanent occuperait le bandeau sans jamais rien demander.</p>
+ */
+function BancRelancePreuves() {
+    return (
+        <section className="mt-6 flex flex-col gap-3 rounded-lg border border-separator p-4">
+            <h2 className="text-sm font-semibold">La relance des preuves Wave</h2>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Sept manquantes, profil habilité</p>
+                <LigneRelancePreuves
+                    etat={{ annee: 2026, livreurs: [], nbManquantes: 7, semaine: 35 }}
+                    onOuvrir={() => undefined}
+                    peutRelancer
+                />
+            </div>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Sept manquantes, profil non habilité (CA-55)</p>
+                <LigneRelancePreuves
+                    etat={{ annee: 2026, livreurs: [], nbManquantes: 7, semaine: 35 }}
+                    onOuvrir={() => undefined}
+                    peutRelancer={false}
+                />
+            </div>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Rien ne manque : rien ne s’affiche</p>
+                <LigneRelancePreuves
+                    etat={{ annee: 2026, livreurs: [], nbManquantes: 0, semaine: 35 }}
+                    onOuvrir={() => undefined}
+                    peutRelancer
+                />
+            </div>
+        </section>
+    );
+}
+
 /** L'historique d'un programme et le regroupement des exports, côte à côte. */
 function BancHistorique() {
     return (
@@ -592,6 +682,10 @@ export default function ApercuProgrammes() {
                         /* Le bandeau unique du haut de page : le banc doit le montrer,
                            puisqu'il remplace la mention qui était sur chaque ligne. */
                         whatsappNonConfigure={JEUX[jeu].lignes.some((p) => p.whatsappStatut === 'NON_CONFIGURE')}
+                        /* Le bouton œil des preuves Wave : sans ce rappel, le banc ne le
+                           montre pas du tout, et sa couleur est précisément ce qu'on doit
+                           pouvoir vérifier à l'œil. */
+                        onPreuves={(p, jour) => noter(`Preuves de ${p.livreurNom} — ${jour}`)}
                     />
                     <BancEditeur />
                     <BancExports programmes={JEUX.ordinaire.lignes} />
@@ -599,6 +693,7 @@ export default function ApercuProgrammes() {
                     <BancHistorique />
                     <BancApercu liste={JEUX.ordinaire.lignes} />
                     <BancSoumissionSurplus />
+                    <BancRelancePreuves />
                     <BancCarburantRapide programmes={[JEUX.ordinaire.lignes[5], JEUX.ordinaire.lignes[3], JEUX.ordinaire.lignes[4]]} />
                 </main>
             </div>

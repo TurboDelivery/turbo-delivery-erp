@@ -5,6 +5,11 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import {
   accorderSurplusAction,
+  etatRelancePreuvesAction,
+  listerPreuvesAction,
+  rejeterPreuveAction,
+  relancerPreuvesAction,
+  validerPreuveAction,
   affecterSiteAction,
   annulerSurplusAction,
   etatSoumissionSurplusAction,
@@ -31,6 +36,7 @@ import {
   ICreerProgrammePayload,
   IDupliquerSemainePayload,
   IAccorderSurplusPayload,
+  IValiderPreuvePayload,
   IAffecterSitePayload,
   IEngagerCarburantPayload,
   IModifierProgrammePayload,
@@ -45,6 +51,9 @@ export const programmeKeys = {
   carburant: (annee: number, semaine: number) => [...programmeKeys.all, 'carburant', annee, semaine] as const,
   bandeau: (annee: number, semaine: number) => [...programmeKeys.all, 'bandeau', annee, semaine] as const,
   surplus: (programmeId: string) => [...programmeKeys.all, 'surplus', programmeId] as const,
+  preuves: (programmeId: string) => [...programmeKeys.all, 'preuves', programmeId] as const,
+  relancePreuves: (annee: number, semaine: number) =>
+    [...programmeKeys.all, 'relance-preuves', annee, semaine] as const,
   soumissionSurplus: (annee: number, semaine: number) =>
     [...programmeKeys.all, 'soumission-surplus', annee, semaine] as const,
   historique: (id: string) => [...programmeKeys.all, 'historique', id] as const,
@@ -152,6 +161,78 @@ export const usePlanifierProgrammeMutation = (onDone?: () => void) => {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: programmeKeys.all });
       toast.success('Programme planifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+// ── Preuves de versement Wave (§9) ──────────────────────────────────────────
+
+/** Les preuves d'un programme, rejetées comprises : la fenêtre les montre toutes. */
+export const usePreuvesQuery = (programmeId: string | null | undefined) =>
+  useQuery({
+    queryKey: programmeKeys.preuves(programmeId ?? ''),
+    queryFn: () => listerPreuvesAction(programmeId!),
+    enabled: !!programmeId,
+    staleTime: 10 * 1000,
+  });
+
+export const useEtatRelancePreuvesQuery = (annee: number, semaine: number, actif = true) =>
+  useQuery({
+    queryKey: programmeKeys.relancePreuves(annee, semaine),
+    queryFn: () => etatRelancePreuvesAction(annee, semaine),
+    enabled: actif && !!annee && !!semaine,
+    staleTime: 30 * 1000,
+  });
+
+export const useValiderPreuveMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload, preuveId }: { id: string; payload: IValiderPreuvePayload; preuveId: string }) => {
+      const r = await validerPreuveAction(id, preuveId, payload);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la validation');
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Preuve validée.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+export const useRejeterPreuveMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, motif, preuveId }: { id: string; motif: string; preuveId: string }) => {
+      const r = await rejeterPreuveAction(id, preuveId, motif);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la demande');
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Nouvelle capture demandée. Le livreur est prévenu, avec le motif.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+/** Relancer les preuves manquantes (RG-W07, CA-56). */
+export const useRelancerPreuvesMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ annee, programmeIds, semaine }: { annee: number; programmeIds?: string[]; semaine: number }) => {
+      const r = await relancerPreuvesAction(annee, semaine, programmeIds);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la relance');
+      return r.data!;
+    },
+    onSuccess: async (data, variables) => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      const nb = variables.programmeIds?.length ?? data.livreurs.length;
+      toast.success(`${nb} livreur${nb > 1 ? 's' : ''} relancé${nb > 1 ? 's' : ''} par notification.`);
       onDone?.();
     },
     onError: (error) => toast.error(messageErreur(error)),
