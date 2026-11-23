@@ -266,7 +266,6 @@ export function ProgrammeApercuPanneau({
                       <span className="text-xs text-muted">Site de base</span>
                       <span className="text-sm text-foreground">
                         {programme.siteId ? (sites.get(programme.siteId) ?? programme.siteId) : 'Aucun site'}
-                        {programme.siteDeLaSemaine ? ' (cette semaine)' : ''}
                       </span>
                       {(complement.sitesDesservis ?? []).length > 0 && (
                         <>
@@ -331,7 +330,8 @@ export function ProgrammeApercuPanneau({
                 variant="primary"
               >
                 <Send aria-hidden="true" className="size-4" />
-                Renvoyer
+                {/* « Renvoyer » sur un programme jamais parti laissait croire qu'il l'était. */}
+                {programme && (programme.statut === 'BROUILLON' || programme.statut === 'PLANIFIE') ? 'Envoyer' : 'Renvoyer'}
               </Button>
             </div>
 

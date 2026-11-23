@@ -49,6 +49,10 @@ export interface EnteteSemaineProps {
     publies: number;
     refuses: number;
     journaliers: number;
+    /** Livreurs qui desservent un autre site que leur base. Facultatif pour les bancs. */
+    renforts?: number;
+    /** Superviseurs-livreurs ayant au moins un jour de service. Facultatif pour les bancs. */
+    superviseurs?: number;
     sansCarburant: number;
     avecSurplus: number;
     totalSurplus: number;
@@ -210,6 +214,7 @@ export function EnteteSemaine({
 
   return (
     <div className="flex flex-col gap-3">
+      <h1 className="text-lg font-semibold text-foreground">Programme de la semaine</h1>
       {/* ── 1. QUELLE SEMAINE ─────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -254,7 +259,7 @@ export function EnteteSemaine({
               indisponible ? null : (
                 <>
                   {compteurs.publies} publiés · {compteurs.aPublier} à publier
-                  {compteurs.refuses > 0 ? ` · ${compteurs.refuses} refusés` : ''}
+                  {` · ${compteurs.refuses} refusé${compteurs.refuses > 1 ? 's' : ''}`}
                 </>
               )
             }
@@ -265,10 +270,14 @@ export function EnteteSemaine({
 
           <CarteIndicateur
             actif={filtre === 'RENFORTS'}
-            detail="journaliers programmés"
+            detail={
+              indisponible || compteurs.superviseurs === undefined
+                ? null
+                : `+ ${compteurs.superviseurs} superviseur${compteurs.superviseurs > 1 ? 's' : ''}-livreur${compteurs.superviseurs > 1 ? 's' : ''} · ${compteurs.renforts ?? 0} en renfort`
+            }
             onPress={bascule('RENFORTS')}
-            survol="Un clic montre les livreurs qui desservent un autre site que leur base cette semaine."
-            titre="Livreurs"
+            survol="Les journaliers qui ont au moins un jour de service. Un clic montre ceux qui desservent un autre site que leur base."
+            titre="Journaliers programmés"
             valeur={indisponible ? '—' : compteurs.journaliers}
           />
 
@@ -380,7 +389,7 @@ export function EnteteSemaine({
                 <>
                   <Separator className="hidden h-10 sm:block" orientation="vertical" />
 
-                  <TermeBandeau libelle="Dotation validée" montant={bandeau.dotationValidee} />
+                  <TermeBandeau libelle="Dotation validée initialement" montant={bandeau.dotationValidee} />
                   <TermeBandeau
                     libelle="Total surplus"
                     montant={bandeau.totalSurplus}

@@ -336,7 +336,7 @@ function CelluleJour({ jour, onOuvrir, onPreuves, p, nomSite }: { jour?: IJourPr
         </Chip.Label>
       </Chip>
       {ailleurs.length > 0 && (
-        <span className="text-[11px] text-warning">
+        <span className="text-[11px] font-medium text-accent">
           → {ailleurs.map((s) => nomSite.get(s) ?? s).join(', ')}
         </span>
       )}
@@ -512,7 +512,7 @@ function Legende() {
       </span>
 
       <span className="inline-flex items-center gap-1.5">
-        <span className="text-[11px] font-medium text-danger">→ Angré 2</span>
+        <span className="text-[11px] font-medium text-accent">→ Angré 2</span>
         renfort sur un autre site
       </span>
 
@@ -860,8 +860,18 @@ export function SemaineProgrammes({
     [programmes],
   );
   /** Le programme ne concerne que les journaliers (§5.2, 2e carte). */
+  /*
+   * « Journaliers programmés » : ceux qui ont AU MOINS un jour de service. Un journalier
+   * dont le programme n'a aucun horaire était compté comme programmé, alors que la ligne
+   * du dessous le range dans « À compléter ».
+   */
+  const aUnJourDeService = (p: IProgramme) => (p.jours ?? []).some((j) => j.actif);
   const compteJournaliers = React.useMemo(
-    () => programmes.filter((p) => p.typeLivreur === 'JOURNALIER').length,
+    () => programmes.filter((p) => p.typeLivreur === 'JOURNALIER' && aUnJourDeService(p)).length,
+    [programmes],
+  );
+  const compteSuperviseursProgrammes = React.useMemo(
+    () => programmes.filter((p) => p.typeLivreur === 'SUPERVISEUR_LIVREUR' && aUnJourDeService(p)).length,
     [programmes],
   );
   const compteSansCarburant = React.useMemo(() => programmes.filter(estSansCarburant).length, [programmes]);
@@ -1011,6 +1021,8 @@ export function SemaineProgrammes({
           aPublier: aPublier.length,
           avecSurplus: compteAvecSurplus,
           journaliers: compteJournaliers,
+          renforts: compteRenforts,
+          superviseurs: compteSuperviseursProgrammes,
           publies: comptePublies,
           refuses: refuses.length,
           sansCarburant: compteSansCarburant,
@@ -1239,16 +1251,19 @@ export function SemaineProgrammes({
           selectionMode="single"
         >
           <ToggleButton id="TOUS">Tous</ToggleButton>
-          <ToggleButton id="A_COMPLETER">À compléter {compteACompleter > 0 ? compteACompleter : ''}</ToggleButton>
-          <ToggleButton id="A_PUBLIER">À publier {aPublier.length > 0 ? aPublier.length : ''}</ToggleButton>
-          <ToggleButton id="REFUSE">Refusés {refuses.length > 0 ? refuses.length : ''}</ToggleButton>
-          <ToggleButton id="SANS_CARBURANT">Sans carburant</ToggleButton>
-          <ToggleButton id="RENFORTS">Renforts {compteRenforts > 0 ? compteRenforts : ''}</ToggleButton>
-          <ToggleButton id="SUPERVISEURS">Superviseurs {compteSuperviseurs > 0 ? compteSuperviseurs : ''}</ToggleButton>
-          <ToggleButton id="AVEC_SURPLUS">Surplus {compteAvecSurplus > 0 ? compteAvecSurplus : ''}</ToggleButton>
-          <ToggleButton id="PREUVES_MANQUANTES">
-            Preuves manquantes {comptePreuvesManquantes > 0 ? comptePreuvesManquantes : ''}
-          </ToggleButton>
+          {/*
+           * L'ordre et les compteurs de la maquette. Un compteur à zéro s'ÉCRIT : un onglet
+           * sans chiffre ne dit pas « rien », il dit « je ne sais pas », et « Sans
+           * carburant » était le seul à n'en avoir jamais.
+           */}
+          <ToggleButton id="A_COMPLETER">À compléter {compteACompleter}</ToggleButton>
+          <ToggleButton id="A_PUBLIER">À publier {aPublier.length}</ToggleButton>
+          <ToggleButton id="REFUSE">Refusés {refuses.length}</ToggleButton>
+          <ToggleButton id="SANS_CARBURANT">Sans carburant {compteSansCarburant}</ToggleButton>
+          <ToggleButton id="RENFORTS">Renforts {compteRenforts}</ToggleButton>
+          <ToggleButton id="AVEC_SURPLUS">Surplus {compteAvecSurplus}</ToggleButton>
+          <ToggleButton id="SUPERVISEURS">Superviseurs {compteSuperviseurs}</ToggleButton>
+          <ToggleButton id="PREUVES_MANQUANTES">Preuves manquantes {comptePreuvesManquantes}</ToggleButton>
         </ToggleButtonGroup>
 
         {/*
@@ -1493,7 +1508,7 @@ export function SemaineProgrammes({
                                 )}
                                 {puces.length > 0 && (
                                   <span
-                                    className="mt-0.5 flex max-w-[14rem] flex-wrap gap-x-1.5 text-[11px] font-medium leading-tight text-warning"
+                                    className="mt-0.5 flex max-w-[14rem] flex-wrap gap-x-1.5 text-[11px] font-medium leading-tight text-accent"
                                     title={reste.length > 0 ? `Sites desservis : ${desservis.join(' · ')}` : undefined}
                                   >
                                     {puces.map((n) => (
