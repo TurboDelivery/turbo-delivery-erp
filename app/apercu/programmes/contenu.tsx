@@ -141,17 +141,33 @@ function useThemeSombre(): [boolean, (v: (p: boolean) => boolean) => void] {
     return [sombre, setSombre];
 }
 
-/** L'éditeur d'un programme, seul, pour voir et piloter la saisie du carburant. */
+/**
+ * L'éditeur d'un programme, seul, pour voir et piloter la saisie.
+ *
+ * <p>Semé avec DEUX sites disponibles, une base et un renfort : c'est la seule
+ * configuration où la règle « au moins un site coché par jour travaillé » (RG-S03) a un
+ * sens visible, et où « Appliquer à toute la semaine » montre qu'il copie les sites.</p>
+ */
 function BancEditeur() {
     const [jours, setJours] = React.useState<IJourProgramme[]>(() =>
         defaultJours().map((j, i) => (i < 6 ? { ...j, actif: true, montantCarburant: i < 3 ? 4000 : null } : j)),
+    );
+    const sitesDisponibles = [
+        { id: 'r0', nom: RESTOS[0] ?? 'Chicken Nation Yopougon' },
+        { id: 'r1', nom: RESTOS[1] ?? 'Angré 2' },
+    ];
+    const [sitesParJour, setSitesParJour] = React.useState<Record<string, string[]>>(() =>
+        Object.fromEntries(defaultJours().map((j) => [j.jour, ['r0']])),
     );
     return (
         <section className="mt-6 rounded-lg border border-separator p-4">
             <h2 className="mb-3 text-sm font-semibold">L&apos;éditeur, tel qu&apos;il s&apos;ouvre dans la modale</h2>
             <WeeklyJoursEditor
                 onChange={setJours}
+                onSitesParJourChange={setSitesParJour}
                 restaurants={RESTOS.map((r, i) => ({ id: `r${i}`, nom: r }))}
+                sitesDisponibles={sitesDisponibles}
+                sitesParJour={sitesParJour}
                 value={jours}
             />
         </section>

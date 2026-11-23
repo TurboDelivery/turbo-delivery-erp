@@ -76,7 +76,91 @@ export interface IProgramme {
   whatsappLe?: string | null;
   /** L'identifiant du message parti, ou la raison de l'échec. */
   whatsappDetail?: string | null;
+  /** Dernière relance des preuves Wave manquantes (RG-W07) ; absent si jamais relancé. */
+  preuvesRelanceLe?: string | null;
+  /** Jamais absent côté serveur, mais typé optionnel pour les jeux d'essai des bancs. */
+  complement?: IComplementProgramme;
 }
+
+// ── Sites, surplus et preuves (SPEC-ERP-TURBO-PLANNING-SITES, novembre 2026) ──
+
+/** Motif d'un surplus de carburant (RG-C02). Liste fermée côté serveur. */
+export type MotifSurplus = 'RENFORT_AUTRE_SITE' | 'LONGUE_DISTANCE' | 'PIC_ACTIVITE' | 'AUTRE';
+
+export const MOTIFS_SURPLUS: { label: string; value: MotifSurplus }[] = [
+  { label: 'Renfort autre site', value: 'RENFORT_AUTRE_SITE' },
+  { label: 'Longue distance', value: 'LONGUE_DISTANCE' },
+  { label: "Pic d'activité", value: 'PIC_ACTIVITE' },
+  { label: 'Autre', value: 'AUTRE' },
+];
+
+/**
+ * Du carburant accordé EN PLUS de la dotation d'un jour (SPEC §7).
+ *
+ * <p>Un surplus ANNULÉ arrive quand même : RG-C07 veut qu'il reste visible, barré, avec
+ * qui l'a annulé et pourquoi. Il ne compte pas dans le carburant du jour.</p>
+ */
+export interface ISurplus {
+  id: string;
+  jour: string;
+  siteId: string;
+  montant: number;
+  motif: MotifSurplus | string;
+  commentaire?: string | null;
+  accordePar?: string | null;
+  accordeLe?: string | null;
+  annule: boolean;
+  annulePar?: string | null;
+  annuleLe?: string | null;
+  motifAnnulation?: string | null;
+}
+
+export type StatutPreuveCarburant = 'RECUE' | 'VALIDEE' | 'REJETEE';
+
+/**
+ * Une capture Wave envoyée par le livreur (SPEC §9).
+ *
+ * <p>`surplusId` nul = la preuve porte sur la dotation du jour. Plusieurs captures par
+ * jour sont normales : une capture rejetée est conservée et la suivante s'ajoute.</p>
+ */
+export interface IPreuveCarburant {
+  id: string;
+  jour: string;
+  surplusId?: string | null;
+  fichierUrl: string;
+  envoyeLe: string | null;
+  montantRecu?: number | null;
+  recuLe?: string | null;
+  referenceTransaction?: string | null;
+  statut: StatutPreuveCarburant | string;
+  validePar?: string | null;
+  valideLe?: string | null;
+  motifRejet?: string | null;
+}
+
+/**
+ * Ce qu'un programme porte hors de sa ligne : sites desservis, bases gérées, et par jour
+ * les sites cochés, les surplus et les preuves.
+ *
+ * <p>Les cartes sont indexées par le NOM du jour (`LUNDI`…`DIMANCHE`). Un programme
+ * antérieur à novembre 2026 n'a rien de tout cela : listes et cartes vides, ce qui se lit
+ * « base seule » et qui est sa vérité.</p>
+ */
+export interface IComplementProgramme {
+  sitesDesservis: string[];
+  basesGerees: string[];
+  sitesParJour: Record<string, string[]>;
+  surplusParJour: Record<string, ISurplus[]>;
+  preuvesParJour: Record<string, IPreuveCarburant[]>;
+}
+
+export const COMPLEMENT_VIDE: IComplementProgramme = {
+  basesGerees: [],
+  preuvesParJour: {},
+  sitesDesservis: [],
+  sitesParJour: {},
+  surplusParJour: {},
+};
 
 export interface ICreerProgrammePayload {
   livreurId: string;
@@ -85,6 +169,18 @@ export interface ICreerProgrammePayload {
   jours: IJourProgramme[];
   /** Le site de la semaine ; absent = celui de la fiche du livreur. */
   sitePartnerId?: string | null;
+  /**
+   * Sites desservis de la semaine, en plus du site de base (RG-S02).
+   *
+   * <p>⚠ ABSENT et VIDE ne disent pas la même chose. Absent = la commande ne parle pas
+   * des sites, le serveur n'y touche pas. Tableau vide = « plus aucun », et il efface.
+   * Sans cette distinction, « Ajuster le carburant » effacerait les sites au passage.</p>
+   */
+  sitesDesservis?: string[];
+  /** Sites cochés par jour (RG-S03), indexés par nom de jour. Même convention. */
+  sitesParJour?: Record<string, string[]>;
+  /** Bases gérées d'un superviseur-livreur (RG-V01). Même convention. */
+  basesGerees?: string[];
 }
 
 export interface IModifierProgrammePayload {
@@ -94,6 +190,18 @@ export interface IModifierProgrammePayload {
   siteModifie?: boolean;
   /** Avec `siteModifie` : le site de la semaine, null pour revenir à celui de la fiche. */
   sitePartnerId?: string | null;
+  /**
+   * Sites desservis de la semaine, en plus du site de base (RG-S02).
+   *
+   * <p>⚠ ABSENT et VIDE ne disent pas la même chose. Absent = la commande ne parle pas
+   * des sites, le serveur n'y touche pas. Tableau vide = « plus aucun », et il efface.
+   * Sans cette distinction, « Ajuster le carburant » effacerait les sites au passage.</p>
+   */
+  sitesDesservis?: string[];
+  /** Sites cochés par jour (RG-S03), indexés par nom de jour. Même convention. */
+  sitesParJour?: Record<string, string[]>;
+  /** Bases gérées d'un superviseur-livreur (RG-V01). Même convention. */
+  basesGerees?: string[];
 }
 
 /** Dupliquer tous les programmes d'une semaine vers une semaine vide. */

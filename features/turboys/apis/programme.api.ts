@@ -51,9 +51,17 @@ export const programmeAPI = {
       endpoint: `/api/erp/programmes/${id}`,
       method: 'PUT',
       data: {
+        // ⚠ Les trois champs de sites ne sont PAS ramenés à une valeur par défaut, au
+        // contraire des deux au-dessus. Absent et vide ne disent pas la même chose :
+        // absent, le serveur n'y touche pas ; vide, il efface. Écrire `?? []` ici ferait
+        // effacer les sites desservis par « Ajuster le carburant », qui n'envoie que des
+        // montants. Un `undefined` disparaît à la sérialisation, c'est exactement voulu.
+        basesGerees: payload.basesGerees,
         jours: payload.jours,
         siteModifie: payload.siteModifie ?? false,
         sitePartnerId: payload.sitePartnerId ?? null,
+        sitesDesservis: payload.sitesDesservis,
+        sitesParJour: payload.sitesParJour,
       },
     });
   },
