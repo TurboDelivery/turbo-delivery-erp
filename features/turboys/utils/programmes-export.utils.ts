@@ -773,3 +773,126 @@ export function exporterProgrammeIndividuelPdf(programme: IProgramme, annee: num
 
   doc.save(`programme_${nom.replace(/\s+/g, '_')}_S${semaine}.pdf`);
 }
+
+// ── Détail des surplus carburant (§7, annexe de l'export §8.4) ────────────────
+
+/**
+ * Le détail des surplus d'une semaine, en PDF.
+ *
+ * <p>C'est le justificatif de la charge de soumission : le circuit finance exige une
+ * pièce à la création d'une charge, et celle-ci doit dire d'où vient le total — qui,
+ * quel jour, quel site, quel motif, accordé par qui. Un montant global sans ce détail
+ * n'est pas approuvable : le DGA ne saurait pas ce qu'il vise.</p>
+ *
+ * <p>⚠ Tout texte passe par {@code winAnsi}. L'espace fine insécable que
+ * {@code toLocaleString('fr-FR')} insère dans un montant s'imprime « 20/000 » dans la
+ * police par défaut de jsPDF — un montant faux, et personne ne le relit.</p>
+ */
+export function pdfSurplusBlob(
+  surplus: Array<{
+    livreurNom: string;
+    jour: string;
+    siteNom: string;
+    montant: number;
+    motif: string;
+    commentaire?: string | null;
+  }>,
+  annee: number,
+  semaine: number,
+): Blob {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const x0 = 14;
+  const largeur = pageW - 2 * x0;
+
+  doc.setFillColor(...RED);
+  doc.rect(0, 0, pageW, 18, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text(winAnsi(`Surplus carburant — semaine ${semaine} / ${annee}`), x0, 11);
+
+  doc.setTextColor(...DARK);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  const total = surplus.reduce((n, s) => n + (s.montant ?? 0), 0);
+  doc.text(
+    winAnsi(
+      `${surplus.length} surplus accordé${surplus.length > 1 ? 's' : ''} pendant la semaine, ${fcfa(total)} au total. `
+        + `Distinct de la dotation, engagée avant la semaine.`,
+    ),
+    x0,
+    26,
+    { maxWidth: largeur },
+  );
+
+  const colonnes = [
+    { header: 'Livreur', w: 42 },
+    { header: 'Jour', w: 22 },
+    { header: 'Site', w: 44 },
+    { header: 'Motif', w: 36 },
+    { header: 'Montant', w: 24, droite: true },
+  ];
+
+  let y = 36;
+  const enTete = () => {
+    doc.setFillColor(...BAND);
+    doc.rect(x0, y, largeur, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    let x = x0;
+    for (const c of colonnes) {
+      doc.text(winAnsi(c.header), c.droite ? x + c.w - 2 : x + 2, y + 5.4, { align: c.droite ? 'right' : 'left' });
+      x += c.w;
+    }
+    y += 8;
+    doc.setFont('helvetica', 'normal');
+  };
+  enTete();
+
+  for (const [i, s] of surplus.entries()) {
+    // Le saut de page REFAIT l'en-tête : sans lui, la deuxième page est une colonne de
+    // chiffres sans nom, et c'est celle que la comptabilité archive.
+    if (y > pageH - 24) {
+      doc.addPage();
+      y = 16;
+      enTete();
+    }
+    if (i % 2 === 1) {
+      doc.setFillColor(...LIGHT);
+      doc.rect(x0, y, largeur, 7, 'F');
+    }
+    const valeurs = [
+      s.livreurNom,
+      s.jour.charAt(0) + s.jour.slice(1).toLowerCase(),
+      s.siteNom,
+      s.commentaire ? `${s.motif} — ${s.commentaire}` : s.motif,
+      nombre(s.montant),
+    ];
+    let x = x0;
+    doc.setFontSize(8);
+    for (const [k, c] of colonnes.entries()) {
+      doc.text(winAnsi(valeurs[k] ?? ''), c.droite ? x + c.w - 2 : x + 2, y + 4.8, {
+        align: c.droite ? 'right' : 'left',
+        maxWidth: c.w - 4,
+      });
+      x += c.w;
+    }
+    doc.setDrawColor(...BORDER);
+    doc.line(x0, y + 7, x0 + largeur, y + 7);
+    y += 7;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text(winAnsi('Total'), x0 + 2, y + 6);
+  doc.text(winAnsi(fcfa(total)), x0 + largeur - 2, y + 6, { align: 'right' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...GRAY);
+  doc.text(winAnsi('Turbo Delivery · Direction des Opérations · Document interne'), x0, pageH - 7);
+
+  return doc.output('blob');
+}

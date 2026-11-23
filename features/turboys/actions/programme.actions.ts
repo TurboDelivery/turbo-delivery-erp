@@ -7,7 +7,10 @@ import {
   ICreerProgrammePayload,
   IModifierProgrammePayload,
   IAutosuffisanceJour,
+  IAccorderSurplusPayload,
   IAffecterSitePayload,
+  ISoumissionSurplus,
+  ISurplus,
   IBandeauCarburant,
   IEtatCarburantSemaine,
   IDupliquerSemainePayload,
@@ -27,7 +30,7 @@ export async function listerAutosuffisanceAction(annee: number, semaine: number)
 }
 
 // Remonte le message métier du backend (ex. 409 « le programme doit être en BROUILLON »).
-function erreurMetier(error: unknown, fallback: string): ActionResponse<IProgramme> {
+function erreurMetier<T>(error: unknown, fallback: string): ActionResponse<T> {
   if (error instanceof AxiosError) {
     const serverMsg = error.response?.data?.message || error.response?.data || error.message;
     return { success: false, error: typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg) };
@@ -95,6 +98,61 @@ export async function supprimerProgrammeAction(id: string): Promise<ActionRespon
 
 export async function listerIndependantsAction(annee: number, semaine: number): Promise<IProgramme[]> {
   return programmeAPI.independants(annee, semaine);
+}
+
+// ── Surplus de carburant (§7) ───────────────────────────────────────────────
+
+export async function listerSurplusAction(programmeId: string): Promise<ISurplus[]> {
+  return programmeAPI.listerSurplus(programmeId);
+}
+
+export async function etatSoumissionSurplusAction(annee: number, semaine: number): Promise<ISoumissionSurplus> {
+  return programmeAPI.etatSoumissionSurplus(annee, semaine);
+}
+
+/**
+ * Accorder un surplus.
+ *
+ * Le message du serveur est RENVOYÉ TEL QUEL : il dit lequel des trois refus s'applique —
+ * jour de repos, semaine clôturée, « Autre » sans précision. Un libellé générique
+ * obligerait l'opérateur à deviner lequel.
+ */
+export async function accorderSurplusAction(
+  programmeId: string,
+  payload: IAccorderSurplusPayload,
+): Promise<ActionResponse<ISurplus>> {
+  try {
+    const data = await programmeAPI.accorderSurplus(programmeId, payload);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, "Erreur lors de l'ajout du surplus");
+  }
+}
+
+export async function modifierSurplusAction(
+  programmeId: string,
+  surplusId: string,
+  payload: IAccorderSurplusPayload,
+): Promise<ActionResponse<ISurplus>> {
+  try {
+    const data = await programmeAPI.modifierSurplus(programmeId, surplusId, payload);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la modification du surplus');
+  }
+}
+
+export async function annulerSurplusAction(
+  programmeId: string,
+  surplusId: string,
+  motif: string,
+): Promise<ActionResponse<ISurplus>> {
+  try {
+    const data = await programmeAPI.annulerSurplus(programmeId, surplusId, motif);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, "Erreur lors de l'annulation du surplus");
+  }
 }
 
 /**

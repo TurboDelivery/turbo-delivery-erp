@@ -70,12 +70,20 @@ export function ProgrammeFormModal({
   anneeInitiale,
   isOpen,
   onOpenChange,
+  onSurplusJour,
   programme,
   semaineInitiale,
 }: {
   anneeInitiale: number;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Ouvrir la saisie d'un surplus sur ce jour (§7.2).
+   *
+   * <p>Absent = le lien n'apparaît pas. C'est le cas d'un profil non habilité (RG-C03)
+   * et celui d'une création : un surplus se donne sur une semaine qui existe.</p>
+   */
+  onSurplusJour?: (jour: string) => void;
   programme?: IProgramme | null;
   semaineInitiale: number;
 }) {
@@ -405,9 +413,11 @@ export function ProgrammeFormModal({
                 disabled={isLoading}
                 onChange={setJours}
                 onSitesParJourChange={setSitesParJour}
+                onSurplusJour={isEdit ? onSurplusJour : undefined}
                 restaurants={restaurants}
                 sitesDisponibles={sitesDisponibles}
                 sitesParJour={sitesParJour}
+                surplusParJour={programme?.complement?.surplusParJour}
                 value={jours}
               />
             </Modal.Body>

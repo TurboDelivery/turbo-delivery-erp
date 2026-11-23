@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { IEtatCarburantSemaine } from '@/features/turboys/types/programme.types';
+import type { IEtatCarburantSemaine, ISoumissionSurplus } from '@/features/turboys/types/programme.types';
 
 /**
  * Engager le carburant d'une semaine : un envoi MULTIPART depuis le navigateur.
@@ -14,6 +14,27 @@ export function engagerCarburant(donnees: FormData, userId?: string): Promise<IE
   if (userId) headers['X-User-Id'] = userId;
   return api.request<IEtatCarburantSemaine>({
     endpoint: '/erp/programmes/carburant/engager',
+    method: 'POST',
+    data: donnees,
+    config: { headers },
+  });
+}
+
+/**
+ * Soumettre au décaissement les surplus d'une semaine écoulée (décision du 23/11).
+ *
+ * <p>Même forme que l'engagement, et pour la même raison : le circuit finance exige un
+ * justificatif à la création d'une charge. C'est ici le détail des surplus de la
+ * semaine — qui, quel jour, quel site, quel motif.</p>
+ *
+ * <p>La charge créée est DISTINCTE de celle de la dotation : celle que le DGA a visée ne
+ * bouge plus.</p>
+ */
+export function soumettreSurplus(donnees: FormData, userId?: string): Promise<ISoumissionSurplus> {
+  const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' };
+  if (userId) headers['X-User-Id'] = userId;
+  return api.request<ISoumissionSurplus>({
+    endpoint: '/erp/programmes/surplus/soumettre',
     method: 'POST',
     data: donnees,
     config: { headers },

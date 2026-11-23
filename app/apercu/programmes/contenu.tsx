@@ -8,6 +8,7 @@ import { CarburantRapideModal } from '@/components/turboys/programmes/carburant-
 import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplication-semaine-dialog';
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
 import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
+import { SoumissionSurplus } from '@/components/turboys/programmes/soumission-surplus';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
@@ -286,6 +287,90 @@ const ACTIONS: IAuditAction[] = [
     },
 ];
 
+/**
+ * La soumission des surplus au décaissement, dans ses trois états.
+ *
+ * <p>Les trois comptent : la semaine pas finie est le cas le plus fréquent et le seul
+ * dont l'empêchement n'est devinable par personne ; « tout soumis » doit se distinguer
+ * d'« aucun surplus », qui n'affiche RIEN.</p>
+ */
+function BancSoumissionSurplus() {
+    const base = { annee: 2026, chargeId: null, semaine: 35, soumissibleLe: '2026-09-07' };
+    return (
+        <section className="mt-6 flex flex-col gap-3 rounded-lg border border-separator p-4">
+            <h2 className="text-sm font-semibold">La soumission des surplus au décaissement</h2>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Soumissible</p>
+                <SoumissionSurplus
+                    etat={{
+                        ...base,
+                        empechement: null,
+                        montantASoumettre: 15000,
+                        montantDejaSoumis: 0,
+                        nbASoumettre: 6,
+                        nbDejaSoumis: 0,
+                        soumissible: true,
+                    }}
+                    onSoumettre={() => undefined}
+                    peutSoumettre
+                />
+            </div>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">La semaine n’est pas finie</p>
+                <SoumissionSurplus
+                    etat={{
+                        ...base,
+                        empechement: "La semaine 35/2026 n'est pas terminée. Les surplus se soumettent à partir du lundi 2026-09-07.",
+                        montantASoumettre: 4500,
+                        montantDejaSoumis: 0,
+                        nbASoumettre: 2,
+                        nbDejaSoumis: 0,
+                        soumissible: false,
+                    }}
+                    onSoumettre={() => undefined}
+                    peutSoumettre
+                />
+            </div>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Tout est déjà parti</p>
+                <SoumissionSurplus
+                    etat={{
+                        ...base,
+                        empechement: 'Tous les surplus de la semaine 35/2026 sont déjà soumis.',
+                        montantASoumettre: 0,
+                        montantDejaSoumis: 15000,
+                        nbASoumettre: 0,
+                        nbDejaSoumis: 6,
+                        soumissible: false,
+                    }}
+                    onSoumettre={() => undefined}
+                    peutSoumettre
+                />
+            </div>
+
+            <div>
+                <p className="mb-1 text-xs text-muted">Aucun surplus : rien ne s’affiche</p>
+                <SoumissionSurplus
+                    etat={{
+                        ...base,
+                        empechement: 'Aucun surplus à soumettre pour la semaine 35/2026.',
+                        montantASoumettre: 0,
+                        montantDejaSoumis: 0,
+                        nbASoumettre: 0,
+                        nbDejaSoumis: 0,
+                        soumissible: false,
+                    }}
+                    onSoumettre={() => undefined}
+                    peutSoumettre
+                />
+            </div>
+        </section>
+    );
+}
+
 /** L'historique d'un programme et le regroupement des exports, côte à côte. */
 function BancHistorique() {
     return (
@@ -513,6 +598,7 @@ export default function ApercuProgrammes() {
                     <BancDuplication />
                     <BancHistorique />
                     <BancApercu liste={JEUX.ordinaire.lignes} />
+                    <BancSoumissionSurplus />
                     <BancCarburantRapide programmes={[JEUX.ordinaire.lignes[5], JEUX.ordinaire.lignes[3], JEUX.ordinaire.lignes[4]]} />
                 </main>
             </div>

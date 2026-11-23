@@ -4,7 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import {
+  accorderSurplusAction,
   affecterSiteAction,
+  annulerSurplusAction,
+  etatSoumissionSurplusAction,
+  listerSurplusAction,
+  modifierSurplusAction,
   bandeauCarburantAction,
   dupliquerSurSemaineSuivanteAction,
   etatCarburantAction,
@@ -21,10 +26,11 @@ import {
   renvoyerWhatsAppAction,
   historiqueProgrammeAction,
 } from '@/features/turboys/actions/programme.actions';
-import { engagerCarburant } from '@/features/turboys/apis/carburant-engagement.api';
+import { engagerCarburant, soumettreSurplus } from '@/features/turboys/apis/carburant-engagement.api';
 import {
   ICreerProgrammePayload,
   IDupliquerSemainePayload,
+  IAccorderSurplusPayload,
   IAffecterSitePayload,
   IEngagerCarburantPayload,
   IModifierProgrammePayload,
@@ -38,6 +44,9 @@ export const programmeKeys = {
   independants: (annee: number, semaine: number) => [...programmeKeys.all, 'independants', annee, semaine] as const,
   carburant: (annee: number, semaine: number) => [...programmeKeys.all, 'carburant', annee, semaine] as const,
   bandeau: (annee: number, semaine: number) => [...programmeKeys.all, 'bandeau', annee, semaine] as const,
+  surplus: (programmeId: string) => [...programmeKeys.all, 'surplus', programmeId] as const,
+  soumissionSurplus: (annee: number, semaine: number) =>
+    [...programmeKeys.all, 'soumission-surplus', annee, semaine] as const,
   historique: (id: string) => [...programmeKeys.all, 'historique', id] as const,
 };
 
@@ -143,6 +152,95 @@ export const usePlanifierProgrammeMutation = (onDone?: () => void) => {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: programmeKeys.all });
       toast.success('Programme planifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+// ── Surplus de carburant (§7) ───────────────────────────────────────────────
+
+/** Les surplus d'un programme, annulés compris : l'écran les montre barrés (RG-C07). */
+export const useSurplusQuery = (programmeId: string | null | undefined) =>
+  useQuery({
+    queryKey: programmeKeys.surplus(programmeId ?? ''),
+    queryFn: () => listerSurplusAction(programmeId!),
+    enabled: !!programmeId,
+    staleTime: 10 * 1000,
+  });
+
+export const useEtatSoumissionSurplusQuery = (annee: number, semaine: number) =>
+  useQuery({
+    queryKey: programmeKeys.soumissionSurplus(annee, semaine),
+    queryFn: () => etatSoumissionSurplusAction(annee, semaine),
+    enabled: !!annee && !!semaine,
+    staleTime: 30 * 1000,
+  });
+
+export const useAccorderSurplusMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: IAccorderSurplusPayload }) => {
+      const r = await accorderSurplusAction(id, payload);
+      if (!r.success) throw new Error(r.error || "Erreur lors de l'ajout du surplus");
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      // Le message dit ce qui N'A PAS changé : c'est la question que se pose
+      // l'opérateur juste après avoir cliqué.
+      toast.success('Surplus accordé. La dotation prévue ne change pas ; le livreur est prévenu.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+export const useModifierSurplusMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload, surplusId }: { id: string; payload: IAccorderSurplusPayload; surplusId: string }) => {
+      const r = await modifierSurplusAction(id, surplusId, payload);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la modification du surplus');
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Surplus modifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+export const useAnnulerSurplusMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, motif, surplusId }: { id: string; motif: string; surplusId: string }) => {
+      const r = await annulerSurplusAction(id, surplusId, motif);
+      if (!r.success) throw new Error(r.error || "Erreur lors de l'annulation du surplus");
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Surplus annulé. Il reste visible, barré, avec son motif.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+/** Soumettre les surplus de la semaine au décaissement (décision du 23/11). */
+export const useSoumettreSurplusMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  const { data: session } = useSession();
+  return useMutation({
+    mutationFn: (donnees: FormData) => soumettreSurplus(donnees, (session?.user as { id?: string } | undefined)?.id),
+    onSuccess: async (data) => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success(
+        `${data.nbDejaSoumis} surplus soumis au décaissement, dans une charge distincte de la dotation.`,
+      );
       onDone?.();
     },
     onError: (error) => toast.error(messageErreur(error)),

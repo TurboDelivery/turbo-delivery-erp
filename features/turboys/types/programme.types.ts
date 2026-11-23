@@ -317,3 +317,35 @@ export interface IAffecterSitePayload {
   jour: string;
   motif: string;
 }
+
+/** Accorder du carburant en plus de la dotation d'un jour (RG-C02). */
+export interface IAccorderSurplusPayload {
+  jour: string;
+  siteId: string;
+  montant: number;
+  motif: MotifSurplus;
+  /** Obligatoire quand le motif est `AUTRE` : sinon « Autre » ne dit rien. */
+  commentaire?: string | null;
+}
+
+/**
+ * Où en est la soumission des surplus d'une semaine (décision du 23/11).
+ *
+ * L'écran s'en sert AVANT le geste autant qu'après : il doit pouvoir dire « 6 surplus,
+ * 15 000 FCFA, soumissible à partir du lundi 1er décembre » sans qu'on ait à cliquer pour
+ * l'apprendre.
+ */
+export interface ISoumissionSurplus {
+  annee: number;
+  semaine: number;
+  nbASoumettre: number;
+  montantASoumettre: number;
+  nbDejaSoumis: number;
+  montantDejaSoumis: number;
+  /** Le lundi à partir duquel la soumission est possible, en ISO. */
+  soumissibleLe: string;
+  soumissible: boolean;
+  /** Pourquoi ce n'est pas soumissible, en une phrase. `null` si ça l'est. */
+  empechement: string | null;
+  chargeId: string | null;
+}

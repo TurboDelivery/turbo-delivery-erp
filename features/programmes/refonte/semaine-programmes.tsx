@@ -102,6 +102,13 @@ export interface SemaineProgrammesProps {
   onAffecterSite?: (p: IProgramme) => void;
   /** Dupliquer CE programme sur S+1 (§6.2). Absent = l'entrée n'apparaît pas. */
   onDupliquerSuivante?: (p: IProgramme) => void;
+  /**
+   * Accorder un surplus de carburant (§7.2, RG-C03).
+   *
+   * <p>Absent = l'entrée n'apparaît pas du tout, et c'est exactement ce que CA-36
+   * demande pour un profil non habilité : pas une entrée grisée, pas d'entrée.</p>
+   */
+  onSurplus?: (p: IProgramme) => void;
   onSupprimer: (p: IProgramme) => void;
   onNouveau: () => void;
   /** Publier d'un coup les programmes cochés. */
@@ -444,6 +451,7 @@ export function SemaineProgrammes({
   onHistorique,
   onAffecterSite,
   onDupliquerSuivante,
+  onSurplus,
   onSupprimer,
   onNouveau,
   onPublierLot,
@@ -1163,6 +1171,7 @@ export function SemaineProgrammes({
                                     if (k === 'planifier') onPlanifier(p);
                                     if (k === 'affecter') onAffecterSite?.(p);
                                     if (k === 'dupliquer') onDupliquerSuivante?.(p);
+                                    if (k === 'surplus') onSurplus?.(p);
                                     if (k === 'envoyer') onEnvoyer(p);
                                     if (k === 'whatsapp') onRenvoyerWhatsApp(p);
                                     if (k === 'supprimer') onSupprimer(p);
@@ -1175,6 +1184,9 @@ export function SemaineProgrammes({
                                   <Dropdown.Section>
                                     <Dropdown.Item id="editer">Modifier le programme</Dropdown.Item>
                                     <Dropdown.Item id="carburant">Ajuster le carburant</Dropdown.Item>
+                                    {onSurplus ? (
+                                      <Dropdown.Item id="surplus">Accorder un surplus carburant</Dropdown.Item>
+                                    ) : null}
                                     <Dropdown.Item id="planifier">Planifier pour dimanche</Dropdown.Item>
                                     {onAffecterSite ? (
                                       <Dropdown.Item id="affecter">Affecter à un autre site aujourd’hui</Dropdown.Item>

@@ -12,8 +12,11 @@ import { EngagementCarburantConnecte } from './engagement-carburant';
 import { ProgrammeApercuPanneau } from './programme-apercu-panneau';
 import { ProgrammeFormModal } from './programme-form-modal';
 import { ProgrammeHistoriqueModal } from './programme-historique-modal';
+import { SoumissionSurplusConnectee } from './soumission-surplus';
+import { SurplusCarburantDialog } from './surplus-carburant-dialog';
 import { joursAvecDates } from './weekly-jours-editor';
 import { ErrorBoundary } from '@/components/common/error-boundary';
+import { useAbility } from '@/hooks/use-ability';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
 import { creerProgrammeAction } from '@/features/turboys/actions/programme.actions';
@@ -105,6 +108,19 @@ export default function ProgrammesSection() {
   const [carburantDe, setCarburantDe] = React.useState<IProgramme[]>([]);
   const [pendingId, setPendingId] = React.useState<string | null>(null);
   const [lotEnCours, setLotEnCours] = React.useState(false);
+  /**
+   * Le surplus de carburant (§7.2).
+   *
+   * ⚠ RG-C03 / CA-36 : l'entrée de menu N'APPARAÎT PAS pour un profil non habilité. Pas
+   * grisée — absente. Le serveur refuse de toute façon, mais proposer un geste qu'on
+   * n'a pas le droit de faire est une promesse qu'on ne tient pas.
+   */
+  const ability = useAbility();
+  const peutAccorderSurplus = ability.can('accorder-surplus', 'ProgrammeLivreur');
+  const [surplusDe, setSurplusDe] = React.useState<IProgramme | null>(null);
+  /** Le jour pré-rempli quand le geste vient d'une ligne de l'éditeur. */
+  const [surplusJour, setSurplusJour] = React.useState<string | null>(null);
+
   /** Affectation en cours d'opérations (§3.3) : le programme visé, et ce que la case cliquée disait. */
   const [affectation, setAffectation] = React.useState<{
     prefill: { jour?: string; siteId?: string } | null;
@@ -308,12 +324,22 @@ export default function ProgrammesSection() {
           autosuffisanceIsLoading={autosuffisanceQuery.isLoading}
           carburantSemainePrecedente={carburantSemainePrecedente}
           engagement={
-            <EngagementCarburantConnecte
-              annee={annee}
-              contexteExport={contexteExport}
-              programmes={Array.isArray(data) ? data : []}
-              semaine={semaine}
-            />
+            <div className="flex w-full flex-col gap-2">
+              <EngagementCarburantConnecte
+                annee={annee}
+                contexteExport={contexteExport}
+                programmes={Array.isArray(data) ? data : []}
+                semaine={semaine}
+              />
+              {/* La soumission des surplus, SOUS l'engagement : c'est l'étape d'après,
+                  et elle ne s'affiche que si la semaine a eu des surplus. */}
+              <SoumissionSurplusConnectee
+                annee={annee}
+                nomSite={nomSite}
+                programmes={Array.isArray(data) ? data : []}
+                semaine={semaine}
+              />
+            </div>
           }
           idEnCours={pendingId}
           importEnCours={importing}
@@ -380,6 +406,14 @@ export default function ProgrammesSection() {
           onReessayerIndependants={() => void independantsQuery.refetch()}
           onSemaine={changeWeek}
           onSupprimer={demanderSuppression}
+          onSurplus={
+            peutAccorderSurplus
+              ? (p) => {
+                  setSurplusJour(null);
+                  setSurplusDe(p);
+                }
+              : undefined
+          }
           onTelechargerModele={() =>
             telechargerModeleProgrammes(
               (livreursQuery.data ?? []).map((l) => ({
@@ -413,6 +447,19 @@ export default function ProgrammesSection() {
         onOpenChange={(open) => {
           if (!open) setEditing(null);
         }}
+        /*
+         * Depuis une ligne de jour de l'éditeur. La fenêtre de surplus s'ouvre PAR-DESSUS
+         * celle d'édition et ne la ferme pas : les modifications en cours de saisie ne
+         * sont pas perdues, et on revient dessus en fermant le surplus.
+         */
+        onSurplusJour={
+          peutAccorderSurplus && editing
+            ? (jour) => {
+                setSurplusJour(jour);
+                setSurplusDe(editing);
+              }
+            : undefined
+        }
         programme={editing}
         semaineInitiale={semaine}
       />
@@ -449,6 +496,15 @@ export default function ProgrammesSection() {
         }}
         programme={historiqueDe}
         sites={nomSite}
+      />
+      <SurplusCarburantDialog
+        jourInitial={surplusJour}
+        onFermer={() => {
+          setSurplusDe(null);
+          setSurplusJour(null);
+        }}
+        programme={surplusDe}
+        sites={restaurants}
       />
       <AffectationSiteDialog
         onFermer={() => setAffectation(null)}

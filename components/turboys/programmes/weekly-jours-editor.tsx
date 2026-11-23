@@ -7,13 +7,14 @@ import { CopyCheck, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { ChampListeMultiple } from '@/components/commons/champs-formulaire';
-import { IJourProgramme } from '@/features/turboys/types/programme.types';
+import { IJourProgramme, type ISurplus } from '@/features/turboys/types/programme.types';
 import {
   anomaliesJours,
   dureeMinutes,
   finitApresMinuit,
 } from '@/features/turboys/utils/jours-programme.utils';
 import { lundiDeSemaine } from '@/features/turboys/utils/semaine.utils';
+import { formatMontant } from '@/utils/format.utils';
 
 // Les calculs purs vivent dans jours-programme.utils, pour etre testes en node sans
 // monter la bibliotheque de composants. On les re-exporte pour les appelants qui les
@@ -118,6 +119,15 @@ interface Props {
   /** Les sites cochables d'un jour : le site de base d'abord, puis les sites desservis. */
   sitesDisponibles?: OptionResto[];
   sitesParJour: Record<string, string[]>;
+  /** Les surplus déjà accordés, par jour : la ligne doit les montrer à côté de la dotation. */
+  surplusParJour?: Record<string, ISurplus[]>;
+  /**
+   * Ouvrir la saisie d'un surplus sur ce jour (§7.2, RG-C03).
+   *
+   * <p>Absent = ni le lien ni le geste. C'est le cas d'un profil non habilité, et celui
+   * d'un brouillon : un surplus n'a de sens que sur une semaine déjà partie.</p>
+   */
+  onSurplusJour?: (jour: string) => void;
   onChange: (jours: IJourProgramme[]) => void;
   onSitesParJourChange: (sites: Record<string, string[]>) => void;
   value: IJourProgramme[];
@@ -151,9 +161,11 @@ export function WeeklyJoursEditor({
   disabled,
   onChange,
   onSitesParJourChange,
+  onSurplusJour,
   restaurants = [],
   sitesDisponibles = [],
   sitesParJour,
+  surplusParJour,
   value,
 }: Props) {
   // Le panneau « Appliquer à toute la semaine » ouvert, le cas échéant.
@@ -385,6 +397,32 @@ export function WeeklyJoursEditor({
                     <NumberField.IncrementButton />
                   </NumberField.Group>
                 </NumberField>
+
+                {/*
+                 * LE SURPLUS DU JOUR (§7.2). Il s'affiche À CÔTÉ de la dotation, jamais
+                 * dedans : RG-C01 veut que la dotation prévue ne bouge pas, et les
+                 * additionner dans le même champ effacerait pour toujours la distinction
+                 * entre ce qui était prévu et ce qui a été ajouté.
+                 *
+                 * L'orange est le vocabulaire du surplus sur tout l'écran — carte du
+                 * haut de page, case du jour, colonne carburant.
+                 */}
+                {(surplusParJour?.[j.jour] ?? []).filter((x) => !x.annule).length > 0 && (
+                  <span className="whitespace-nowrap text-xs font-medium tabular-nums text-warning-soft-foreground">
+                    + {formatMontant(
+                      (surplusParJour?.[j.jour] ?? [])
+                        .filter((x) => !x.annule)
+                        .reduce((n, x) => n + (x.montant ?? 0), 0),
+                    )}{' '}
+                    surplus
+                  </span>
+                )}
+                {onSurplusJour ? (
+                  <Button isDisabled={disabled} onPress={() => onSurplusJour(j.jour)} size="sm" variant="ghost">
+                    <Plus aria-hidden="true" className="size-4" />
+                    Surplus
+                  </Button>
+                ) : null}
 
                 <Button
                   className="ms-auto"

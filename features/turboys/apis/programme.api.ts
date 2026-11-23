@@ -1,7 +1,10 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 import type { IAuditAction } from '@/features/supervision/types';
 import {
+  IAccorderSurplusPayload,
   IAffecterSitePayload,
+  ISoumissionSurplus,
+  ISurplus,
   IBandeauCarburant,
   IProgramme,
   ICreerProgrammePayload,
@@ -126,6 +129,56 @@ export const programmeAPI = {
     await apiClientHttp.request<void>({
       endpoint: `/api/erp/programmes/${id}`,
       method: 'DELETE',
+    });
+  },
+
+  // ── Surplus de carburant (§7) ──────────────────────────────────────────────
+
+  /** Les surplus d'un programme, ANNULÉS COMPRIS : l'écran les montre barrés (RG-C07). */
+  async listerSurplus(programmeId: string): Promise<ISurplus[]> {
+    return apiClientHttp.request<ISurplus[]>({
+      endpoint: `/api/erp/programmes/${programmeId}/surplus`,
+      method: 'GET',
+    });
+  },
+
+  async accorderSurplus(programmeId: string, payload: IAccorderSurplusPayload): Promise<ISurplus> {
+    return apiClientHttp.request<ISurplus>({
+      data: payload,
+      endpoint: `/api/erp/programmes/${programmeId}/surplus`,
+      method: 'POST',
+    });
+  },
+
+  async modifierSurplus(programmeId: string, surplusId: string, payload: IAccorderSurplusPayload): Promise<ISurplus> {
+    return apiClientHttp.request<ISurplus>({
+      data: payload,
+      endpoint: `/api/erp/programmes/${programmeId}/surplus/${surplusId}`,
+      method: 'PUT',
+    });
+  },
+
+  /**
+   * Annuler un surplus (RG-C07).
+   *
+   * ⚠ POST et non DELETE, bien que la spec écrive DELETE : la ligne n'est pas supprimée,
+   * et le motif est obligatoire — un corps sur un DELETE est mal supporté par plusieurs
+   * intermédiaires HTTP, et un motif perdu en route rendrait l'annulation muette.
+   */
+  async annulerSurplus(programmeId: string, surplusId: string, motif: string): Promise<ISurplus> {
+    return apiClientHttp.request<ISurplus>({
+      data: { motif },
+      endpoint: `/api/erp/programmes/${programmeId}/surplus/${surplusId}/annuler`,
+      method: 'POST',
+    });
+  },
+
+  /** Où en est la soumission des surplus d'une semaine. */
+  async etatSoumissionSurplus(annee: number, semaine: number): Promise<ISoumissionSurplus> {
+    return apiClientHttp.request<ISoumissionSurplus>({
+      endpoint: '/api/erp/programmes/surplus/soumission',
+      method: 'GET',
+      params: { annee, semaine },
     });
   },
 
