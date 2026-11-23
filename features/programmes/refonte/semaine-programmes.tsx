@@ -4,9 +4,10 @@ import { Button, Card, Checkbox, Chip, ComboBox, Dropdown, Input, Label, ListBox
 import { ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, Plus } from 'lucide-react';
 import React from 'react';
 
-import type { IAutosuffisanceJour, IJourProgramme, IProgramme, StatutProgramme } from '@/features/turboys/types/programme.types';
+import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
-import { estSeptSurSept, libelleJourInactif, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
+import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
+import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { libelleWhatsApp } from '@/features/turboys/utils/whatsapp-statut.utils';
 import { cn } from '@/lib/utils';
@@ -84,6 +85,10 @@ export interface SemaineProgrammesProps {
   onRenvoyerWhatsApp: (p: IProgramme) => void;
   /** Qui a changé quoi sur ce programme, et quand. */
   onHistorique: (p: IProgramme) => void;
+  /** Affecter à un autre site aujourd'hui (RG-S08). Absent = l'entrée n'apparaît pas. */
+  onAffecterSite?: (p: IProgramme) => void;
+  /** Dupliquer CE programme sur S+1 (§6.2). Absent = l'entrée n'apparaît pas. */
+  onDupliquerSuivante?: (p: IProgramme) => void;
   onSupprimer: (p: IProgramme) => void;
   onNouveau: () => void;
   /** Publier d'un coup les programmes cochés. */
@@ -166,6 +171,34 @@ const formatEcart = (n: number) => (n === 0 ? formatMontant(0) : `${n > 0 ? '+' 
 /** Les colonnes de la table des independants, en lecture seule. */
 const COLONNES_INDEPENDANTS = ['livreur', ...JOURS.map((j) => j.cle)];
 
+/** Les onglets de la liste (§5.2). « À compléter », « Renforts » et « Superviseurs » sont nouveaux. */
+type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS';
+
+/**
+ * À COMPLÉTER (RG-L01, RG-L03) : il manque quelque chose pour que le programme puisse
+ * partir — le site, les horaires, ou le carburant.
+ *
+ * <p>Un superviseur-livreur sans base gérée y va aussi (RG-V04) : il n'est rattaché à
+ * aucune base, mais il doit en gérer au moins une pour être publiable.</p>
+ */
+function estACompleter(p: IProgramme): boolean {
+  const c = p.complement ?? COMPLEMENT_VIDE;
+  if (p.typeLivreur === 'SUPERVISEUR_LIVREUR') {
+    if ((c.basesGerees ?? []).length === 0) return true;
+  } else if (!p.siteId) {
+    return true;
+  }
+  const actifs = (p.jours ?? []).filter((j) => j.actif);
+  if (actifs.length === 0) return true;
+  if (actifs.some((j) => !j.debut || !j.fin)) return true;
+  return estSansCarburant(p);
+}
+
+/** Le livreur dessert-il un site qui n'est pas sa base cette semaine ? (onglet Renforts, §3.2) */
+function aDesRenforts(p: IProgramme): boolean {
+  return ((p.complement ?? COMPLEMENT_VIDE).sitesDesservis ?? []).length > 0;
+}
+
 /** Publiable : le programme n'est pas encore parti chez le livreur. */
 const estAPublier = (p: IProgramme) => p.statut === 'BROUILLON' || p.statut === 'PLANIFIE';
 
@@ -186,26 +219,50 @@ function postesSemaine(p: IProgramme): string[] {
  * normale compte deux jours de repos : l'écran signalait donc deux fautes par ligne, et
  * quatre-vingts sur une flotte de quarante. Un jour sans service est un tiret.</p>
  */
-function CelluleJour({ jour }: { jour?: IJourProgramme }) {
+function CelluleJour({ jour, p, nomSite }: { jour?: IJourProgramme; nomSite: Map<string, string>; p: IProgramme }) {
+  const c = p.complement ?? COMPLEMENT_VIDE;
+
   if (!jour?.actif) {
     /*
-     * La cloture nocturne repasse aussi `actif` a false quand elle conclut a une
-     * absence. Le tiret du repos mentait alors : l'absence s'ecrit.
+     * RG-L02 — DEUX ÉTATS, ET DEUX SEULEMENT.
+     *
+     * Il y en avait trois, sans qu'on sache lequel on lisait : « — », « Absent », et une
+     * case vide. Le tiret disait le repos, « Absent » venait de la clôture nocturne, et
+     * la case vide un jour jamais saisi. La décision du 22/11 tranche : le programme dit
+     * ce qui est PRÉVU, et « Absent » — qui désigne un livreur programmé qui ne s'est pas
+     * présenté — n'a rien à y faire. Il reste visible dans le pointage, qui est son
+     * écran. Un jour non saisi d'un brouillon s'affiche en Repos.
      */
-    const libelle = libelleJourInactif(jour);
-    if (libelle !== 'Repos') {
-      return <span className="block text-center text-[11px] leading-tight text-foreground">{libelle}</span>;
-    }
     return (
-      <span aria-label="Repos" className="block text-center text-muted" role="img">
-        —
+      <span className="flex justify-center">
+        <Chip color="warning" size="sm" variant="soft">
+          <Chip.Label>Repos</Chip.Label>
+        </Chip>
       </span>
     );
   }
+
+  const sites = c.sitesParJour?.[jour.jour] ?? [];
+  // §3.2 — un repère quand le livreur ne travaille pas sur sa base ce jour-là. C'est le
+  // renfort : l'information que rien n'enregistrait et qui a motivé toute cette spec.
+  const ailleurs = sites.filter((s) => s !== p.siteId);
+  const surplus = (c.surplusParJour?.[jour.jour] ?? []).filter((s) => !s.annule);
+  const totalSurplus = surplus.reduce((n, s) => n + (s.montant ?? 0), 0);
+
   return (
-    <span className="block text-center leading-tight">
-      <span className="block text-xs font-medium tabular-nums text-foreground">{hhmm(jour.debut)}</span>
-      <span className="block text-[11px] tabular-nums text-muted">{hhmm(jour.fin)}</span>
+    <span className="flex flex-col items-center gap-0.5 leading-tight">
+      <Chip color="success" size="sm" variant="soft">
+        <Chip.Label className="tabular-nums">
+          {hhmm(jour.debut)}–{hhmm(jour.fin)}
+          {finitApresMinuit(jour) ? ' +1' : ''}
+        </Chip.Label>
+      </Chip>
+      {ailleurs.length > 0 && (
+        <span className="text-[11px] text-warning">
+          → {ailleurs.map((s) => nomSite.get(s) ?? s).join(', ')}
+        </span>
+      )}
+      {totalSurplus > 0 && <span className="text-[11px] tabular-nums text-warning">+{formatMontant(totalSurplus)}</span>}
     </span>
   );
 }
@@ -218,21 +275,51 @@ function CelluleJour({ jour }: { jour?: IJourProgramme }) {
  * programme sans aucun montant rend un tiret, pas « 0 FCFA » — rien de saisi n'est pas
  * zéro franc.</p>
  */
-function CelluleCarburant({ p }: { p: IProgramme }) {
+function CelluleCarburant({ onCombler, p }: { onCombler?: () => void; p: IProgramme }) {
   const { fige, montant } = carburantAffiche(p);
+  const surplus = totalSurplusVivant(p);
+
+  /*
+   * RG-L03 — ce qui manque SE VOIT, et se corrige d'un clic.
+   *
+   * « Sans carburant » s'écrivait « — », en gris, comme le reste : sur trente-huit
+   * lignes, les quatre programmes incomplets ne ressortaient pas. C'est une pastille
+   * orange, et un clic ouvre la fenêtre sur le champ manquant.
+   */
   if (montant === null) {
     return (
-      <span aria-label="Aucun montant" className="block text-end text-muted" role="img">
-        —
+      <span className="flex justify-end">
+        <Chip className={onCombler ? 'cursor-pointer' : ''} color="warning" onClick={onCombler} size="sm" variant="soft">
+          <Chip.Label>Sans carburant</Chip.Label>
+        </Chip>
       </span>
     );
   }
+
+  /*
+   * RG-L05 — le montant en NOIR, aligné à droite, en chasse tabulaire.
+   *
+   * C'était le chiffre le plus important de la ligne et le moins lisible : petit, gris,
+   * avec « prévisionnel » écrit dessous sur toutes les lignes. L'état du programme suffit
+   * à dire si le montant est figé ; il passe en mention discrète, et seulement quand il
+   * ne l'est pas.
+   */
   return (
-    <span className={cn('block text-end tabular-nums', fige ? 'text-foreground' : 'text-muted')}>
-      {formatMontant(montant)}
-      {!fige && <span className="block text-[11px] leading-tight">prévisionnel</span>}
+    <span className="block text-end leading-tight">
+      <span className="block font-medium tabular-nums text-foreground">{formatMontant(montant)}</span>
+      {surplus > 0 && <span className="block text-[11px] tabular-nums text-warning">+ {formatMontant(surplus)} surplus</span>}
+      {!fige && <span className="block text-[11px] text-muted">prévu</span>}
     </span>
   );
+}
+
+/** Les surplus non annulés d'un programme (RG-C04). Les annulés restent visibles ailleurs, pas ici. */
+function totalSurplusVivant(p: IProgramme): number {
+  const parJour = (p.complement ?? COMPLEMENT_VIDE).surplusParJour ?? {};
+  return Object.values(parJour)
+    .flat()
+    .filter((s) => !s.annule)
+    .reduce((n, s) => n + (s.montant ?? 0), 0);
 }
 
 /** L'étape suivante du programme, celle qui fait avancer la semaine. */
@@ -253,6 +340,51 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
     );
   }
   return null;
+}
+
+/**
+ * L'en-tête d'un groupe (RG-L01) : le site, son nombre de livreurs, son carburant, et
+ * les livreurs présents par jour.
+ *
+ * <p>⚠ C'est une ligne de tableau ORDINAIRE, avec exactement autant de cellules que de
+ * colonnes. Le Table v3 n'expose pas de colSpan, et un compte qui diverge fait tomber la
+ * page entière en 500 — c'est écrit noir sur blanc plus haut, à propos de
+ * COLONNES_GRILLE. Loin d'être une contrainte subie, les sept cellules de jour portent
+ * précisément les présents du groupe, que la règle demande.</p>
+ */
+function LigneGroupe({ groupe }: { groupe: { cle: string; programmes: IProgramme[]; titre: string } }) {
+  const totaux = totauxCarburant(groupe.programmes);
+  const presents = (cle: string) =>
+    groupe.programmes.filter((p) => (p.jours ?? []).some((j) => (j.jour ?? '').toUpperCase() === cle && j.actif)).length;
+
+  return (
+    <Table.Row className="bg-surface-secondary" id={`g-${groupe.cle}`}>
+      <Table.Cell className="pe-0">{''}</Table.Cell>
+      <Table.Cell>
+        <span className="block text-sm font-semibold text-foreground">{groupe.titre}</span>
+        <span className="block text-xs text-muted tabular-nums">
+          {groupe.programmes.length} livreur{groupe.programmes.length > 1 ? 's' : ''}
+        </span>
+      </Table.Cell>
+      <Table.Cell>{''}</Table.Cell>
+      {JOURS.map((j) => {
+        const n = presents(j.cle);
+        return (
+          <Table.Cell className="px-2 text-center" key={j.cle}>
+            {/* Une case à zéro est en rouge : ce jour-là, personne n'est prévu ici. */}
+            <span className={cn('text-xs font-medium tabular-nums', n === 0 ? 'text-danger' : 'text-muted')}>{n}</span>
+          </Table.Cell>
+        );
+      })}
+      <Table.Cell>
+        <span className="block text-end text-xs font-semibold tabular-nums text-foreground">
+          {totaux.total > 0 ? formatMontant(totaux.total) : ''}
+        </span>
+      </Table.Cell>
+      <Table.Cell>{''}</Table.Cell>
+      <Table.Cell>{''}</Table.Cell>
+    </Table.Row>
+  );
 }
 
 export function SemaineProgrammes({
@@ -278,6 +410,8 @@ export function SemaineProgrammes({
   onEnvoyer,
   onRenvoyerWhatsApp,
   onHistorique,
+  onAffecterSite,
+  onDupliquerSuivante,
   onSupprimer,
   onNouveau,
   onPublierLot,
@@ -301,7 +435,9 @@ export function SemaineProgrammes({
   engagement = null,
 }: SemaineProgrammesProps) {
   const [recherche, setRecherche] = React.useState('');
-  const [seulement, setSeulement] = React.useState<'TOUS' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT'>('TOUS');
+  const [seulement, setSeulement] = React.useState<Onglet>('TOUS');
+  /** RG-L01 — « Sans regroupement » revient à la liste simple, et un tri par colonne reste possible. */
+  const [grouper, setGrouper] = React.useState(true);
   const [coches, setCoches] = React.useState<Selection>(new Set());
   /** Le nom d'un site par son identifiant : la grille l'écrit sur chaque ligne. */
   const nomSite = React.useMemo(() => new Map(partenaires.map((x) => [x.id, x.nom])), [partenaires]);
@@ -322,12 +458,69 @@ export function SemaineProgrammes({
       if (seulement === 'A_PUBLIER' && !estAPublier(p)) return false;
       if (seulement === 'REFUSE' && p.statut !== 'REFUSE') return false;
       if (seulement === 'SANS_CARBURANT' && !estSansCarburant(p)) return false;
+      if (seulement === 'A_COMPLETER' && !estACompleter(p)) return false;
+      if (seulement === 'RENFORTS' && !aDesRenforts(p)) return false;
+      if (seulement === 'SUPERVISEURS' && p.typeLivreur !== 'SUPERVISEUR_LIVREUR') return false;
       return true;
     });
   }, [programmes, recherche, seulement]);
 
+  /**
+   * RG-L01 — LE REGROUPEMENT.
+   *
+   * <p>Avec trente-huit programmes, la liste arrivait en vrac : superviseur, journaliers
+   * et « Sans site » mélangés, et deux livreurs d'une même base jamais côte à côte. Trois
+   * groupes désormais, dans cet ordre : ce qui est à compléter d'abord, parce que c'est
+   * le travail qui reste ; les superviseurs-livreurs ensuite, qui ne sont rattachés à
+   * aucune base (RG-V03) ; puis une base par groupe, de A à Z.</p>
+   *
+   * <p>⚠ L'en-tête de groupe est une LIGNE DE TABLEAU ordinaire, avec autant de cellules
+   * que de colonnes. Le Table v3 n'expose pas de colSpan, et une ligne au mauvais compte
+   * fait tomber la page entière en 500. Ce n'est pas une contrainte subie : les sept
+   * cellules de jour portent justement les « livreurs présents » du groupe, que RG-L01
+   * demande.</p>
+   */
+  const groupes = React.useMemo(() => {
+    const parCle = new Map<string, { cle: string; programmes: IProgramme[]; titre: string }>();
+    for (const p of lignes) {
+      let cle: string;
+      let titre: string;
+      if (estACompleter(p)) {
+        cle = '0-a-completer';
+        titre = 'À compléter';
+      } else if (p.typeLivreur === 'SUPERVISEUR_LIVREUR') {
+        cle = '1-superviseurs';
+        titre = 'Superviseurs-livreurs';
+      } else {
+        const nom = p.siteId ? (nomSite.get(p.siteId) ?? p.siteId) : 'Sans site';
+        cle = `2-${nom.toLocaleLowerCase('fr')}`;
+        titre = nom;
+      }
+      const g = parCle.get(cle) ?? { cle, programmes: [], titre };
+      g.programmes.push(p);
+      parCle.set(cle, g);
+    }
+    const ordonnes = Array.from(parCle.values()).sort((a, b) => a.cle.localeCompare(b.cle, 'fr'));
+    for (const g of ordonnes) {
+      g.programmes.sort((a, b) => (a.livreurNom ?? '').localeCompare(b.livreurNom ?? '', 'fr'));
+    }
+    return ordonnes;
+  }, [lignes, nomSite]);
+
+  /** Les lignes effectivement rendues, en-têtes de groupe compris, dans l'ordre d'affichage. */
+  const aPlat = React.useMemo(
+    () => (grouper ? groupes.flatMap((g) => [{ groupe: g, type: 'groupe' as const }, ...g.programmes.map((p) => ({ p, type: 'ligne' as const }))]) : lignes.map((p) => ({ p, type: 'ligne' as const }))),
+    [grouper, groupes, lignes],
+  );
+
   const aPublier = React.useMemo(() => programmes.filter(estAPublier), [programmes]);
   const refuses = React.useMemo(() => programmes.filter((p) => p.statut === 'REFUSE'), [programmes]);
+  const compteACompleter = React.useMemo(() => programmes.filter(estACompleter).length, [programmes]);
+  const compteRenforts = React.useMemo(() => programmes.filter(aDesRenforts).length, [programmes]);
+  const compteSuperviseurs = React.useMemo(
+    () => programmes.filter((p) => p.typeLivreur === 'SUPERVISEUR_LIVREUR').length,
+    [programmes],
+  );
   const carburant = React.useMemo(() => totauxCarburant(programmes), [programmes]);
   const ecart = carburantSemainePrecedente === null || carburantSemainePrecedente === undefined ? null : carburant.total - carburantSemainePrecedente;
 
@@ -559,26 +752,45 @@ export function SemaineProgrammes({
         </div>
       </div>
 
-      {/* Le filtre d'etape : il rejoint la barre, sous les listes. */}
-      <ToggleButtonGroup
-        onSelectionChange={(s) => {
-          const v = Array.from(s)[0];
-          if (v) setSeulement(String(v) as 'TOUS' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT');
-        }}
-        selectedKeys={new Set([seulement])}
-        selectionMode="single"
-      >
-        <ToggleButton id="TOUS">Tous</ToggleButton>
-        <ToggleButton id="A_PUBLIER">À publier</ToggleButton>
-        <ToggleButton id="REFUSE">Refusés</ToggleButton>
-        <ToggleButton id="SANS_CARBURANT">Sans carburant</ToggleButton>
-      </ToggleButtonGroup>
+      {/*
+       * Les onglets (§5.2). Trois sont nouveaux : « À compléter », qui rassemble ce qui
+       * empêche la semaine de partir ; « Renforts », les livreurs qui desservent un site
+       * hors de leur base ; « Superviseurs », qui n'étaient repérables nulle part.
+       *
+       * Chacun porte son compte : un onglet vide se voit sans avoir à cliquer dedans.
+       */}
+      <div className="flex flex-wrap items-center gap-2">
+        <ToggleButtonGroup
+          onSelectionChange={(sel) => {
+            const v = Array.from(sel)[0];
+            if (v) setSeulement(String(v) as Onglet);
+          }}
+          selectedKeys={new Set([seulement])}
+          selectionMode="single"
+        >
+          <ToggleButton id="TOUS">Tous</ToggleButton>
+          <ToggleButton id="A_COMPLETER">À compléter {compteACompleter > 0 ? compteACompleter : ''}</ToggleButton>
+          <ToggleButton id="A_PUBLIER">À publier {aPublier.length > 0 ? aPublier.length : ''}</ToggleButton>
+          <ToggleButton id="REFUSE">Refusés {refuses.length > 0 ? refuses.length : ''}</ToggleButton>
+          <ToggleButton id="SANS_CARBURANT">Sans carburant</ToggleButton>
+          <ToggleButton id="RENFORTS">Renforts {compteRenforts > 0 ? compteRenforts : ''}</ToggleButton>
+          <ToggleButton id="SUPERVISEURS">Superviseurs {compteSuperviseurs > 0 ? compteSuperviseurs : ''}</ToggleButton>
+        </ToggleButtonGroup>
+
+        <Button className="ms-auto" onPress={() => setGrouper((g) => !g)} size="sm" variant="ghost">
+          {grouper ? 'Sans regroupement' : 'Regrouper par base'}
+        </Button>
+      </div>
 
       {/* ── LA GRILLE ────────────────────────────────────────────────────────────── */}
       <Card>
         <Card.Content className="p-0">
           <Table>
-            <Table.ScrollContainer className="max-h-[34rem] overflow-y-auto">
+            {/* RG-L08 — plus de boîte à défilement. Il y en avait DEUX, celle-ci et celle de
+                la page : huit lignes visibles sur trente-huit, et deux ascenseurs à manœuvrer
+                pour lire une semaine. La page défile seule ; l'en-tête des jours reste collé
+                par les classes sticky des colonnes. */}
+            <Table.ScrollContainer>
               <Table.Content
                 aria-label={`Programmes hebdomadaires de la semaine ${semaine} de ${annee}`}
                 className="min-w-[64rem]"
@@ -658,7 +870,11 @@ export function SemaineProgrammes({
                       ))
                     : null}
 
-                  {(isError || isLoading ? [] : lignes).map((p) => {
+                  {(isError || isLoading ? [] : aPlat).map((item) => {
+                    if (item.type === 'groupe') {
+                      return <LigneGroupe groupe={item.groupe} key={`g-${item.groupe.cle}`} />;
+                    }
+                    const p = item.p;
                     const enCours = idEnCours === p.id;
                     const s = STATUT[p.statut ?? ''] ?? {
                       couleur: 'default' as const,
@@ -719,17 +935,36 @@ export function SemaineProgrammes({
 
                         {JOURS.map((j) => (
                           <Table.Cell className="px-2" key={j.cle}>
-                            <CelluleJour jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)} />
+                            <CelluleJour
+                              jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)}
+                              nomSite={nomSite}
+                              p={p}
+                            />
                           </Table.Cell>
                         ))}
 
                         <Table.Cell className="text-xs">
-                          <CelluleCarburant p={p} />
+                          <CelluleCarburant onCombler={() => onEditer(p)} p={p} />
                         </Table.Cell>
 
                         <Table.Cell>
                           <div className="flex flex-col items-start gap-1">
-                            <Chip color={s.couleur} size="sm" variant={s.plein ? 'primary' : 'soft'}>
+                            {/*
+                             * RG-L06 — la pastille de statut OUVRE le programme.
+                             *
+                             * Chaque ligne portait un bouton « Planifier », poussé tout à
+                             * droite après un grand vide : trente-sept clics pour publier une
+                             * semaine. L'action principale du haut de page les publie
+                             * désormais d'un coup, et la pastille remplace le bouton comme
+                             * porte d'entrée. Rien n'est perdu : le menu « … » porte le reste.
+                             */}
+                            <Chip
+                              className="cursor-pointer"
+                              color={s.couleur}
+                              onClick={() => onEditer(p)}
+                              size="sm"
+                              variant={s.plein ? 'primary' : 'soft'}
+                            >
                               <Chip.Label>{s.libelle}</Chip.Label>
                             </Chip>
                             {/*
@@ -754,15 +989,27 @@ export function SemaineProgrammes({
 
                         <Table.Cell>
                           {/*
-                           * UN seul bouton : l'etape suivante. Les autres
-                           * gestes passent dans le menu — « Envoyer au
-                           * livreur » compris, qui n'etait joignable que
-                           * par la fenetre d'apercu.
+                           * §6.2 — LE MENU EN QUATRE GROUPES : consulter, modifier,
+                           * transmettre, supprimer.
+                           *
+                           * Les sept entrées étaient à plat, sans ordre : « Aperçu »
+                           * voisinait « Supprimer », et deux entrées d'envoi ne disaient
+                           * ni par quel canal partait la première, ni si le programme
+                           * était déjà parti. Elles fusionnent (RG-M01) : le canal par
+                           * défaut est la notification dans l'application, WhatsApp reste
+                           * une entrée à part, grisée tant qu'il n'est pas configuré.
+                           *
+                           * « Planifier » descend ici depuis la ligne (RG-L06) et n'est
+                           * PAS supprimé : c'est lui qui met un programme dans la file
+                           * que le travail du dimanche soir publie tout seul. Le retirer
+                           * aurait fermé la publication automatique sans le dire.
+                           *
+                           * RG-M06 : ce qui est interdit au profil ne s'affiche pas, ce
+                           * qui est permis mais impossible à cet instant est grisé.
                            */}
                           <div className="flex items-center justify-end gap-1">
-                            <ProchainGeste enCours={enCours} onPlanifier={() => onPlanifier(p)} onPublier={() => onPublier(p)} p={p} />
                             <Dropdown>
-                              <Button aria-label={`Autres actions pour ${p.livreurNom ?? 'ce programme'}`} isIconOnly size="sm" variant="ghost">
+                              <Button aria-label={`Actions pour ${p.livreurNom ?? 'ce programme'}`} isIconOnly size="sm" variant="ghost">
                                 <MoreHorizontal aria-hidden="true" className="size-4" />
                               </Button>
                               <Dropdown.Popover>
@@ -772,24 +1019,48 @@ export function SemaineProgrammes({
                                     ...(estAPublier(p) || p.statut === 'REFUSE' ? [] : ['supprimer']),
                                     // Le WhatsApp seul ne se renvoie que sur un programme deja parti.
                                     ...(estAPublier(p) ? ['whatsapp'] : []),
+                                    // Planifier n'a de sens que sur un brouillon.
+                                    ...(p.statut === 'BROUILLON' ? [] : ['planifier']),
+                                    // L'affectation en cours d'operations suppose la semaine partie (RG-S08).
+                                    ...(estAPublier(p) ? ['affecter'] : []),
                                   ]}
                                   onAction={(k) => {
                                     if (k === 'apercu') onApercu(p);
-                                    if (k === 'carburant') onCarburant(p);
+                                    if (k === 'historique') onHistorique(p);
                                     if (k === 'editer') onEditer(p);
+                                    if (k === 'carburant') onCarburant(p);
+                                    if (k === 'planifier') onPlanifier(p);
+                                    if (k === 'affecter') onAffecterSite?.(p);
+                                    if (k === 'dupliquer') onDupliquerSuivante?.(p);
                                     if (k === 'envoyer') onEnvoyer(p);
                                     if (k === 'whatsapp') onRenvoyerWhatsApp(p);
-                                    if (k === 'historique') onHistorique(p);
                                     if (k === 'supprimer') onSupprimer(p);
                                   }}
                                 >
-                                  <Dropdown.Item id="apercu">Aperçu</Dropdown.Item>
-                                  <Dropdown.Item id="carburant">Carburant…</Dropdown.Item>
-                                  <Dropdown.Item id="editer">Éditer</Dropdown.Item>
-                                  <Dropdown.Item id="envoyer">Envoyer au livreur</Dropdown.Item>
-                                  <Dropdown.Item id="whatsapp">Renvoyer par WhatsApp</Dropdown.Item>
-                                  <Dropdown.Item id="historique">Historique…</Dropdown.Item>
-                                  <Dropdown.Item id="supprimer">Supprimer</Dropdown.Item>
+                                  <Dropdown.Section>
+                                    <Dropdown.Item id="apercu">Aperçu</Dropdown.Item>
+                                    <Dropdown.Item id="historique">Historique</Dropdown.Item>
+                                  </Dropdown.Section>
+                                  <Dropdown.Section>
+                                    <Dropdown.Item id="editer">Modifier le programme</Dropdown.Item>
+                                    <Dropdown.Item id="carburant">Ajuster le carburant</Dropdown.Item>
+                                    <Dropdown.Item id="planifier">Planifier pour dimanche</Dropdown.Item>
+                                    {onAffecterSite ? (
+                                      <Dropdown.Item id="affecter">Affecter à un autre site aujourd’hui</Dropdown.Item>
+                                    ) : null}
+                                    {onDupliquerSuivante ? (
+                                      <Dropdown.Item id="dupliquer">Dupliquer sur la semaine suivante</Dropdown.Item>
+                                    ) : null}
+                                  </Dropdown.Section>
+                                  <Dropdown.Section>
+                                    <Dropdown.Item id="envoyer">
+                                      {estAPublier(p) ? 'Envoyer au livreur' : 'Renvoyer au livreur'}
+                                    </Dropdown.Item>
+                                    <Dropdown.Item id="whatsapp">Renvoyer par WhatsApp</Dropdown.Item>
+                                  </Dropdown.Section>
+                                  <Dropdown.Section>
+                                    <Dropdown.Item id="supprimer">Supprimer le programme</Dropdown.Item>
+                                  </Dropdown.Section>
                                 </Dropdown.Menu>
                               </Dropdown.Popover>
                             </Dropdown>
@@ -922,7 +1193,11 @@ export function SemaineProgrammes({
                       </Table.Cell>
                       {JOURS.map((j) => (
                         <Table.Cell className="px-2" key={j.cle}>
-                          <CelluleJour jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)} />
+                          <CelluleJour
+                            jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)}
+                            nomSite={nomSite}
+                            p={p}
+                          />
                         </Table.Cell>
                       ))}
                     </Table.Row>
