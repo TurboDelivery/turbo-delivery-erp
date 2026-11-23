@@ -215,7 +215,7 @@ const STATUT: Record<string, { libelle: string; couleur: 'default' | 'warning' |
  * squelette de chargement comptait `JOURS.length + 4` la ou il en faut cinq de plus ; ni
  * `tsc` ni le build ne l'ont vu, seul l'ecran. Le compte se derive donc d'ici.</p>
  */
-const COLONNES_GRILLE = ['coche', 'livreur', 'postes', ...JOURS.map((j) => j.cle), 'carburant', 'statut', 'actions'];
+const COLONNES_GRILLE = ['base', 'coche', 'numero', 'livreur', 'postes', ...JOURS.map((j) => j.cle), 'carburant', 'statut', 'actions'];
 
 /** Les populations du document papier, dans son ordre. */
 const TYPES_CARBURANT = ['JOURNALIER', 'SUPERVISEUR_LIVREUR', 'INDEPENDANT'];
@@ -429,6 +429,52 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
 }
 
 /**
+ * Les phrases d'explication des deux groupes spéciaux (maquette). Ce sont les seuls dont
+ * le nom ne suffit pas : « À compléter » ne dit pas ce qui manque, et « Superviseurs-
+ * livreurs » ne dit pas pourquoi ils sont à part.
+ */
+const EXPLICATION_GROUPE: Record<string, string> = {
+  '0-a-completer': 'Sans site, sans horaires ou sans carburant : non publiables tant que le programme n’est pas complet.',
+  '1-superviseurs': 'Chacun gère un ensemble de bases ; il n’est pas compté dans les présents des sites.',
+};
+
+/**
+ * Le bloc du groupe, dans la colonne de gauche : le site, ce qu'il est, son effectif et
+ * son carburant.
+ *
+ * <p>⚠ La maquette décrit en plus chaque site — restaurant de base, zones desservies,
+ * appuis. L'ERP ne porte PAS cette donnée : il ne connaît que le nom du site et son
+ * secteur. Écrire une description inventée serait pire que de n'en écrire aucune, donc le
+ * bloc s'arrête à ce que les données disent. Le descriptif demande un champ côté serveur,
+ * c'est signalé au propriétaire.</p>
+ */
+function BlocBase({ groupe }: { groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string } }) {
+  const totaux = totauxCarburant(groupe.programmes);
+  const explication = EXPLICATION_GROUPE[groupe.cle];
+
+  return (
+    <div className="max-w-[13rem] space-y-1 py-1">
+      <span className="block text-xs font-semibold uppercase leading-tight tracking-wide text-foreground">
+        {groupe.titre}
+      </span>
+      {explication ? (
+        <span className="block text-[11px] leading-snug text-muted">{explication}</span>
+      ) : groupe.secteur ? (
+        <span className="block text-[11px] leading-snug text-muted">{groupe.secteur}</span>
+      ) : null}
+      <span className="block text-[11px] tabular-nums text-muted">
+        {groupe.programmes.length} livreur{groupe.programmes.length > 1 ? 's' : ''}
+      </span>
+      {totaux.total > 0 && (
+        <span className="block text-[11px] font-semibold tabular-nums text-foreground">
+          {formatMontant(totaux.total)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
  * La légende des repères du tableau (maquette).
  *
  * <p>Chaque entrée porte le VRAI repère, pas sa description : une pastille verte lue dans
@@ -490,11 +536,21 @@ function Legende() {
  * COLONNES_GRILLE. Loin d'être une contrainte subie, les sept cellules de jour portent
  * précisément les présents du groupe, que la règle demande.</p>
  */
-function LigneGroupe({
-  groupe,
+function LigneSecteur({
+  section,
 }: {
-  groupe: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string };
+  section: { cle: string; titre: string; groupes: { cle: string; programmes: IProgramme[]; secteur?: string | null; titre: string }[] };
 }) {
+  /*
+   * La bande porte le SECTEUR, qui peut contenir plusieurs sites : ses chiffres sont donc
+   * ceux de TOUS ses programmes, et non d'un seul site.
+   */
+  const groupe = {
+    cle: section.cle,
+    programmes: section.groupes.flatMap((g) => g.programmes),
+    secteur: null,
+    titre: section.titre,
+  };
   const totaux = totauxCarburant(groupe.programmes);
   const presents = (cle: string) =>
     groupe.programmes.filter((p) => (p.jours ?? []).some((j) => (j.jour ?? '').toUpperCase() === cle && j.actif)).length;
@@ -518,7 +574,9 @@ function LigneGroupe({
 
   return (
     <Table.Row className="bg-default-300" id={`g-${groupe.cle}`}>
+      <Table.Cell className={cellule}>{''}</Table.Cell>
       <Table.Cell className={cn(cellule, 'pe-0')}>{''}</Table.Cell>
+      <Table.Cell className={cellule}>{''}</Table.Cell>
       <Table.Cell className={cellule}>
         {/* Capitales espacées : un nom de section ne doit pas se lire comme un nom de
             personne. Sans ça, « Chez Paul, Cocody » et « TOURE Bakary » ont exactement le
@@ -727,10 +785,39 @@ export function SemaineProgrammes({
     return ordonnes;
   }, [lignes, nomSite, secteurDuSite]);
 
-  /** Les lignes effectivement rendues, en-têtes de groupe compris, dans l'ordre d'affichage. */
+  /**
+   * Le regroupement à DEUX niveaux de la maquette : une bande porte le SECTEUR, la colonne
+   * de gauche porte le SITE.
+   *
+   * <p>Les deux groupes spéciaux — « À compléter » et « Superviseurs-livreurs » — ne
+   * relèvent d'aucun secteur : ils rassemblent des livreurs de bases différentes. Chacun
+   * forme donc sa propre section, comme dans la maquette.</p>
+   */
+  const sections = React.useMemo(() => {
+    const parSecteur = new Map<string, { cle: string; titre: string; groupes: typeof groupes }>();
+    for (const g of groupes) {
+      const special = g.cle.startsWith('0-') || g.cle.startsWith('1-');
+      const cle = special ? g.cle : `2-${(g.secteur ?? 'zzz-sans').toLocaleLowerCase('fr')}`;
+      const titre = special ? g.titre : (g.secteur ?? 'Sans secteur');
+      const s = parSecteur.get(cle) ?? { cle, groupes: [], titre };
+      s.groupes.push(g);
+      parSecteur.set(cle, s);
+    }
+    return Array.from(parSecteur.values()).sort((a, b) => a.cle.localeCompare(b.cle, 'fr'));
+  }, [groupes]);
+
+  /** Les lignes effectivement rendues, bandes de secteur comprises, dans l'ordre d'affichage. */
   const aPlat = React.useMemo(
-    () => (grouper ? groupes.flatMap((g) => [{ groupe: g, type: 'groupe' as const }, ...g.programmes.map((p) => ({ p, type: 'ligne' as const }))]) : lignes.map((p) => ({ p, type: 'ligne' as const }))),
-    [grouper, groupes, lignes],
+    () =>
+      grouper
+        ? sections.flatMap((s) => [
+            { section: s, type: 'section' as const },
+            ...s.groupes.flatMap((g) =>
+              g.programmes.map((p, rangDansGroupe) => ({ groupe: g, p, rangDansGroupe, type: 'ligne' as const })),
+            ),
+          ])
+        : lignes.map((p) => ({ groupe: undefined, p, rangDansGroupe: -1, type: 'ligne' as const })),
+    [grouper, sections, lignes],
   );
 
   /**
@@ -741,7 +828,7 @@ export function SemaineProgrammes({
    * « À compléter » passe devant, les superviseurs ensuite, puis une base par groupe.</p>
    */
   const ordreAffiche = React.useMemo(
-    () => aPlat.filter((e): e is { p: IProgramme; type: 'ligne' } => e.type === 'ligne').map((e) => e.p),
+    () => aPlat.flatMap((e) => (e.type === 'ligne' ? [e.p] : [])),
     [aPlat],
   );
 
@@ -1182,6 +1269,13 @@ export function SemaineProgrammes({
                 selectionMode="multiple"
               >
                 <Table.Header>
+                  {/* ⚠ La maquette obtient cette colonne par rowspan. Le Table v3 rend une
+                      grille et n'accepte NI rowSpan NI colSpan : un compte de cellules qui
+                      diverge fait tomber la page en 500. La colonne existe donc sur chaque
+                      ligne, et seule la première du groupe écrit quelque chose. */}
+                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="base">
+                    Site de base
+                  </Table.Column>
                   <Table.Column className="sticky top-0 z-20 bg-surface-secondary pe-0" id="coche">
                     <Checkbox aria-label="Tout cocher" slot="selection">
                       <Checkbox.Content>
@@ -1190,6 +1284,9 @@ export function SemaineProgrammes({
                         </Checkbox.Control>
                       </Checkbox.Content>
                     </Checkbox>
+                  </Table.Column>
+                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary px-2 text-center" id="numero">
+                    N°
                   </Table.Column>
                   <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="livreur" isRowHeader>
                     Livreur
@@ -1260,8 +1357,8 @@ export function SemaineProgrammes({
                     : null}
 
                   {(isError || isLoading ? [] : aPlat).map((item) => {
-                    if (item.type === 'groupe') {
-                      return <LigneGroupe groupe={item.groupe} key={`g-${item.groupe.cle}`} />;
+                    if (item.type === 'section') {
+                      return <LigneSecteur key={`s-${item.section.cle}`} section={item.section} />;
                     }
                     const p = item.p;
                     const enCours = idEnCours === p.id;
@@ -1272,6 +1369,18 @@ export function SemaineProgrammes({
                     };
                     return (
                       <Table.Row id={p.id} key={p.id}>
+                        {/* LA COLONNE « SITE DE BASE ». Elle existe sur chaque ligne —
+                            le Table v3 exige autant de cellules que de colonnes — mais
+                            n'écrit son bloc que sur la PREMIÈRE ligne du groupe. Le fond
+                            continu fait le reste : à l'œil, c'est une cellule fusionnée. */}
+                        <Table.Cell className="bg-surface-secondary align-top">
+                          {item.rangDansGroupe === 0 && item.groupe ? (
+                            <BlocBase groupe={item.groupe} />
+                          ) : (
+                            ''
+                          )}
+                        </Table.Cell>
+
                         <Table.Cell className="pe-0">
                           <Checkbox aria-label={`Cocher ${p.livreurNom ?? 'ce programme'}`} slot="selection">
                             <Checkbox.Content>
@@ -1280,6 +1389,14 @@ export function SemaineProgrammes({
                               </Checkbox.Control>
                             </Checkbox.Content>
                           </Checkbox>
+                        </Table.Cell>
+
+                        {/* Le numéro d'ordre DANS LE GROUPE (maquette) : il donne un repère
+                            stable pour se dire « le 3 de Marcory » à l'oral. */}
+                        <Table.Cell className="px-2 text-center">
+                          <span className="text-xs tabular-nums text-muted">
+                            {item.rangDansGroupe >= 0 ? item.rangDansGroupe + 1 : ''}
+                          </span>
                         </Table.Cell>
 
                         <Table.Cell>
