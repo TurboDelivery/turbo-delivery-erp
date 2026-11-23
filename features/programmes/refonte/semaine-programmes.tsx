@@ -14,6 +14,7 @@ import { aRecuUnSurplus, JOURS_SEMAINE } from '@/features/turboys/utils/couvertu
 import { preuvesManquantes } from '@/features/turboys/utils/preuves.utils';
 import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
 import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils';
+import { lundiDeSemaine } from '@/features/turboys/utils/semaine.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { libelleWhatsApp } from '@/features/turboys/utils/whatsapp-statut.utils';
 import { cn } from '@/lib/utils';
@@ -225,6 +226,19 @@ const formatEcart = (n: number) => (n === 0 ? formatMontant(0) : `${n > 0 ? '+' 
 /** Les colonnes de la table des independants, en lecture seule. */
 const COLONNES_INDEPENDANTS = ['livreur', ...JOURS.map((j) => j.cle)];
 
+/**
+ * La date du jour de rang {@code rang} (0 = lundi) dans la semaine, au format JJ/MM.
+ *
+ * <p>⚠ Calculée en UTC, comme {@code lundiDeSemaine} : passer par l'heure locale ferait
+ * reculer d'un jour tout l'affichage pour qui est à l'ouest de Greenwich, et la Côte
+ * d'Ivoire est à UTC+0 toute l'année — le défaut ne se verrait donc jamais ici, mais
+ * apparaîtrait chez quiconque ouvrirait l'écran depuis un autre fuseau.</p>
+ */
+function dateDuJour(annee: number, semaine: number, rang: number): string {
+  const d = new Date(lundiDeSemaine(annee, semaine).getTime() + rang * 24 * 60 * 60 * 1000);
+  return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
 /** Les onglets de la liste (§5.2). « À compléter », « Renforts » et « Superviseurs » sont nouveaux. */
 type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS' | 'AVEC_SURPLUS' | 'PREUVES_MANQUANTES';
 
@@ -412,6 +426,58 @@ function ProchainGeste({ enCours, onPlanifier, onPublier, p }: { enCours: boolea
     );
   }
   return null;
+}
+
+/**
+ * La légende des repères du tableau (maquette).
+ *
+ * <p>Chaque entrée porte le VRAI repère, pas sa description : une pastille verte lue dans
+ * la légende est la même que celle du tableau, à la couleur et à la forme près. Une
+ * légende qui décrirait « pastille verte » avec des mots obligerait à faire la
+ * correspondance soi-même.</p>
+ *
+ * <p>⚠ La maquette termine par « Cliquez un nom, un jour, un statut ou ⋯ ». Cette phrase
+ * n'est PAS reprise : à ce jour, ni le nom ni la case de jour n'ouvrent quoi que ce soit.
+ * Annoncer un geste qui ne répond pas est pire que de se taire. Elle revient avec les
+ * gestes.</p>
+ */
+function Legende() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-1 text-xs text-muted">
+      <span className="font-semibold text-foreground">Légende :</span>
+
+      <span className="inline-flex items-center gap-1.5">
+        <span className="rounded bg-success/15 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-success-soft-foreground">
+          10:00–23:00
+        </span>
+        de service
+      </span>
+
+      <span className="inline-flex items-center gap-1.5">
+        <span className="rounded bg-success/15 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-success-soft-foreground">
+          11:00–00:00 <sup>+1</sup>
+        </span>
+        finit après minuit
+      </span>
+
+      <span className="inline-flex items-center gap-1.5">
+        <span className="rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning-soft-foreground">
+          Repos
+        </span>
+        jour de repos
+      </span>
+
+      <span className="inline-flex items-center gap-1.5">
+        <span className="text-[11px] font-medium text-danger">→ Angré 2</span>
+        renfort sur un autre site
+      </span>
+
+      <span className="inline-flex items-center gap-1.5">
+        <span className="text-[11px] font-medium tabular-nums text-warning">+2 000</span>
+        surplus carburant
+      </span>
+    </div>
+  );
 }
 
 /**
@@ -1095,6 +1161,9 @@ export function SemaineProgrammes({
         />
       )}
 
+      {/* ── LA LÉGENDE (maquette) ────────────────────────────────────────────────── */}
+      {vue === 'LIVREURS' && <Legende />}
+
       {/* ── LA GRILLE ────────────────────────────────────────────────────────────── */}
       {vue === 'LIVREURS' && (
       <Card>
@@ -1128,9 +1197,15 @@ export function SemaineProgrammes({
                   <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="postes">
                     Site · Postes
                   </Table.Column>
-                  {JOURS.map((j) => (
+                  {JOURS.map((j, rang) => (
                     <Table.Column className="sticky top-0 z-20 bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
-                      {j.court}
+                      {/* La DATE sous le jour (maquette). « Mar » seul oblige à remonter en
+                          haut de page pour savoir de quel 24 novembre on parle, et une
+                          copie d'écran de ce tableau n'emporte plus sa semaine. */}
+                      <span className="block">{j.court}</span>
+                      <span className="block text-[10px] font-normal tabular-nums text-muted">
+                        {dateDuJour(annee, semaine, rang)}
+                      </span>
                     </Table.Column>
                   ))}
                   <Table.Column className="sticky top-0 z-20 bg-surface-secondary text-end" id="carburant">
