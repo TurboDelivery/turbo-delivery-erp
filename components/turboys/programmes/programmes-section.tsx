@@ -135,6 +135,8 @@ export default function ProgrammesSection() {
   const peutRelancerPreuve = ability.can('relancer-preuve', 'ProgrammeLivreur');
   const [preuvesDe, setPreuvesDe] = React.useState<{ jour: string; programme: IProgramme } | null>(null);
   const [relanceOuverte, setRelanceOuverte] = React.useState(false);
+  // Le programme depuis lequel la relance est ouverte ; null = le bouton du bandeau, tout le monde.
+  const [relancePour, setRelancePour] = React.useState<string | null>(null);
 
   /**
    * Secteurs et couvertures (§8.5, §8.6).
@@ -416,7 +418,7 @@ export default function ProgrammesSection() {
             setEditing(p);
           }}
           onEnvoyer={(p) => runAction(p.id, envoyer.mutateAsync)}
-          onExporterExcel={() => exporterProgrammesExcel(programmesFiltres, annee, semaine, contexteExport)}
+          onExporterExcel={(seulement) => exporterProgrammesExcel(seulement ?? programmesFiltres, annee, semaine, contexteExport)}
           onExporterPdf={() =>
             exporterProgrammesPdf(
               programmesFiltres,
@@ -438,7 +440,14 @@ export default function ProgrammesSection() {
           onPreuves={(p, jour) => setPreuvesDe({ jour, programme: p })}
           onPublierLot={publierLot}
           onReessayer={() => void refetch()}
-          onRelancerPreuves={peutRelancerPreuve ? () => setRelanceOuverte(true) : undefined}
+          onRelancerPreuves={
+            peutRelancerPreuve
+              ? (p) => {
+                  setRelancePour(p.id);
+                  setRelanceOuverte(true);
+                }
+              : undefined
+          }
           onReessayerIndependants={() => void independantsQuery.refetch()}
           onSemaine={changeWeek}
           onSupprimer={demanderSuppression}
@@ -558,9 +567,13 @@ export default function ProgrammesSection() {
           avec une case en moins. */}
       <RelancePreuvesDialog
         annee={annee}
-        onFermer={() => setRelanceOuverte(false)}
+        onFermer={() => {
+          setRelanceOuverte(false);
+          setRelancePour(null);
+        }}
         ouvert={relanceOuverte}
         semaine={semaine}
+        seulement={relancePour}
       />
       <SurplusCarburantDialog
         jourInitial={surplusJour}

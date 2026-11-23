@@ -9,7 +9,7 @@ import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplic
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
 import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
 import { ProgrammeFormModal } from '@/components/turboys/programmes/programme-form-modal';
-import { LigneRelancePreuves } from '@/components/turboys/programmes/relance-preuves-dialog';
+import { LigneRelancePreuves, RelancePreuvesDialog } from '@/components/turboys/programmes/relance-preuves-dialog';
 import { SoumissionSurplus } from '@/components/turboys/programmes/soumission-surplus';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
@@ -489,9 +489,52 @@ function BancSoumissionSurplus() {
  * un « 0 manquante » permanent occuperait le bandeau sans jamais rien demander.</p>
  */
 function BancRelancePreuves() {
+    // ⚠ NE PAS cliquer « Envoyer » ici : la mutation est la vraie. Ce banc ne sert qu'à LIRE
+    // qui est coché à l'ouverture, depuis le bandeau (tous) et depuis une ligne (un seul).
+    const [ouverture, setOuverture] = React.useState<{ seulement: string | null } | null>(null);
+    const client = React.useMemo(() => {
+        const c = new QueryClient({
+            defaultOptions: {
+                queries: { gcTime: Infinity, refetchOnMount: false, refetchOnReconnect: false, refetchOnWindowFocus: false, retry: false, staleTime: Infinity },
+            },
+        });
+        c.setQueryData(programmeKeys.relancePreuves(2026, 35), {
+            annee: 2026,
+            livreurs: ['BAMBA Adama', 'CISSE Yacouba', 'KOHI Albert Rene'].map((nom, i) => ({
+                livreurId: `l${i}`,
+                livreurNom: nom,
+                montantManquant: 5000 * (i + 1),
+                nbManquantes: i + 1,
+                programmeId: `p${i}`,
+                versements: [],
+            })),
+            nbManquantes: 6,
+            semaine: 35,
+        });
+        return c;
+    }, []);
+
     return (
         <section className="mt-6 flex flex-col gap-3 rounded-lg border border-separator p-4">
             <h2 className="text-sm font-semibold">La relance des preuves Wave</h2>
+
+            <div className="flex flex-wrap gap-2">
+                <Button onPress={() => setOuverture({ seulement: null })} size="sm" variant="outline">
+                    Relance depuis le bandeau
+                </Button>
+                <Button onPress={() => setOuverture({ seulement: 'p1' })} size="sm" variant="outline">
+                    Relance depuis la ligne de CISSE Yacouba
+                </Button>
+            </div>
+            <QueryClientProvider client={client}>
+                <RelancePreuvesDialog
+                    annee={2026}
+                    onFermer={() => setOuverture(null)}
+                    ouvert={ouverture !== null}
+                    semaine={35}
+                    seulement={ouverture?.seulement ?? null}
+                />
+            </QueryClientProvider>
 
             <div>
                 <p className="mb-1 text-xs text-muted">Sept manquantes, profil habilité</p>
@@ -714,7 +757,7 @@ export default function ApercuProgrammes() {
                         onDupliquerSemainePrecedente={() => noter('Duplication de la semaine précédente')}
                         onEditer={(p, champ) => noter(`Édition de ${p.livreurNom}${champ ? ` sur le champ ${champ}` : ''}`)}
                         onEnvoyer={(p) => noter(`Envoi au livreur ${p.livreurNom}`)}
-                        onExporterExcel={() => noter('Export Excel')}
+                        onExporterExcel={(seulement) => noter(seulement ? `Export Excel de ${seulement.length} programme(s) cochés` : 'Export Excel')}
                         onExporterPdf={() => noter('Export PDF')}
                         onHistorique={(p) => noter(`Historique de ${p.livreurNom}`)}
                         onImporterFichier={() => noter('Import de fichier')}

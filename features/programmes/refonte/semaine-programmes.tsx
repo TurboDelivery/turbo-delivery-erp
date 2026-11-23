@@ -129,7 +129,8 @@ export interface SemaineProgrammesProps {
   onDupliquerSemainePrecedente: () => void;
   onImporterFichier: () => void;
   onTelechargerModele: () => void;
-  onExporterExcel: () => void;
+  /** `seulement` : n'exporter QUE ces programmes (la sélection) ; absent = ce que la liste affiche. */
+  onExporterExcel: (seulement?: IProgramme[]) => void;
   onExporterPdf: () => void;
   importEnCours?: boolean;
   lotEnCours?: boolean;
@@ -294,7 +295,7 @@ function postesSemaine(p: IProgramme): string[] {
  * normale compte deux jours de repos : l'écran signalait donc deux fautes par ligne, et
  * quatre-vingts sur une flotte de quarante. Un jour sans service est un tiret.</p>
  */
-function CelluleJour({ jour, onPreuves, p, nomSite }: { jour?: IJourProgramme; nomSite: Map<string, string>; onPreuves?: (jour: string) => void; p: IProgramme }) {
+function CelluleJour({ jour, onOuvrir, onPreuves, p, nomSite }: { jour?: IJourProgramme; nomSite: Map<string, string>; onOuvrir?: () => void; onPreuves?: (jour: string) => void; p: IProgramme }) {
   const c = p.complement ?? COMPLEMENT_VIDE;
 
   if (!jour?.actif) {
@@ -310,7 +311,7 @@ function CelluleJour({ jour, onPreuves, p, nomSite }: { jour?: IJourProgramme; n
      */
     return (
       <span className="flex justify-center">
-        <Chip color="warning" size="sm" variant="soft">
+        <Chip className={onOuvrir ? 'cursor-pointer' : ''} color="warning" onClick={onOuvrir} size="sm" variant="soft">
           <Chip.Label>Repos</Chip.Label>
         </Chip>
       </span>
@@ -326,7 +327,9 @@ function CelluleJour({ jour, onPreuves, p, nomSite }: { jour?: IJourProgramme; n
 
   return (
     <span className="flex flex-col items-center gap-0.5 leading-tight">
-      <Chip color="success" size="sm" variant="soft">
+      {/* La pastille du jour OUVRE le programme sur ses horaires (maquette) : c'est elle
+          qu'on vise quand on veut corriger un créneau, pas le menu de la ligne. */}
+      <Chip className={onOuvrir ? 'cursor-pointer' : ''} color="success" onClick={onOuvrir} size="sm" variant="soft">
         <Chip.Label className="tabular-nums">
           {hhmm(jour.debut)}–{hhmm(jour.fin)}
           {finitApresMinuit(jour) ? ' +1' : ''}
@@ -827,6 +830,16 @@ export function SemaineProgrammes({
   );
 
   const aPublier = React.useMemo(() => programmes.filter(estAPublier), [programmes]);
+  /*
+   * PUBLIABLES : à publier ET complets (RG-L06, CA-46).
+   *
+   * « Publier 9 programmes » comptait et envoyait aussi les incomplets : un livreur
+   * recevait un programme sans site ou sans horaires, et le serveur ne le refuse pas
+   * (il ne contrôle que le statut). L'écran est donc le seul garde : les gestes de
+   * publication en lot ne prennent que ce qui est complet, et disent ce qu'ils laissent.
+   */
+  const publiables = React.useMemo(() => aPublier.filter((p) => !estACompleter(p)), [aPublier]);
+  const incompletsAPublier = aPublier.length - publiables.length;
   const refuses = React.useMemo(() => programmes.filter((p) => p.statut === 'REFUSE'), [programmes]);
   const compteACompleter = React.useMemo(() => programmes.filter(estACompleter).length, [programmes]);
   const compteRenforts = React.useMemo(() => programmes.filter(aDesRenforts).length, [programmes]);
@@ -882,7 +895,10 @@ export function SemaineProgrammes({
     [coches, lignes],
   );
 
-  const idsCoches = React.useMemo(() => programmesCoches.filter(estAPublier).map((p) => p.id), [programmesCoches]);
+  const idsCoches = React.useMemo(
+    () => programmesCoches.filter((p) => estAPublier(p) && !estACompleter(p)).map((p) => p.id),
+    [programmesCoches],
+  );
 
   const maxAutosuffisance = Math.max(1, ...autosuffisance.map((j) => j.total));
 
@@ -902,22 +918,42 @@ export function SemaineProgrammes({
 
   const actionPrincipale = React.useMemo(() => {
     if (isLoading || isError) return null;
-    if (aPublier.length > 0) {
-      return (
-        <Button
-          className="w-full"
-          isPending={lotEnCours}
-          onPress={() => onPublierLot(aPublier.map((p) => p.id))}
-          variant="primary"
+    // Ce que le geste laisse de côté, dit à côté de lui et cliquable (RG-L06).
+    const laisses =
+      incompletsAPublier > 0 ? (
+        <button
+          className="text-start text-xs text-warning-soft-foreground underline-offset-2 hover:underline"
+          onClick={() => setSeulement('A_COMPLETER')}
+          type="button"
         >
-          {lotEnCours ? <Spinner size="sm" /> : null}
-          Publier {aPublier.length} programme{aPublier.length > 1 ? 's' : ''}
-        </Button>
+          {incompletsAPublier} à compléter : {incompletsAPublier > 1 ? 'restent' : 'reste'} en brouillon
+        </button>
+      ) : null;
+    if (publiables.length > 0) {
+      return (
+        <div className="flex w-full flex-col gap-1">
+          <Button
+            className="w-full"
+            isPending={lotEnCours}
+            onPress={() => onPublierLot(publiables.map((p) => p.id))}
+            variant="primary"
+          >
+            {lotEnCours ? <Spinner size="sm" /> : null}
+            Publier {publiables.length} programme{publiables.length > 1 ? 's' : ''}
+          </Button>
+          {laisses}
+        </div>
       );
     }
-    // Tout est publié : l'engagement DEVIENT l'action principale (§5.2).
-    return engagement;
-  }, [aPublier, engagement, isError, isLoading, lotEnCours, onPublierLot]);
+    // Plus rien de publiable : l'engagement DEVIENT l'action principale (§5.2).
+    if (!laisses) return engagement;
+    return (
+      <div className="flex w-full flex-col gap-1">
+        {engagement}
+        {laisses}
+      </div>
+    );
+  }, [engagement, incompletsAPublier, isError, isLoading, lotEnCours, onPublierLot, publiables]);
 
   /*
    * ⚠ L'engagement est rendu À UN SEUL ENDROIT. Tant qu'il reste des programmes à
@@ -1012,17 +1048,26 @@ export function SemaineProgrammes({
               {programmesCoches.length} sélectionné{programmesCoches.length > 1 ? 's' : ''}
             </span>
             <Separator className="hidden h-5 sm:block" orientation="vertical" />
-            {idsCoches.length > 0 && (
-              <Button isPending={lotEnCours} onPress={() => onPublierLot(idsCoches)} size="sm" variant="primary">
-                {lotEnCours ? <Spinner size="sm" /> : null}
-                Publier {idsCoches.length}
-              </Button>
-            )}
+            {/* Grisé plutôt qu'absent quand rien de coché n'est publiable : un bouton qui
+                disparaît ne dit pas pourquoi. Il ne compte que les programmes COMPLETS. */}
+            <Button
+              isDisabled={idsCoches.length === 0}
+              isPending={lotEnCours}
+              onPress={() => onPublierLot(idsCoches)}
+              size="sm"
+              variant="primary"
+            >
+              {lotEnCours ? <Spinner size="sm" /> : null}
+              Publier ({idsCoches.length})
+            </Button>
             <Button onPress={() => onCarburantLot(programmesCoches)} size="sm" variant="outline">
               Carburant ({formatMontant(totauxCarburant(programmesCoches).total)})
             </Button>
-            <Button onPress={onExporterExcel} size="sm" variant="outline">
-              Exporter
+            {/* La barre de sélection exporte la SÉLECTION : le bouton envoyait toute la
+                liste, cochée ou non, et le fichier ne correspondait pas à ce qu'on venait
+                de choisir. */}
+            <Button onPress={() => onExporterExcel(programmesCoches)} size="sm" variant="outline">
+              Exporter ({programmesCoches.length})
             </Button>
             <Button className="ms-auto" onPress={() => setCoches(new Set())} size="sm" variant="ghost">
               Annuler la sélection
@@ -1421,12 +1466,18 @@ export function SemaineProgrammes({
                             const { puces, reste } = puceSitesDesservis(desservis);
                             return (
                               <>
-                                <span
-                                  className="block max-w-[14rem] truncate font-medium"
+                                {/* Le nom OUVRE l'aperçu (maquette) : c'était le geste le plus
+                                    naturel de la ligne, et il fallait passer par le menu « … ». */}
+                                <button
+                                  className="block max-w-[14rem] truncate text-start font-medium hover:text-accent hover:underline"
+                                  onClick={() =>
+                                    onApercu(p, { index: ordreAffiche.findIndex((x) => x.id === p.id), liste: ordreAffiche })
+                                  }
                                   title={postes.length > 0 ? `${nom}\nPostes : ${postes.join(' · ')}` : nom}
+                                  type="button"
                                 >
                                   {nom}
-                                </span>
+                                </button>
                                 {p.typeLivreur && <span className="block text-xs text-muted">{getTurboyTypeDisplay(p.typeLivreur).label}</span>}
                                 {!estSuperviseur && !dansUneBase && site ? (
                                   <span className="block max-w-[14rem] text-xs text-muted">{site}</span>
@@ -1489,6 +1540,7 @@ export function SemaineProgrammes({
                             <CelluleJour
                               jour={(p.jours ?? []).find((x) => (x.jour ?? '').toUpperCase() === j.cle)}
                               nomSite={nomSite}
+                              onOuvrir={() => onEditer(p, 'HORAIRES')}
                               onPreuves={onPreuves ? (jour) => onPreuves(p, jour) : undefined}
                               p={p}
                             />
@@ -1603,6 +1655,9 @@ export function SemaineProgrammes({
                                     ...(estAPublier(p) ? ['whatsapp'] : []),
                                     // Planifier n'a de sens que sur un brouillon.
                                     ...(p.statut === 'BROUILLON' ? [] : ['planifier']),
+                                    // Un programme incomplet ne part pas, ni maintenant ni
+                                    // dimanche soir (CA-46) : le serveur ne le refuserait pas.
+                                    ...(estAPublier(p) && manques.length > 0 ? ['envoyer', 'planifier'] : []),
                                     // L'affectation en cours d'operations suppose la semaine partie (RG-S08).
                                     ...(estAPublier(p) ? ['affecter'] : []),
                                     /*
@@ -1653,7 +1708,7 @@ export function SemaineProgrammes({
                                   </Dropdown.Section>
                                   <Dropdown.Section>
                                     <Dropdown.Item id="envoyer">
-                                      {estAPublier(p) ? 'Envoyer au livreur' : 'Renvoyer au livreur'}
+                                      {estAPublier(p) ? (manques.length > 0 ? 'Envoyer au livreur (programme incomplet)' : 'Envoyer au livreur') : 'Renvoyer au livreur'}
                                     </Dropdown.Item>
                                     <Dropdown.Item id="whatsapp">Renvoyer par WhatsApp</Dropdown.Item>
                                     {onRelancerPreuves ? (

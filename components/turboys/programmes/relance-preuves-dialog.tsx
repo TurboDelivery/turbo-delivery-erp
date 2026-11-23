@@ -81,20 +81,42 @@ export interface RelancePreuvesDialogProps {
   semaine: number;
   ouvert: boolean;
   onFermer: () => void;
+  /**
+   * Ouverte depuis le menu d'UNE ligne : seul ce programme est coché à l'ouverture.
+   *
+   * <p>Sans cela la fenêtre s'ouvrait avec tout le monde coché, et « Relancer les preuves
+   * Wave » d'un livreur relançait les sept. Les autres restent dans la liste, décochés :
+   * en ajouter un est un clic.</p>
+   */
+  seulement?: string | null;
 }
 
-export function RelancePreuvesDialog({ annee, semaine, ouvert, onFermer }: RelancePreuvesDialogProps) {
+export function RelancePreuvesDialog({ annee, semaine, ouvert, onFermer, seulement = null }: RelancePreuvesDialogProps) {
   const etatQuery = useEtatRelancePreuvesQuery(annee, semaine, ouvert);
   const relancer = useRelancerPreuvesMutation(onFermer);
   const [exclus, setExclus] = React.useState<Set<string>>(new Set());
 
-  const livreurs = etatQuery.data?.livreurs ?? [];
+  // Mémorisé : sans cela `?? []` fabrique un tableau neuf à chaque rendu, et l'effet qui
+  // décoche les autres livreurs se croirait devant une nouvelle liste.
+  const livreurs = React.useMemo(() => etatQuery.data?.livreurs ?? [], [etatQuery.data]);
 
   // Tous cochés à l'ouverture : on mémorise les EXCLUS, pas les inclus, pour qu'un
   // livreur apparu entre-temps soit coché lui aussi plutôt qu'oublié.
+  const cibleAppliquee = React.useRef(false);
   React.useEffect(() => {
-    if (ouvert) setExclus(new Set());
+    if (ouvert) {
+      setExclus(new Set());
+      cibleAppliquee.current = false;
+    }
   }, [ouvert]);
+
+  // La liste arrive après l'ouverture : on décoche les autres UNE fois, quand elle est là.
+  // Ensuite la main est à l'utilisateur, on ne redécoche pas ce qu'il vient de cocher.
+  React.useEffect(() => {
+    if (!ouvert || !seulement || cibleAppliquee.current || livreurs.length === 0) return;
+    cibleAppliquee.current = true;
+    setExclus(new Set(livreurs.filter((l) => l.programmeId !== seulement).map((l) => l.programmeId)));
+  }, [ouvert, seulement, livreurs]);
 
   const choisis = livreurs.filter((l) => !exclus.has(l.programmeId));
   const total = choisis.reduce((n, l) => n + l.nbManquantes, 0);
@@ -109,7 +131,9 @@ export function RelancePreuvesDialog({ annee, semaine, ouvert, onFermer }: Relan
           annee,
           // Tous choisis = on n'envoie pas de liste : le serveur relance tout le monde,
           // y compris un retard apparu entre l'ouverture de la fenêtre et le clic.
-          programmeIds: exclus.size === 0 ? undefined : choisis.map((l) => l.programmeId),
+          // ⚠ Depuis une ligne, la liste est TOUJOURS explicite : si ce livreur est le seul
+          // en retard, « tous choisis » relancerait aussi quiconque apparaît entre-temps.
+          programmeIds: exclus.size === 0 && !seulement ? undefined : choisis.map((l) => l.programmeId),
           semaine,
         })
       }

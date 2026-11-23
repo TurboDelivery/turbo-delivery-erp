@@ -242,8 +242,14 @@ export function EnteteSemaine({
       {/* ── 2. OÙ EN EST-ELLE ────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
         <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          {/*
+           * LES SIX CARTES SONT DES PORTES (maquette). Trois ne menaient nulle part, et la
+           * première remettait la liste sur « Tous », ce que l'onglet du même nom fait déjà.
+           * Chacune ouvre ce que son chiffre désigne : les programmes à publier, les
+           * renforts, la vue Couverture, les lignes sans carburant, les surplus.
+           */}
           <CarteIndicateur
-            actif={filtre === 'TOUS'}
+            actif={filtre === 'A_PUBLIER'}
             detail={
               indisponible ? null : (
                 <>
@@ -252,14 +258,16 @@ export function EnteteSemaine({
                 </>
               )
             }
-            onPress={() => onFiltre('TOUS')}
+            onPress={bascule('A_PUBLIER')}
             titre="Programmes"
             valeur={indisponible ? '—' : programmes.length}
           />
 
           <CarteIndicateur
-            actif={false}
+            actif={filtre === 'RENFORTS'}
             detail="journaliers programmés"
+            onPress={bascule('RENFORTS')}
+            survol="Un clic montre les livreurs qui desservent un autre site que leur base cette semaine."
             titre="Livreurs"
             valeur={indisponible ? '—' : compteurs.journaliers}
           />
@@ -268,6 +276,7 @@ export function EnteteSemaine({
             actif={false}
             detail={indisponible ? null : `sur ${couverture.sitesAuProgramme} au programme`}
             survol="Un site est couvert quand au moins un livreur y est prévu chacun des sept jours. Les sites comptés sont ceux que la semaine prévoit de servir, bases et sites desservis confondus."
+            onPress={() => onFiltre('TROUS')}
             titre="Sites couverts"
             valeur={indisponible ? '—' : couverture.sitesCouverts}
           />
@@ -295,7 +304,6 @@ export function EnteteSemaine({
 
           {/* Sans bandeau, « 0 engagé » serait une affirmation : on ne sait pas, on écrit —. */}
           <CarteIndicateur
-            actif={false}
             detail={
               indisponible || !bandeau ? null : bandeau.montantEngage != null ? (
                 <>sur {formatMontant(totalADecaisser)} à décaisser</>
@@ -304,6 +312,8 @@ export function EnteteSemaine({
               )
             }
             survol="Ce qui est réellement passé en charge dans le circuit finance, rapporté au total à décaisser de la semaine. Un engagement peut se faire programme par programme."
+            actif={filtre === 'SANS_CARBURANT'}
+            onPress={bascule('SANS_CARBURANT')}
             titre="Carburant engagé"
             valeur={indisponible || !bandeau ? '—' : formatMontant(bandeau.montantEngage ?? 0)}
           />
