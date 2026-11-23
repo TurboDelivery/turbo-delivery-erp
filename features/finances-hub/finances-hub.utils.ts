@@ -21,7 +21,31 @@ export interface IFinanceItem {
    * colonne « Payée le » des exports. Facultatif : les fixtures d'avant n'en portent pas.
    */
   payeeLe?: string | null;
+  /**
+   * Le compte de trésorerie débité, retenu au décaissement : la colonne « Compte » des
+   * exports. Null tant que la charge n'est pas payée, et sur tout paiement antérieur à
+   * la saisie du compte (le serveur ne le gardait pas).
+   */
+  compte?: string | null;
+  /** Code du moyen de paiement (voir {@link MOYENS_PAIEMENT}), ou null. */
+  moyen?: string | null;
 }
+
+/**
+ * Les moyens de paiement d'un décaissement. Le CODE part au serveur, qui tient la même
+ * liste (enum `MoyenDecaissement`) et refuse toute autre valeur : si les deux divergent,
+ * le décaissement échoue avec un message, il ne garde pas une valeur fausse.
+ */
+export const MOYENS_PAIEMENT = [
+  { code: 'ESPECES', libelle: 'Espèces' },
+  { code: 'CHEQUE', libelle: 'Chèque' },
+  { code: 'MOBILE_MONEY', libelle: 'Mobile Money' },
+  { code: 'VIREMENT', libelle: 'Virement' },
+] as const;
+
+/** Le libellé d'un code de moyen ; un code inconnu est rendu tel quel, jamais masqué. */
+export const libelleMoyen = (code?: string | null): string =>
+  code ? (MOYENS_PAIEMENT.find((m) => m.code === code)?.libelle ?? code) : '—';
 
 /** Mappe les statuts backend (fixe & variable) vers le statut unifié du template. */
 export function unifiedStatut(raw?: string | null): FinanceStatut {
@@ -69,6 +93,8 @@ export function mapChargeFixe(cf: any): IFinanceItem {
     src: cf.codeSysteme ? 'RH' : cf.automatique ? 'Auto' : 'Manuel',
     dyn: !!cf.codeSysteme,
     payeeLe: cf.dateDecaissement ?? null,
+    compte: cf.compteTresorerie ?? null,
+    moyen: cf.moyenPaiement ?? null,
   };
 }
 
@@ -87,6 +113,8 @@ export function mapChargeVariable(cv: any): IFinanceItem {
     src: 'Manuel',
     dyn: false,
     payeeLe: cv.dateDecaissement ?? null,
+    compte: cv.compteTresorerie ?? null,
+    moyen: cv.moyenPaiement ?? null,
   };
 }
 

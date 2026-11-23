@@ -36,6 +36,8 @@ const JOURNAL: IFusionCategorie[] = [
     annuleeAt: null,
     annuleePar: null,
     auteurId: '1db26a14-1df0-4418-b576-929e7b51b692',
+    auteurNom: 'KONE Awa',
+    auteurRole: 'Comptable',
     categorieCibleId: 'c-1',
     categorieSourceDescription: 'Réparations et entretien des deux-roues',
     categorieSourceId: 's-1',
@@ -50,6 +52,8 @@ const JOURNAL: IFusionCategorie[] = [
     annuleeAt: null,
     annuleePar: null,
     auteurId: '1992a5ff-94b4-4049-9356-a72c7f81f8f1',
+    auteurNom: null,
+    auteurRole: null,
     categorieCibleId: 'c-1',
     categorieSourceDescription: null,
     categorieSourceId: 's-2',
@@ -64,6 +68,8 @@ const JOURNAL: IFusionCategorie[] = [
     annuleeAt: '2026-11-20T22:05:00Z',
     annuleePar: '1db26a14-1df0-4418-b576-929e7b51b692',
     auteurId: '1db26a14-1df0-4418-b576-929e7b51b692',
+    auteurNom: 'KONE Awa',
+    auteurRole: 'Comptable',
     categorieCibleId: 'c-2',
     categorieSourceDescription: 'Carburant des motos',
     categorieSourceId: 's-3',
@@ -132,8 +138,8 @@ export default function ApercuHistoriqueFusions() {
     c.setQueryData(
       ['categorie-donnees-rattachees', 'c-1', 'c-2'],
       [
-        { chargesFixes: 0, chargesVariables: 41, depenses: 37, description: CATEGORIES[0].description ?? null, id: 'c-1', nomCategorie: 'REPARATIONS MOTOS', total: 78 },
-        { chargesFixes: 0, chargesVariables: 9, depenses: 8, description: null, id: 'c-2', nomCategorie: 'REPARATION MOTO', total: 17 },
+        { chargesFixes: 0, chargesVariables: 41, depenses: 37, description: CATEGORIES[0].description ?? null, id: 'c-1', modelesRecurrents: 0, nomCategorie: 'REPARATIONS MOTOS', total: 78 },
+        { chargesFixes: 0, chargesVariables: 9, depenses: 8, description: null, id: 'c-2', modelesRecurrents: 1, nomCategorie: 'REPARATION MOTO', total: 17 },
       ],
     );
     // L'historique de la première catégorie, tel que l'audit central le rend.

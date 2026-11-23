@@ -35,6 +35,8 @@ export interface IChargeVariable {
   dateApprobationDG?: string | null;
   commentaireDG?: string | null;
   dateDecaissement?: string | null;
+  compteTresorerie?: string | null;
+  moyenPaiement?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,5 +80,9 @@ export interface IChargeVariableParams {
 export interface IWorkflowDecisionDto {
   commentaire?: string;
   par: string;
+  /** Décaissement seulement : le compte débité, l'un de ceux de Finance › Configuration. */
+  compteTresorerie?: string;
+  /** Décaissement seulement : code du moyen de paiement. */
+  moyenPaiement?: string;
   dateDebut?: string;
 }

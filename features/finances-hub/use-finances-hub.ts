@@ -12,6 +12,12 @@ import { IFinanceItem, mapChargeFixe, mapChargeVariable } from './finances-hub.u
 
 type WorkflowAction = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
 
+/** D'où sort l'argent et par quel moyen : ne concerne que le décaissement. */
+export interface ISortieTresorerie {
+  compteTresorerie?: string;
+  moyenPaiement?: string;
+}
+
 /**
  * Agrège charges fixes + variables (mappées en items unifiés) + config (seuil) + rentabilité.
  * Le filtrage période (debut/fin) + catégorie est fait CÔTÉ SERVEUR (mêmes params que la
@@ -26,6 +32,10 @@ export function useFinancesHub(
   const { data: config } = useModuleConfigQuery();
   const seuil = config?.seuilDga ?? 0;
   const nbJours = config?.nbJoursMois ?? 30;
+  // Les comptes proposés au décaissement sont ceux de Finance › Configuration : le serveur
+  // refuse tout autre libellé. La fenêtre en proposait deux écrits en dur (« Caisse
+  // physique », « Banque ») dont le second n'existait dans aucune configuration.
+  const comptes = (config?.comptesTresorerie ?? []).map((c) => c.libelle?.trim()).filter((l): l is string => !!l);
 
   // Acteur réel des actions (visa/accord/décaissement) — enregistré dans
   // valide_par / approuve_par et exploité par « Mon historique ». On utilise
@@ -51,11 +61,14 @@ export function useFinancesHub(
   const actVar = useActionChargeVariableMutation();
   const queryClient = useQueryClient();
 
-  const runAction = async (item: IFinanceItem, action: WorkflowAction, commentaire?: string) => {
+  const runAction = async (item: IFinanceItem, action: WorkflowAction, commentaire?: string, sortie?: ISortieTresorerie) => {
+    // Le compte et le moyen ne partent QUE pour un décaissement : un visa ou un accord
+    // ne sort rien de la caisse, et le serveur ne les lirait pas.
+    const dto = { commentaire, par: actor, ...(action === 'decaisser' ? sortie : undefined) };
     const res =
       item.type === 'fixe'
-        ? await actFixe.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any)
-        : await actVar.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
+        ? await actFixe.mutateAsync({ id: item.id, action, dto } as any)
+        : await actVar.mutateAsync({ id: item.id, action, dto } as any);
 
     // Un visa / accord / décaissement change les montants engagés et décaissés :
     // sans ça, seul le statut de la ligne bougeait — les compteurs d'onglets, les
@@ -75,6 +88,7 @@ export function useFinancesHub(
     actor,
     seuil,
     nbJours,
+    comptes,
     renta: rentaQ.data,
     isLoading: fixesQ.isLoading || variablesQ.isLoading,
     isError: fixesQ.isError || variablesQ.isError,

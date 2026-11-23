@@ -9,9 +9,7 @@ import {
   ComboBox,
   Dropdown,
   Input,
-  Label,
   ListBox,
-  Modal,
   Spinner,
   Table,
 } from '@heroui-v3/react';
@@ -59,7 +57,10 @@ import {
   nextAction,
   steps,
   useFinancesHub,
+  libelleMoyen,
+  type ISortieTresorerie,
 } from '@/features/finances-hub';
+import { FenetreDecaissement } from './fenetre-decaissement';
 import { buildMonthOptions, monthKeyToRange } from '@/features/charges/utils/month-filter.utils';
 import AddChargeFixeModal from '@/features/charges/components/add-charge-fixe-modal';
 import AddDepenseVariableModal from '@/features/charges/components/add-depense-variable-modal';
@@ -219,7 +220,7 @@ export function FinanceHubView() {
 
   // Période = le mois sélectionné (debut/fin), appliquée CÔTÉ SERVEUR au tableau + au graphique.
   const { debut: periodeDebut, fin: periodeFin } = monthKeyToRange(monthKey);
-  const { items, rawFixes, rawVariables, actor, seuil, nbJours, renta, isLoading, isError, isFetching, refetch, busy, runAction } = useFinancesHub(
+  const { items, rawFixes, rawVariables, actor, seuil, nbJours, comptes, renta, isLoading, isError, isFetching, refetch, busy, runAction } = useFinancesHub(
     dateArret,
     periodeDebut,
     periodeFin,
@@ -300,8 +301,6 @@ export function FinanceHubView() {
   }, [focus.depense, isLoading, items, seuil, tri.cle, tri.sens, parPage]);
 
   const [payTargets, setPayTargets] = useState<IFinanceItem[]>([]);
-  const [acc, setAcc] = useState('Caisse physique');
-  const [moy, setMoy] = useState('Espèces');
 
   // KPI / prorata depuis l'API rentabilité
   const k = {
@@ -413,9 +412,9 @@ export function FinanceHubView() {
   const toggleOne = (id: string, v: boolean) =>
     setSel((p) => { const n = new Set(p); v ? n.add(id) : n.delete(id); return n; });
 
-  const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string): Promise<boolean> => {
+  const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string, sortie?: ISortieTresorerie): Promise<boolean> => {
     try {
-      await runAction(item, action, comment);
+      await runAction(item, action, comment, sortie);
       toast.success(`${label} · ${item.designation}`);
       return true;
     } catch (e) {
@@ -431,18 +430,20 @@ export function FinanceHubView() {
     setPayTargets(targets);
     onOpen();
   };
-  const confirmPay = async () => {
-    const comment = `${acc} · ${moy}`;
+  const confirmPay = async (sortie: ISortieTresorerie) => {
+    const acc = sortie.compteTresorerie ?? '';
+    // Le commentaire garde sa forme d'avant (« compte · moyen ») : « Mon historique » le lit.
+    const comment = [acc, libelleMoyen(sortie.moyenPaiement)].filter(Boolean).join(' · ');
     const ok: IFinanceItem[] = [];
     for (const item of payTargets) {
       // eslint-disable-next-line no-await-in-loop
-      if (await act(item, 'decaisser', 'Décaissé', comment)) ok.push(item);
+      if (await act(item, 'decaisser', 'Décaissé', comment, sortie)) ok.push(item);
     }
     onClose();
     setSel(new Set());
     // Résumé UNIQUEMENT sur les décaissements réellement réussis (plus de faux succès).
     if (ok.length > 0) {
-      toast.success(`Décaissé ${fmtFcfa(ok.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
+      toast.success(`Décaissé ${fmtFcfa(ok.reduce((s, i) => s + i.montant, 0))}${acc ? ` depuis ${acc}` : ''}`);
     }
   };
 
@@ -1201,105 +1202,15 @@ export function FinanceHubView() {
         </>
       )}
 
-      {/* Modal décaissement */}
-      <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-        <Modal.Backdrop>
-          <Modal.Container>
-            <Modal.Dialog className="max-w-lg">
-              <Modal.Header>
-                {/*
-                 * L'en-tete etait peint en `bg-emerald-600 text-white` : un vert ecrit en
-                 * dur, sans variante sombre, pour un titre de fenetre. Le decaissement
-                 * n'est pas un succes, c'est une action a confirmer.
-                 */}
-                <Modal.Heading>
-                  Décaisser{' '}
-                  {payTargets.length > 1 ? `la sélection (${payTargets.length})` : 'cette dépense'}
-                </Modal.Heading>
-                <Modal.CloseTrigger />
-              </Modal.Header>
-
-              <Modal.Body className="flex flex-col gap-4">
-                <div className="rounded-lg bg-surface-secondary p-3 text-sm text-foreground">
-                  {payTargets.length === 1 ? (
-                    <>
-                      {payTargets[0]?.designation}
-                      <br />
-                      Montant : <b>{fmtFcfa(payTargets[0]?.montant)}</b>
-                    </>
-                  ) : (
-                    <>
-                      {payTargets.length} dépenses · Total :{' '}
-                      <b>{fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))}</b>
-                    </>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <ComboBox
-                    onSelectionChange={(c) => setAcc(String(c ?? 'Caisse physique'))}
-                    selectedKey={acc}
-                  >
-                    <Label>Compte débité</Label>
-                    <ComboBox.InputGroup>
-                      <Input />
-                      <ComboBox.Trigger />
-                    </ComboBox.InputGroup>
-                    <ComboBox.Popover>
-                      <ListBox
-                        items={[{ cle: 'Caisse physique' }, { cle: 'Banque' }]}
-                      >
-                        {(o: { cle: string }) => (
-                          <ListBox.Item id={o.cle} textValue={o.cle}>
-                            {o.cle}
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                        )}
-                      </ListBox>
-                    </ComboBox.Popover>
-                  </ComboBox>
-
-                  <ComboBox onSelectionChange={(c) => setMoy(String(c ?? 'Espèces'))} selectedKey={moy}>
-                    <Label>Moyen de paiement</Label>
-                    <ComboBox.InputGroup>
-                      <Input />
-                      <ComboBox.Trigger />
-                    </ComboBox.InputGroup>
-                    <ComboBox.Popover>
-                      <ListBox
-                        items={['Espèces', 'Chèque', 'Mobile Money', 'Virement'].map((m) => ({
-                          cle: m,
-                        }))}
-                      >
-                        {(o: { cle: string }) => (
-                          <ListBox.Item id={o.cle} textValue={o.cle}>
-                            {o.cle}
-                            <ListBox.ItemIndicator />
-                          </ListBox.Item>
-                        )}
-                      </ListBox>
-                    </ComboBox.Popover>
-                  </ComboBox>
-                </div>
-
-                <p className="text-xs text-muted">
-                  Le passage en « Payé » crée la sortie de trésorerie (compte + moyen tracés).
-                </p>
-              </Modal.Body>
-
-              <Modal.Footer>
-                <Button onPress={onClose} variant="ghost">
-                  Annuler
-                </Button>
-                <Button isPending={busy} onPress={confirmPay} variant="primary">
-                  {busy ? <Spinner size="sm" /> : null}
-                  Confirmer le décaissement
-                </Button>
-              </Modal.Footer>
-            </Modal.Dialog>
-          </Modal.Container>
-        </Modal.Backdrop>
-      </Modal>
+      {/* Décaissement : le compte débité et le moyen de paiement partent au serveur. */}
+      <FenetreDecaissement
+        busy={busy}
+        cibles={payTargets}
+        comptes={comptes}
+        isOpen={isOpen}
+        onConfirmer={confirmPay}
+        onOpenChange={setIsOpen}
+      />
 
       {/* Modales de création (reprises de la page Charges, désormais pilotées ici) */}
       <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => setIsFixeModalOpen(false)} chargeToEdit={null} />

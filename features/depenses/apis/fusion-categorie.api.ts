@@ -9,6 +9,12 @@ export interface ICategorieDonneesRattachees {
   chargesVariables: number;
   depenses: number;
   total: number;
+  /**
+   * Charges fixes ACTIVES de la catégorie : chacune revient à chaque cycle et continuera,
+   * après une fusion, d'engendrer des dépenses dans la catégorie gardée. Absent d'un
+   * serveur plus ancien : l'écran affiche alors un tiret, pas un zéro.
+   */
+  modelesRecurrents?: number;
 }
 
 /** Compte les données rattachées à chaque catégorie (doublons) pour comparer avant fusion. */
@@ -81,6 +87,12 @@ export interface IFusionCategorie {
   createdAt: string;
   annuleeAt: string | null;
   annuleePar: string | null;
+  /**
+   * Nom et rôle de l'auteur, résolus par le serveur dans l'annuaire. Null si l'annuaire ne
+   * connaît pas l'identifiant : l'écran n'affiche alors que la date, pas un nom de repli.
+   */
+  auteurNom?: string | null;
+  auteurRole?: string | null;
 }
 
 /** Le journal des fusions, le plus récent d'abord. */

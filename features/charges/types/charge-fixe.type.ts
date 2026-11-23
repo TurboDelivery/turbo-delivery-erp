@@ -33,6 +33,8 @@ export interface IChargeFixe {
   dateApprobationDG?: string | null;
   commentaireDG?: string | null;
   dateDecaissement?: string | null;
+  compteTresorerie?: string | null;
+  moyenPaiement?: string | null;
   codeSysteme?: string | null;
   enable: boolean;
   tauxJournalier: number;
@@ -57,6 +59,10 @@ export interface IChargeFixeParams {
 export interface IWorkflowDecisionDtoFixe {
   commentaire?: string;
   par?: string;
+  /** Décaissement seulement : le compte débité, l'un de ceux de Finance › Configuration. */
+  compteTresorerie?: string;
+  /** Décaissement seulement : code du moyen de paiement. */
+  moyenPaiement?: string;
   date?: string;
 }
 

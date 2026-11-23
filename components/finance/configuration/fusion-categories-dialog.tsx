@@ -248,7 +248,11 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">3 · Aperçu d&apos;impact</p>
                 {/* Un document qui se LIT (lignes fixes, ni tri ni sélection) : un <table>
                     simple, comme l'état financier — l'exception documentée du projet. */}
-                <div className="overflow-x-auto rounded-lg border border-separator">
+                {/* ⚠ `shrink-0` : le corps de la fenêtre est une colonne flex à hauteur bornée, et un
+                    enfant qui défile (`overflow-x-auto`) y a une hauteur minimale de ZÉRO. Dès que
+                    le contenu dépassait l'écran, c'est ce tableau qui était écrasé à 2 px au lieu
+                    que le corps défile : l'aperçu d'impact disparaissait sans un mot. */}
+                <div className="shrink-0 overflow-x-auto rounded-lg border border-separator">
                   <table className="w-full text-sm">
                     <thead className="bg-surface-secondary text-xs text-muted">
                       <tr>
@@ -256,6 +260,7 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                         <th className="px-3 py-2 text-left font-semibold" scope="col">Rôle</th>
                         <th className="px-3 py-2 text-right font-semibold" scope="col">Dépenses</th>
                         <th className="px-3 py-2 text-right font-semibold" scope="col">Fixes / variables</th>
+                        <th className="px-3 py-2 text-right font-semibold" scope="col">Modèles récurrents</th>
                         <th className="px-3 py-2 text-right font-semibold" scope="col">Montant</th>
                       </tr>
                     </thead>
@@ -271,6 +276,11 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                           <td className="px-3 py-2 text-right tabular-nums">{c.chargesFixes + c.chargesVariables}</td>
                           <td className="px-3 py-2 text-right tabular-nums text-muted">
                             {c.chargesFixes} / {c.chargesVariables}
+                          </td>
+                          {/* Les charges fixes ACTIVES : elles reviennent à chaque cycle, et
+                              leurs prochaines dépenses iront dans la catégorie conservée. */}
+                          <td className="px-3 py-2 text-right tabular-nums text-muted">
+                            {c.modelesRecurrents ?? '—'}
                           </td>
                           <td className="px-3 py-2 text-right font-medium tabular-nums">{fcfa(montantDe(c.id))}</td>
                         </tr>

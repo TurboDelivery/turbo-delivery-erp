@@ -10,7 +10,7 @@ import * as XLSX from 'xlsx';
 
 import { autoFitColumns } from '@/features/tickets/utils/export.utils';
 
-import { FinanceStatut, IFinanceItem, IStatsSelection, statsSelection, STATUTS_FINANCE } from './finances-hub.utils';
+import { FinanceStatut, IFinanceItem, IStatsSelection, libelleMoyen, statsSelection, STATUTS_FINANCE } from './finances-hub.utils';
 
 export interface ContexteExportSelection {
   /** Les catégories filtrées, par leur NOM. Vide = toutes. */
@@ -88,6 +88,14 @@ const typeLibelle = (t: IFinanceItem['type']) => (t === 'fixe' ? 'Fixe' : 'Varia
  */
 export const payeeLe = (i: Pick<IFinanceItem, 'payeeLe'>) =>
   i.payeeLe && /^\d{4}-\d{2}-\d{2}/.test(i.payeeLe) ? `${i.payeeLe.slice(8, 10)}/${i.payeeLe.slice(5, 7)}` : '—';
+/**
+ * « Compte » : le compte de trésorerie débité, tel que le décaissement l'a retenu.
+ *
+ * <p>⚠ Un tiret, jamais une valeur supposée : une charge non payée n'a rien débité, et un
+ * paiement antérieur à la saisie du compte ne dit pas d'où il est sorti. Écrire « Caisse
+ * physique » par défaut serait inventer une pièce comptable.</p>
+ */
+export const compte = (i: Pick<IFinanceItem, 'compte'>) => (i.compte && i.compte.trim() ? i.compte.trim() : '—');
 /** Visa et accord se LISENT sur le statut : visée dès « Visé DGA », accordée dès « Approuvé DG ». */
 const visaDga = (s: FinanceStatut) => (s === 'vise' || s === 'approuve' || s === 'paye' ? 'Oui' : '—');
 const accordDg = (s: FinanceStatut) => (s === 'approuve' || s === 'paye' ? 'Oui' : '—');
@@ -128,6 +136,8 @@ export function genererSelectionXlsx(selection: IFinanceItem[], ctx: ContexteExp
     'Statut': LIBELLE_STATUT[i.statut],
     'Visa DGA': visaDga(i.statut),
     'Accord DG': accordDg(i.statut),
+    'Compte': compte(i),
+    'Moyen de paiement': libelleMoyen(i.moyen),
     'Source': i.src,
     'Pièce': i.justif ? 'Oui' : 'Non',
   }));
@@ -153,24 +163,27 @@ const winAnsi = (t: string) =>
 /** Les colonnes du tableau PDF, largeurs en mm (A4 paysage : 297 − 2 × 12 de marge = 273). */
 const COLONNES: { titre: string; w: number; droite?: boolean; valeur: (i: IFinanceItem, rang: number) => string }[] = [
   { titre: 'N°', valeur: (_i, r) => String(r + 1), w: 11 },
-  { titre: 'ÉCHÉANCE', valeur: (i) => i.echeance, w: 22 },
+  { titre: 'ÉCHÉANCE', valeur: (i) => i.echeance, w: 20 },
   { titre: 'PAYÉE LE', valeur: (i) => payeeLe(i), w: 18 },
-  { titre: 'DÉSIGNATION', valeur: (i) => i.designation, w: 64 },
-  { titre: 'CATÉGORIE', valeur: (i) => i.categorie, w: 46 },
+  { titre: 'DÉSIGNATION', valeur: (i) => i.designation, w: 48 },
+  { titre: 'CATÉGORIE', valeur: (i) => i.categorie, w: 38 },
   { titre: 'TYPE', valeur: (i) => typeLibelle(i.type), w: 20 },
   { droite: true, titre: 'MONTANT', valeur: (i) => fcfa(i.montant), w: 32 },
-  { titre: 'STATUT', valeur: (i) => LIBELLE_STATUT[i.statut], w: 26 },
+  { titre: 'STATUT', valeur: (i) => LIBELLE_STATUT[i.statut], w: 24 },
   { titre: 'VISA DGA', valeur: (i) => visaDga(i.statut), w: 17 },
   { titre: 'ACCORD DG', valeur: (i) => accordDg(i.statut), w: 17 },
+  { titre: 'COMPTE', valeur: (i) => compte(i), w: 28 },
 ];
+
+/** Exposé pour le test : la somme des largeurs doit rester la largeur utile de la page. */
+export const COLONNES_PDF = COLONNES.map(({ titre, w }) => ({ titre, w }));
 
 /**
  * Le PDF « État des dépenses », A4 paysage (maquette, planche 3).
  *
- * <p>⚠ UNE colonne de la maquette n'est PAS produite : « Compte ». Le compte débité n'est
- * enregistré nulle part au décaissement ; écrire « Caisse physique » sur chaque ligne
- * serait inventer une pièce comptable. « Payée le », elle, vient de la date de décaissement
- * que le serveur transmet déjà.</p>
+ * <p>Les onze colonnes de la maquette y sont. « Payée le » vient de la date de décaissement,
+ * « Compte » du compte que le décaissement retient depuis V159 : une ligne payée avant, ou
+ * pas encore payée, porte un tiret (voir {@link compte}).</p>
  */
 export function genererSelectionPdf(selection: IFinanceItem[], ctx: ContexteExportSelection): jsPDF {
   const lignes = lignesExportees(selection);

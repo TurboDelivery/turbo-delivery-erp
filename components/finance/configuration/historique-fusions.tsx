@@ -125,9 +125,22 @@ export function HistoriqueFusions({ nomsCategories }: { nomsCategories?: Map<str
       ),
     },
     {
+      // « Le / par » (maquette) : le journal ne retient qu'un identifiant d'auteur, le
+      // serveur le résout dans l'annuaire. Sans nom connu on n'écrit QUE la date : un
+      // « Utilisateur » de repli se lirait comme une réponse.
       cle: 'quand',
-      libelle: 'Fusionnée le',
-      rendu: (f) => <span className="text-sm">{dateLisible(f.createdAt)}</span>,
+      libelle: 'Le / par',
+      rendu: (f) => (
+        <div className="flex flex-col text-sm">
+          <span>{dateLisible(f.createdAt)}</span>
+          {f.auteurNom ? (
+            <span className="text-xs text-muted">
+              {f.auteurNom}
+              {f.auteurRole ? ` (${f.auteurRole})` : ''}
+            </span>
+          ) : null}
+        </div>
+      ),
     },
     {
       cle: 'etat',
