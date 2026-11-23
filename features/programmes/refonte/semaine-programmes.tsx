@@ -259,6 +259,15 @@ function aDesRenforts(p: IProgramme): boolean {
 /** Publiable : le programme n'est pas encore parti chez le livreur. */
 const estAPublier = (p: IProgramme) => p.statut === 'BROUILLON' || p.statut === 'PLANIFIE';
 
+/**
+ * Programme PARTI chez le livreur.
+ *
+ * Ce n'est pas l'inverse de `estAPublier` : REFUSE n'est ni l'un ni l'autre. Les gestes
+ * qui engagent de l'argent sur la semaine en cours (le surplus de carburant) n'ont de sens
+ * que sur ces deux statuts, et c'est exactement ce que le serveur contrôle.
+ */
+const estPublie = (p: IProgramme) => p.statut === 'NOTIFIE' || p.statut === 'ACCEPTE';
+
 /** Sans carburant : aucun jour travaillé ne porte de montant, figé ou prévisionnel. */
 const estSansCarburant = (p: IProgramme) => carburantAffiche(p).montant === null;
 
@@ -1314,6 +1323,13 @@ export function SemaineProgrammes({
                                     ...(p.statut === 'BROUILLON' ? [] : ['planifier']),
                                     // L'affectation en cours d'operations suppose la semaine partie (RG-S08).
                                     ...(estAPublier(p) ? ['affecter'] : []),
+                                    /*
+                                     * Le surplus ne se donne que sur un programme PUBLIÉ, et le
+                                     * serveur le refuse désormais ailleurs : sur un brouillon il
+                                     * n'entrait dans aucun total et partait à la suppression du
+                                     * programme. Ne pas proposer ce que le serveur refuse.
+                                     */
+                                    ...(estPublie(p) ? [] : ['surplus']),
                                   ]}
                                   onAction={(k) => {
                                     if (k === 'apercu') {

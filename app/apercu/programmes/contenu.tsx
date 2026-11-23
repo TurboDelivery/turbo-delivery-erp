@@ -686,6 +686,16 @@ export default function ApercuProgrammes() {
                            montre pas du tout, et sa couleur est précisément ce qu'on doit
                            pouvoir vérifier à l'œil. */
                         onPreuves={(p, jour) => noter(`Preuves de ${p.livreurNom} — ${jour}`)}
+                        /* Les quatre gestes du menu de ligne qui ne s'affichent QUE si leur
+                           rappel est fourni. Sans eux, le banc montrait un menu amputé de
+                           moitié, et surtout on ne pouvait pas vérifier à l'œil lesquels
+                           sont grisés selon le statut : le surplus et l'affectation en cours
+                           d'opérations n'ont de sens que sur un programme parti, et le
+                           serveur les refuse ailleurs. */
+                        onAffecterSite={(p) => noter(`Affectation de site pour ${p.livreurNom}`)}
+                        onDupliquerSuivante={(p) => noter(`Duplication de ${p.livreurNom} sur S+1`)}
+                        onRelancerPreuves={(p) => noter(`Relance des preuves de ${p.livreurNom}`)}
+                        onSurplus={(p) => noter(`Surplus carburant pour ${p.livreurNom}`)}
                         /* Deux secteurs et un site orphelin : les onglets, leurs comptes
                            et « Sans secteur » doivent tous être visibles d'un coup. */
                         onConfigurerSecteurs={() => noter('Configuration des secteurs')}
