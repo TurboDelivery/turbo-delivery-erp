@@ -809,7 +809,7 @@ export default function ApercuProgrammes() {
                         onTelechargerModele={() => noter('Téléchargement du modèle')}
                         onTypeFiltre={setType}
                         partenaireFiltre={partenaire}
-                        partenaires={RESTOS.map((r, i) => ({ id: `r${i}`, nom: r }))}
+                        partenaires={[...RESTOS.map((r, i) => ({ id: `r${i}`, nom: r })), { id: 'r-vide', nom: 'Kiosque Angré (personne de prévu)' }]}
                         programmes={JEUX[jeu].lignes}
                         semaine={semaine}
                         typeFiltre={type}
@@ -843,7 +843,7 @@ export default function ApercuProgrammes() {
                         secteursEnLecture
                         secteurs={[
                             { id: 's1', nom: 'Abidjan Nord', siteIds: ['r0', 'r1'] },
-                            { id: 's2', nom: 'Abidjan Sud', siteIds: ['r2'] },
+                            { id: 's2', nom: 'Abidjan Sud', siteIds: ['r2', 'r-vide'] },
                         ]}
                     />
                     {/* ⚠ Valider ou relancer depuis cette fenêtre appelle le VRAI serveur : ne

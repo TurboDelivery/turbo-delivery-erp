@@ -158,6 +158,47 @@ describe('couvertureSemaine', () => {
   });
 });
 
+describe('couvertureSemaine avec les sites rangés dans un secteur (choix C)', () => {
+  it('un site du secteur où personne n’est prévu : suivi, non couvert, sept trous', () => {
+    const c = couvertureSemaine([programme({ livreurId: 'l1', siteId: 'yopougon' })], ['yopougon', 'angre']);
+    expect(c.sitesSuivis).toBe(2);
+    expect(c.sitesAuProgramme).toBe(1);
+    expect(c.sitesCouverts).toBe(1);
+    expect(c.sitesSansPersonne).toBe(1);
+    expect(c.trous).toBe(7);
+    const angre = c.lignes.find((l) => l.siteId === 'angre');
+    expect(angre?.parJour).toEqual(Object.fromEntries(JOURS_SEMAINE.map((j) => [j, 0])));
+  });
+
+  it('un site du secteur déjà au programme ne compte pas deux fois', () => {
+    const c = couvertureSemaine([programme({ livreurId: 'l1', siteId: 'yopougon' })], ['yopougon', 'yopougon']);
+    expect(c.sitesSuivis).toBe(1);
+    expect(c.lignes).toHaveLength(1);
+    expect(c.sitesSansPersonne).toBe(0);
+  });
+
+  it('un site au programme mais hors de tout secteur reste suivi', () => {
+    const c = couvertureSemaine([programme({ livreurId: 'l1', siteId: 'faya' })], ['yopougon']);
+    expect(c.sitesSuivis).toBe(2);
+    expect(c.sitesAuProgramme).toBe(1);
+  });
+
+  it('sans secteur rempli, rien ne change', () => {
+    const avant = couvertureSemaine([programme({ livreurId: 'l1', siteId: 'yopougon' })]);
+    const apres = couvertureSemaine([programme({ livreurId: 'l1', siteId: 'yopougon' })], []);
+    expect(apres).toEqual(avant);
+    expect(apres.sitesSuivis).toBe(apres.sitesAuProgramme);
+  });
+
+  it('les présents d’un site du secteur viennent toujours des programmes', () => {
+    const c = couvertureSemaine([programme({ jours: avecJours(['LUNDI']), livreurId: 'l1', siteId: 'angre' })], ['angre']);
+    const angre = c.lignes.find((l) => l.siteId === 'angre');
+    expect(angre?.parJour.LUNDI).toBe(1);
+    expect(angre?.trous).toBe(6);
+    expect(c.sitesSansPersonne).toBe(0);
+  });
+});
+
 describe('sitesDuJour', () => {
   it('rend les sites du jour quand ils sont renseignés', () => {
     const p = programme({

@@ -47,8 +47,15 @@ export interface Couverture {
   lignes: LigneCouverture[];
   /** Sites qui ont au moins un livreur CHAQUE jour. */
   sitesCouverts: number;
-  /** Sites que la semaine prévoit de servir. */
+  /** Sites que la semaine prévoit de servir (au moins un livreur, un jour au moins). */
   sitesAuProgramme: number;
+  /**
+   * Les sites SUIVIS : ceux au programme, plus ceux rangés dans un secteur. C'est le
+   * dénominateur de « Sites couverts ».
+   */
+  sitesSuivis: number;
+  /** Sites rangés dans un secteur où PERSONNE n'est prévu de la semaine : 7 trous chacun. */
+  sitesSansPersonne: number;
   /** Couples site × jour sans personne. */
   trous: number;
 }
@@ -72,7 +79,16 @@ function jourTravaille(p: IProgramme, jour: string): boolean {
   return !!j && j.actif === true;
 }
 
-export function couvertureSemaine(programmes: IProgramme[]): Couverture {
+/**
+ * La couverture de la semaine, site par site et jour par jour.
+ *
+ * <p>`catalogue` : les sites rangés dans un secteur (décision du 24/11, choix C). Ils sont
+ * suivis MÊME quand personne n'y est prévu. Sans eux, un site oublié n'avait pas de ligne :
+ * il n'était ni couvert ni compté comme trou, et c'était l'oubli le plus grave que l'écran
+ * ne savait pas montrer. Le catalogue complet des partenaires n'est PAS pris : la plupart ne
+ * sont pas des bases de livreurs, et la carte se serait remplie de faux trous.</p>
+ */
+export function couvertureSemaine(programmes: IProgramme[], catalogue: readonly string[] = []): Couverture {
   // Un superviseur-livreur gère des bases, il ne tient pas de poste : il ne compte dans
   // les présents d'aucun site (CA-43). Ses bases gérées n'entrent donc pas non plus dans
   // les sites à couvrir — personne n'y est attendu de son fait.
@@ -106,6 +122,10 @@ export function couvertureSemaine(programmes: IProgramme[]): Couverture {
     }
   }
 
+  const sitesAuProgramme = parSite.size;
+  // Les sites du catalogue s'ajoutent APRÈS : on sait ainsi lesquels n'ont aucun programme.
+  for (const s of catalogue) ligne(s);
+
   for (const p of livreurs) {
     for (const j of JOURS_SEMAINE) {
       if (!jourTravaille(p, j)) continue;
@@ -124,13 +144,15 @@ export function couvertureSemaine(programmes: IProgramme[]): Couverture {
   const lignes = Array.from(parSite.values());
   let trous = 0;
   let sitesCouverts = 0;
+  let sitesSansPersonne = 0;
   for (const l of lignes) {
     l.trous = JOURS_SEMAINE.filter((j) => l.parJour[j] === 0).length;
     trous += l.trous;
     if (l.trous === 0) sitesCouverts += 1;
+    if (l.trous === JOURS_SEMAINE.length) sitesSansPersonne += 1;
   }
 
-  return { lignes, sitesAuProgramme: lignes.length, sitesCouverts, trous };
+  return { lignes, sitesAuProgramme, sitesCouverts, sitesSansPersonne, sitesSuivis: lignes.length, trous };
 }
 
 /**

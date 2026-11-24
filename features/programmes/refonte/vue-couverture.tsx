@@ -38,6 +38,8 @@ export interface VueCouvertureProps {
   /** Ouvrir la configuration des couvertures (§8.5). Absent : le bouton n'apparaît pas. */
   onConfigurer?: () => void;
   isLoading?: boolean;
+  /** Les sites rangés dans un secteur : une ligne même quand personne n'y est prévu. */
+  catalogueSites?: string[];
 }
 
 const JOURS_COURTS: Record<string, string> = {
@@ -123,8 +125,9 @@ export function VueCouverture({
   onAffecterRenfort,
   onConfigurer,
   isLoading = false,
+  catalogueSites = [],
 }: VueCouvertureProps) {
-  const couverture = React.useMemo(() => couvertureSemaine(programmes), [programmes]);
+  const couverture = React.useMemo(() => couvertureSemaine(programmes, catalogueSites), [programmes, catalogueSites]);
 
   /*
    * La même clé que le calcul : `livreurId ?? id du programme`. Un programme sans
@@ -172,7 +175,7 @@ export function VueCouverture({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-muted">
             {couverture.sitesCouverts} site{couverture.sitesCouverts > 1 ? 's' : ''} couvert
-            {couverture.sitesCouverts > 1 ? 's' : ''} sur {couverture.sitesAuProgramme}
+            {couverture.sitesCouverts > 1 ? 's' : ''} sur {couverture.sitesSuivis}
             {couverture.trous > 0 ? (
               <>
                 {' · '}

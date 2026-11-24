@@ -761,6 +761,12 @@ export function SemaineProgrammes({
   const [vue, setVue] = React.useState<Vue>('LIVREURS');
   /** Le secteur filtré, ou `'TOUS'`. Les onglets n'existent que s'il y a des secteurs. */
   const [secteurFiltre, setSecteurFiltre] = React.useState('TOUS');
+  /*
+   * LES SITES SUIVIS par « Sites couverts » et la vue Couverture (choix C du 24/11) : ceux
+   * rangés dans un secteur, en plus de ceux où quelqu'un est prévu. Tant qu'aucun secteur
+   * n'est rempli, la liste est vide et rien ne change.
+   */
+  const catalogueSites = React.useMemo(() => Array.from(new Set(secteurs.flatMap((s) => s.siteIds))), [secteurs]);
   const [coches, setCoches] = React.useState<Selection>(new Set());
   /** Le nom d'un site par son identifiant : la grille l'écrit sur chaque ligne. */
   const nomSite = React.useMemo(() => new Map(partenaires.map((x) => [x.id, x.nom])), [partenaires]);
@@ -1171,6 +1177,7 @@ export function SemaineProgrammes({
         annee={annee}
         complementBandeau={complementBandeau}
         ecartSemainePrecedente={ecartPourcent}
+        catalogueSites={catalogueSites}
         relancePreuves={relancePreuves}
         bandeau={bandeau}
         bandeauEnCours={bandeauEnCours}
@@ -1460,6 +1467,7 @@ export function SemaineProgrammes({
       {/* ── LA COUVERTURE (§5.2) : les sites en lignes, les jours en colonnes ───── */}
       {vue === 'COUVERTURE' && (
         <VueCouverture
+          catalogueSites={catalogueSites}
           isLoading={isLoading}
           nomSite={nomSite}
           onAffecterRenfort={onAffecterRenfort}

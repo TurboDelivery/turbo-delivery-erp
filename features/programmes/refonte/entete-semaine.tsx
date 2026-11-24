@@ -86,6 +86,8 @@ export interface EnteteSemaineProps {
    * on lit qu'il en manque ; sans compteur (bandeau non lu), il retombe sous le bandeau.
    */
   relancePreuves?: React.ReactNode;
+  /** Les sites rangés dans un secteur : suivis par « Sites couverts » même sans personne. */
+  catalogueSites?: string[];
   /** Écart du carburant avec la semaine précédente, en pourcentage ; null = inconnu. */
   ecartSemainePrecedente?: number | null;
 
@@ -209,10 +211,11 @@ export function EnteteSemaine({
   complementBandeau = null,
   relancePreuves = null,
   ecartSemainePrecedente = null,
+  catalogueSites = [],
   isLoading = false,
   isError = false,
 }: EnteteSemaineProps) {
-  const couverture = React.useMemo(() => couvertureSemaine(programmes), [programmes]);
+  const couverture = React.useMemo(() => couvertureSemaine(programmes, catalogueSites), [programmes, catalogueSites]);
 
   /*
    * Le total à décaisser vient du serveur quand il est là, parce que lui seul connaît
@@ -296,8 +299,16 @@ export function EnteteSemaine({
 
           <CarteIndicateur
             actif={false}
-            detail={indisponible ? null : `sur ${couverture.sitesAuProgramme} au programme`}
-            survol="Un site est couvert quand au moins un livreur y est prévu chacun des sept jours. Les sites comptés sont ceux que la semaine prévoit de servir, bases et sites desservis confondus."
+            detail={
+              indisponible
+                ? null
+                : `sur ${couverture.sitesSuivis} suivi${couverture.sitesSuivis > 1 ? 's' : ''}${
+                    couverture.sitesSansPersonne > 0
+                      ? ` · ${couverture.sitesSansPersonne} sans personne`
+                      : ''
+                  }`
+            }
+            survol="Un site est couvert quand au moins un livreur y est prévu chacun des sept jours. Sont suivis les sites où quelqu’un est prévu cette semaine, ET ceux rangés dans un secteur, même sans personne : un site oublié apparaît alors en trou."
             onPress={() => onFiltre('TROUS')}
             titre="Sites couverts"
             valeur={indisponible ? '—' : couverture.sitesCouverts}
