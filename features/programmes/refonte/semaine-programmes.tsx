@@ -9,7 +9,7 @@ import { EnteteSemaine } from './entete-semaine';
 import { FenetreExport } from './fenetre-export';
 import { VueCouverture } from './vue-couverture';
 
-import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
+import { COMPLEMENT_VIDE, MOTIFS_SURPLUS, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
 import { aRecuUnSurplus, couvertureSemaine, JOURS_SEMAINE } from '@/features/turboys/utils/couverture.utils';
 import { type CleManque, manquesProgramme, puceSitesDesservis } from '@/features/turboys/utils/manques.utils';
@@ -19,6 +19,8 @@ import { finitApresMinuit } from '@/features/turboys/utils/jours-programme.utils
 import { lundiDeSemaine } from '@/features/turboys/utils/semaine.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { libelleWhatsApp } from '@/features/turboys/utils/whatsapp-statut.utils';
+import { texteProgramme } from '@/features/turboys/utils/partage-whatsapp.utils';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatMontant } from '@/utils/format.utils';
 
@@ -245,6 +247,14 @@ function dateDuJour(annee: number, semaine: number, rang: number): string {
 
 /** Les onglets de la liste (§5.2). « À compléter », « Renforts » et « Superviseurs » sont nouveaux. */
 type Onglet = 'TOUS' | 'A_COMPLETER' | 'A_PUBLIER' | 'REFUSE' | 'SANS_CARBURANT' | 'RENFORTS' | 'SUPERVISEURS' | 'AVEC_SURPLUS' | 'PREUVES_MANQUANTES';
+
+/** Minuscules, sans accents : « angre » trouve « ANGRÉ ». */
+const normaliserRecherche = (t: string) =>
+  t
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 
 /** Les deux lectures de la semaine (§5.2) : par livreur, ou par site. */
 type Vue = 'LIVREURS' | 'COUVERTURE';
@@ -481,11 +491,79 @@ function BlocBase({ groupe }: { groupe: { cle: string; programmes: IProgramme[];
  * légende qui décrirait « pastille verte » avec des mots obligerait à faire la
  * correspondance soi-même.</p>
  *
- * <p>⚠ La maquette termine par « Cliquez un nom, un jour, un statut ou ⋯ ». Cette phrase
- * n'est PAS reprise : à ce jour, ni le nom ni la case de jour n'ouvrent quoi que ce soit.
- * Annoncer un geste qui ne répond pas est pire que de se taire. Elle revient avec les
- * gestes.</p>
+ * <p>Elle termine par la phrase de la maquette sur les gestes. Elle avait été retirée tant
+ * que le nom et la case de jour n'ouvraient rien ; ils ouvrent maintenant l'aperçu et le
+ * programme.</p>
  */
+/**
+ * L'EN-TÊTE DES JOURS SUIT LE DÉFILEMENT (RG-L08).
+ *
+ * <p>⚠ `position: sticky` NE PEUT PAS marcher ici. Le tableau défile horizontalement dans
+ * un conteneur `overflow-x: auto` (il est plus large que l'écran de 1000 px de l'équipe),
+ * et un élément collant se colle à son plus proche ancêtre qui défile : ce conteneur, qui
+ * ne défile jamais verticalement. Les classes `sticky top-0` posées sur les colonnes ne
+ * faisaient donc rien, et l'en-tête partait avec la page. Mesuré : à 2 575 px de défilement,
+ * il était à −1 470 px.</p>
+ *
+ * <p>On déplace donc l'en-tête nous-mêmes : quand le haut du tableau passe sous le haut de
+ * la zone visible, `<thead>` descend d'autant, sans jamais sortir du tableau. Le défilement
+ * horizontal du conteneur n'est pas touché. `decalage` réserve la place de la barre de
+ * sélection, collée elle aussi en haut.</p>
+ */
+function useEnteteQuiSuit(conteneur: React.RefObject<HTMLDivElement | null>, decalage: number, actif: boolean) {
+  React.useEffect(() => {
+    const racine = conteneur.current;
+    if (!racine || !actif) return;
+    let image = 0;
+
+    // Le haut de la zone visible : celui de l'ancêtre qui défile verticalement, ou 0 (la fenêtre).
+    const hautVisible = () => {
+      for (let el = racine.parentElement; el; el = el.parentElement) {
+        const oy = getComputedStyle(el).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) {
+          return Math.max(0, el.getBoundingClientRect().top);
+        }
+      }
+      return 0;
+    };
+
+    const placer = () => {
+      image = 0;
+      const table = racine.querySelector('table');
+      const thead = table?.querySelector('thead');
+      if (!table || !thead) return;
+      const r = table.getBoundingClientRect();
+      const course = Math.max(0, r.height - thead.offsetHeight);
+      const y = Math.min(course, Math.max(0, hautVisible() + decalage - r.top));
+      thead.style.position = 'relative';
+      thead.style.zIndex = '20';
+      thead.style.transform = y > 0 ? `translateY(${Math.round(y)}px)` : '';
+      thead.style.boxShadow = y > 0 ? '0 2px 6px -2px rgb(0 0 0 / 0.15)' : '';
+    };
+    const planifier = () => {
+      if (!image) image = requestAnimationFrame(placer);
+    };
+
+    // `true` : capter aussi le défilement d'un conteneur, pas seulement celui de la fenêtre.
+    window.addEventListener('scroll', planifier, true);
+    window.addEventListener('resize', planifier);
+    const observateur = new ResizeObserver(planifier);
+    observateur.observe(racine);
+    planifier();
+    return () => {
+      window.removeEventListener('scroll', planifier, true);
+      window.removeEventListener('resize', planifier);
+      observateur.disconnect();
+      if (image) cancelAnimationFrame(image);
+      const thead = racine.querySelector('thead');
+      if (thead) {
+        thead.style.transform = '';
+        thead.style.boxShadow = '';
+      }
+    };
+  }, [conteneur, decalage, actif]);
+}
+
 function Legende() {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-1 text-xs text-muted">
@@ -521,6 +599,7 @@ function Legende() {
         <span className="text-[11px] font-medium tabular-nums text-warning">+2 000</span>
         surplus carburant
       </span>
+      <span className="italic">· Cliquez un nom, un jour, un statut ou ⋯</span>
     </div>
   );
 }
@@ -705,9 +784,17 @@ export function SemaineProgrammes({
   }, [annee, semaine, isError, isLoading]);
 
   const lignes = React.useMemo(() => {
-    const q = recherche.trim().toLowerCase();
+    const q = normaliserRecherche(recherche);
     return programmes.filter((p) => {
-      if (q && !(p.livreurNom ?? '').toLowerCase().includes(q)) return false;
+      // Le nom, mais aussi la base, les sites desservis et les bases gérées (maquette) :
+      // « Angré » doit trouver tous ceux qui y passent cette semaine.
+      if (q) {
+        const c = p.complement ?? COMPLEMENT_VIDE;
+        const sites = [p.siteId, ...(c.sitesDesservis ?? []), ...(c.basesGerees ?? [])]
+          .filter((id): id is string => Boolean(id))
+          .map((id) => nomSite.get(id) ?? '');
+        if (!normaliserRecherche([p.livreurNom ?? '', ...sites].join(' ')).includes(q)) return false;
+      }
       if (seulement === 'A_PUBLIER' && !estAPublier(p)) return false;
       if (seulement === 'REFUSE' && p.statut !== 'REFUSE') return false;
       if (seulement === 'SANS_CARBURANT' && !estSansCarburant(p)) return false;
@@ -731,7 +818,7 @@ export function SemaineProgrammes({
       }
       return true;
     });
-  }, [programmes, recherche, secteurDuSite, secteurFiltre, seulement]);
+  }, [programmes, recherche, secteurDuSite, secteurFiltre, seulement, nomSite]);
 
   /**
    * RG-L01 — LE REGROUPEMENT.
@@ -899,6 +986,27 @@ export function SemaineProgrammes({
     () => programmes.filter((p) => preuvesManquantes(p, JOURS_SEMAINE) > 0).length,
     [programmes],
   );
+  /*
+   * Combien de surplus, et pour quels motifs (maquette, carte « Surplus carburant »). Le
+   * montant seul ne disait pas si 8 000 FCFA étaient un gros surplus ou quatre petits.
+   */
+  const surplusSemaine = React.useMemo(() => {
+    const vivants = programmes.flatMap((p) =>
+      Object.values((p.complement ?? COMPLEMENT_VIDE).surplusParJour ?? {})
+        .flat()
+        .filter((x) => !x.annule),
+    );
+    const parMotif = new Map<string, number>();
+    for (const x of vivants) parMotif.set(String(x.motif), (parMotif.get(String(x.motif)) ?? 0) + (x.montant ?? 0));
+    const libelle = (m: string) => MOTIFS_SURPLUS.find((o) => o.value === m)?.label ?? m;
+    return {
+      nb: vivants.length,
+      parMotif: Array.from(parMotif.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([m, montant]) => `${libelle(m)} : ${formatMontant(montant)}`)
+        .join(' · '),
+    };
+  }, [programmes]);
   /** Les surplus VIVANTS de la semaine : un surplus annulé ne coûte rien (RG-C04). */
   const totalSurplusSemaine = React.useMemo(
     () => programmes.reduce((t, p) => t + totalSurplusVivant(p), 0),
@@ -950,6 +1058,9 @@ export function SemaineProgrammes({
     observateur.observe(el);
     return () => observateur.disconnect();
   }, [barreVisible]);
+
+  const conteneurTableau = React.useRef<HTMLDivElement>(null);
+  useEnteteQuiSuit(conteneurTableau, hauteurBarre, vue === 'LIVREURS' && !isLoading && !isError);
 
   /**
    * L'ACTION PRINCIPALE, UNE SEULE, ET CONTEXTUELLE (§5.2).
@@ -1022,7 +1133,7 @@ export function SemaineProgrammes({
       : Math.round((ecart / carburantSemainePrecedente) * 100);
 
   return (
-    <div className="flex flex-col gap-4" style={{ '--entete-haut': `${hauteurBarre}px` } as React.CSSProperties}>
+    <div className="flex flex-col gap-4">
       {/*
        * ⚠ UN SEUL BANDEAU WHATSAPP, en tête de page (§5.2). La mention se répétait sur
        * CHAQUE ligne : trente-huit fois le même avertissement de configuration, qui
@@ -1061,6 +1172,8 @@ export function SemaineProgrammes({
         compteurs={{
           aPublier: aPublier.length,
           avecSurplus: compteAvecSurplus,
+          nbSurplus: surplusSemaine.nb,
+          surplusParMotif: surplusSemaine.parMotif,
           journaliers: compteJournaliers,
           renforts: compteRenforts,
           superviseurs: compteSuperviseursProgrammes,
@@ -1141,7 +1254,7 @@ export function SemaineProgrammes({
           <SearchField className="w-full sm:w-64" onChange={setRecherche} value={recherche}>
             <SearchField.Group>
               <SearchField.SearchIcon />
-              <SearchField.Input placeholder="Rechercher un livreur…" />
+              <SearchField.Input placeholder="Livreur ou site…" />
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
@@ -1348,6 +1461,7 @@ export function SemaineProgrammes({
       {vue === 'LIVREURS' && (
       <Card>
         <Card.Content className="p-0">
+          <div ref={conteneurTableau}>
           <Table>
             {/* RG-L08 — plus de boîte à défilement. Il y en avait DEUX, celle-ci et celle de
                 la page : huit lignes visibles sur trente-huit, et deux ascenseurs à manœuvrer
@@ -1366,10 +1480,10 @@ export function SemaineProgrammes({
                       grille et n'accepte NI rowSpan NI colSpan : un compte de cellules qui
                       diverge fait tomber la page en 500. La colonne existe donc sur chaque
                       ligne, et seule la première du groupe écrit quelque chose. */}
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="base">
+                  <Table.Column className="bg-surface-secondary" id="base">
                     Site de base
                   </Table.Column>
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary pe-0" id="coche">
+                  <Table.Column className="bg-surface-secondary pe-0" id="coche">
                     <Checkbox aria-label="Tout cocher" slot="selection">
                       <Checkbox.Content>
                         <Checkbox.Control>
@@ -1378,14 +1492,14 @@ export function SemaineProgrammes({
                       </Checkbox.Content>
                     </Checkbox>
                   </Table.Column>
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary px-2 text-center" id="numero">
+                  <Table.Column className="bg-surface-secondary px-2 text-center" id="numero">
                     N°
                   </Table.Column>
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="livreur" isRowHeader>
+                  <Table.Column className="bg-surface-secondary" id="livreur" isRowHeader>
                     Livreur
                   </Table.Column>
                   {JOURS.map((j, rang) => (
-                    <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
+                    <Table.Column className="bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
                       {/* La DATE sous le jour (maquette). « Mar » seul oblige à remonter en
                           haut de page pour savoir de quel 24 novembre on parle, et une
                           copie d'écran de ce tableau n'emporte plus sa semaine. */}
@@ -1395,13 +1509,13 @@ export function SemaineProgrammes({
                       </span>
                     </Table.Column>
                   ))}
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary text-end" id="carburant">
+                  <Table.Column className="bg-surface-secondary text-end" id="carburant">
                     Carburant
                   </Table.Column>
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="statut">
+                  <Table.Column className="bg-surface-secondary" id="statut">
                     Statut
                   </Table.Column>
-                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="actions">
+                  <Table.Column className="bg-surface-secondary" id="actions">
                     {''}
                   </Table.Column>
                 </Table.Header>
@@ -1756,8 +1870,9 @@ export function SemaineProgrammes({
                                   aria-label="Actions du programme"
                                   disabledKeys={[
                                     ...(estAPublier(p) || p.statut === 'REFUSE' ? [] : ['supprimer']),
-                                    // Le WhatsApp seul ne se renvoie que sur un programme deja parti.
-                                    ...(estAPublier(p) ? ['whatsapp'] : []),
+                                    // Le WhatsApp seul ne se renvoie que sur un programme deja parti,
+                                    // et seulement si l'envoi est configuré : sinon il échouerait.
+                                    ...(estAPublier(p) || whatsappNonConfigure ? ['whatsapp'] : []),
                                     // Planifier n'a de sens que sur un brouillon.
                                     ...(p.statut === 'BROUILLON' ? [] : ['planifier']),
                                     // Un programme incomplet ne part pas, ni maintenant ni
@@ -1790,6 +1905,12 @@ export function SemaineProgrammes({
                                     if (k === 'relancer-preuves') onRelancerPreuves?.(p);
                                     if (k === 'envoyer') onEnvoyer(p);
                                     if (k === 'whatsapp') onRenvoyerWhatsApp(p);
+                                    if (k === 'copier-texte') {
+                                      void navigator.clipboard
+                                        .writeText(texteProgramme(p, annee, semaine))
+                                        .then(() => toast.success('Texte du programme copié.'))
+                                        .catch(() => toast.error('Copie impossible : le navigateur a refusé l’accès au presse-papiers.'));
+                                    }
                                     if (k === 'supprimer') onSupprimer(p);
                                   }}
                                 >
@@ -1883,6 +2004,14 @@ export function SemaineProgrammes({
                                     <Dropdown.Item id="whatsapp" textValue="Renvoyer par WhatsApp">
                                       <div className="flex flex-col">
                                         <Label>Renvoyer par WhatsApp</Label>
+                                        {whatsappNonConfigure ? <Description>Envoi WhatsApp non configuré</Description> : null}
+                                      </div>
+                                    </Dropdown.Item>
+                                    {/* La maquette : le texte du programme, à coller où l'on veut (SMS, autre messagerie). */}
+                                    <Dropdown.Item id="copier-texte" textValue="Copier le texte du programme">
+                                      <div className="flex flex-col">
+                                        <Label>Copier le texte du programme</Label>
+                                        <Description>À coller dans un SMS ou une autre messagerie</Description>
                                       </div>
                                     </Dropdown.Item>
                                     {onRelancerPreuves && preuvesManquantes(p, JOURS_SEMAINE) > 0 ? (
@@ -1916,6 +2045,7 @@ export function SemaineProgrammes({
               </Table.Content>
             </Table.ScrollContainer>
           </Table>
+          </div>
         </Card.Content>
       </Card>
       )}

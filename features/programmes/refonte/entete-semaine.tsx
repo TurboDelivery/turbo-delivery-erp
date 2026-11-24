@@ -56,6 +56,10 @@ export interface EnteteSemaineProps {
     sansCarburant: number;
     avecSurplus: number;
     totalSurplus: number;
+    /** Nombre de surplus vivants. Facultatif pour les bancs. */
+    nbSurplus?: number;
+    /** « Renfort autre site : 6 000 FCFA · Pic d'activité : 2 000 FCFA ». */
+    surplusParMotif?: string;
   };
   /** Le bandeau carburant du serveur. `null` tant qu'il n'est pas lu. */
   bandeau?: IBandeauCarburant | null;
@@ -355,6 +359,7 @@ export function EnteteSemaine({
             detail={
               indisponible ? null : compteurs.totalSurplus > 0 ? (
                 <>
+                  {compteurs.nbSurplus !== undefined ? `${compteurs.nbSurplus} surplus · ` : ''}
                   {compteurs.avecSurplus} livreur{compteurs.avecSurplus > 1 ? 's' : ''}
                   {bandeau && bandeau.dotationValidee > 0
                     ? ` · +${Math.round((compteurs.totalSurplus / bandeau.dotationValidee) * 1000) / 10}% de la dotation`
@@ -365,6 +370,7 @@ export function EnteteSemaine({
               )
             }
             onPress={compteurs.totalSurplus > 0 ? bascule('AVEC_SURPLUS') : undefined}
+            survol={compteurs.surplusParMotif ? `Par motif : ${compteurs.surplusParMotif}` : undefined}
             titre="Surplus carburant"
             valeur={
               indisponible ? (
@@ -446,7 +452,12 @@ export function EnteteSemaine({
                   <div className="flex flex-col">
                     <span className="text-xs text-muted">Preuves Wave</span>
                     <span className="text-sm font-semibold tabular-nums text-foreground">
-                      {bandeau.preuvesValidees} / {bandeau.preuvesAttendues} validées
+                      {/* RG-W05 : « reçues x / y », puis validées et manquantes. Le chiffre
+                        affiché était celui des validées, sous le nom « reçues » de la spec. */}
+                    {bandeau.preuvesRecues} / {bandeau.preuvesAttendues} reçues
+                    </span>
+                    <span className="text-xs text-muted tabular-nums">
+                      {bandeau.preuvesValidees} validée{bandeau.preuvesValidees > 1 ? 's' : ''}
                     </span>
                     {bandeau.preuvesManquantes > 0 ? (
                       <span className="text-xs font-medium text-danger-soft-foreground">
