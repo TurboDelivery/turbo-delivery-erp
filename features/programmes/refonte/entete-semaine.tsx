@@ -77,6 +77,13 @@ export interface EnteteSemaineProps {
    * n'a pas de sens ailleurs.
    */
   complementBandeau?: React.ReactNode;
+  /**
+   * Le bouton de relance des preuves Wave. Il se place À CÔTÉ du compteur de preuves, là où
+   * on lit qu'il en manque ; sans compteur (bandeau non lu), il retombe sous le bandeau.
+   */
+  relancePreuves?: React.ReactNode;
+  /** Écart du carburant avec la semaine précédente, en pourcentage ; null = inconnu. */
+  ecartSemainePrecedente?: number | null;
 
   isLoading?: boolean;
   isError?: boolean;
@@ -196,6 +203,8 @@ export function EnteteSemaine({
   onImporter,
   actionPrincipale = null,
   complementBandeau = null,
+  relancePreuves = null,
+  ecartSemainePrecedente = null,
   isLoading = false,
   isError = false,
 }: EnteteSemaineProps) {
@@ -314,10 +323,19 @@ export function EnteteSemaine({
           {/* Sans bandeau, « 0 engagé » serait une affirmation : on ne sait pas, on écrit —. */}
           <CarteIndicateur
             detail={
-              indisponible || !bandeau ? null : bandeau.montantEngage != null ? (
-                <>sur {formatMontant(totalADecaisser)} à décaisser</>
-              ) : (
-                'rien d’engagé pour l’instant'
+              indisponible || !bandeau ? null : (
+                <>
+                  {bandeau.montantEngage != null ? <>sur {formatMontant(totalADecaisser)} à décaisser</> : 'rien d’engagé pour l’instant'}
+                  {/* « vs semaine précédente » (maquette). Le signe moins est le vrai (U+2212),
+                      pas un trait d'union : dans une colonne de chiffres ils n'ont pas la
+                      même largeur. */}
+                  {ecartSemainePrecedente !== null ? (
+                    <span className="block tabular-nums">
+                      vs semaine précédente : {ecartSemainePrecedente > 0 ? '+' : ecartSemainePrecedente < 0 ? '−' : ''}
+                      {Math.abs(ecartSemainePrecedente)} %
+                    </span>
+                  ) : null}
+                </>
               )
             }
             survol="Ce qui est réellement passé en charge dans le circuit finance, rapporté au total à décaisser de la semaine. Un engagement peut se faire programme par programme."
@@ -438,14 +456,20 @@ export function EnteteSemaine({
                       <span className="text-xs text-muted">aucune manquante</span>
                     )}
                   </div>
+                  {/* La relance, À CÔTÉ du compteur qui dit qu'il en manque (maquette). Elle
+                      vivait sous le bandeau, loin du chiffre qui la justifie. */}
+                  {relancePreuves}
                 </>
               )}
             </div>
 
-            {complementBandeau ? (
+            {complementBandeau || (relancePreuves && !(bandeau && bandeau.preuvesAttendues > 0)) ? (
               <>
                 <Separator />
                 {complementBandeau}
+                {/* Sans compteur (bandeau non lu), la relance garde sa place d'avant plutôt
+                    que de disparaître. */}
+                {bandeau && bandeau.preuvesAttendues > 0 ? null : relancePreuves}
               </>
             ) : null}
           </Card.Content>

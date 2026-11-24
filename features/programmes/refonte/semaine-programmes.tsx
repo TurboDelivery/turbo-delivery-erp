@@ -1,16 +1,17 @@
 'use client';
 
-import { Button, Card, Checkbox, Chip, ComboBox, Dropdown, Input, Label, ListBox, SearchField, type Selection, Separator, Spinner, Table, ToggleButton, ToggleButtonGroup, Tooltip } from '@heroui-v3/react';
+import { Button, Card, Checkbox, Chip, ComboBox, Description, Dropdown, Header, Input, Label, ListBox, SearchField, type Selection, Separator, Spinner, Table, ToggleButton, ToggleButtonGroup, Tooltip } from '@heroui-v3/react';
 import { ChevronDown, MoreHorizontal, Settings2, TriangleAlert } from 'lucide-react';
 import React from 'react';
 
 import { BoutonOeilPreuves } from '@/components/turboys/programmes/preuves-carburant-dialog';
 import { EnteteSemaine } from './entete-semaine';
+import { FenetreExport } from './fenetre-export';
 import { VueCouverture } from './vue-couverture';
 
 import { COMPLEMENT_VIDE, type IAutosuffisanceJour, type IBandeauCarburant, type IJourProgramme, type IProgramme, type StatutProgramme } from '@/features/turboys/types/programme.types';
 import { carburantAffiche, totauxCarburant } from '@/features/turboys/utils/carburant.utils';
-import { aRecuUnSurplus, JOURS_SEMAINE } from '@/features/turboys/utils/couverture.utils';
+import { aRecuUnSurplus, couvertureSemaine, JOURS_SEMAINE } from '@/features/turboys/utils/couverture.utils';
 import { type CleManque, manquesProgramme, puceSitesDesservis } from '@/features/turboys/utils/manques.utils';
 import { preuvesManquantes } from '@/features/turboys/utils/preuves.utils';
 import { estSeptSurSept, OBSERVATION_SEPT_SUR_SEPT } from '@/features/turboys/utils/jour.utils';
@@ -131,7 +132,7 @@ export interface SemaineProgrammesProps {
   onTelechargerModele: () => void;
   /** `seulement` : n'exporter QUE ces programmes (la sélection) ; absent = ce que la liste affiche. */
   onExporterExcel: (seulement?: IProgramme[]) => void;
-  onExporterPdf: () => void;
+  onExporterPdf: (seulement?: IProgramme[]) => void;
   importEnCours?: boolean;
   lotEnCours?: boolean;
 
@@ -809,9 +810,12 @@ export function SemaineProgrammes({
       grouper
         ? sections.flatMap((s) => [
             { section: s, type: 'section' as const },
-            ...s.groupes.flatMap((g) =>
-              g.programmes.map((p, rangDansGroupe) => ({ groupe: g, p, rangDansGroupe, type: 'ligne' as const })),
-            ),
+            ...s.groupes.flatMap((g) => [
+              ...g.programmes.map((p, rangDansGroupe) => ({ groupe: g, p, rangDansGroupe, type: 'ligne' as const })),
+              // Le pied « Présents » d'une BASE (maquette). Les deux groupes spéciaux n'en
+              // ont pas : « À compléter » et « Superviseurs-livreurs » ne sont pas des sites.
+              ...(g.cle.startsWith('2-') ? [{ groupe: g, type: 'pied' as const }] : []),
+            ]),
           ])
         : lignes.map((p) => ({ groupe: undefined, p, rangDansGroupe: -1, type: 'ligne' as const })),
     [grouper, sections, lignes],
@@ -827,6 +831,16 @@ export function SemaineProgrammes({
   const ordreAffiche = React.useMemo(
     () => aPlat.flatMap((e) => (e.type === 'ligne' ? [e.p] : [])),
     [aPlat],
+  );
+
+  /*
+   * Les présents d'un site, jour par jour : LE calcul de la vue Couverture, pas un second.
+   * Il compte les renforts reçus et écarte les superviseurs-livreurs (CA-43), ce qu'un
+   * simple décompte des lignes du groupe ne ferait pas.
+   */
+  const presentsParSite = React.useMemo(
+    () => new Map(couvertureSemaine(programmes).lignes.map((l) => [l.siteId, l.parJour])),
+    [programmes],
   );
 
   const aPublier = React.useMemo(() => programmes.filter(estAPublier), [programmes]);
@@ -912,6 +926,31 @@ export function SemaineProgrammes({
 
   const maxAutosuffisance = Math.max(1, ...autosuffisance.map((j) => j.total));
 
+  // L'export ouvert : sur la sélection cochée, ou sur toute la semaine affichée.
+  const [exportOuvert, setExportOuvert] = React.useState<{ estSelection: boolean; liste: IProgramme[] } | null>(null);
+
+  /*
+   * LA BARRE DE SÉLECTION RESTE VISIBLE (maquette). Elle se colle en haut de la page ; pour
+   * qu'elle ne recouvre pas l'en-tête des jours, collé lui aussi, on mesure sa hauteur et
+   * l'en-tête se place juste dessous (`--entete-haut`). Elle passe sur deux lignes sur un
+   * écran étroit : la hauteur est donc MESURÉE, pas supposée.
+   */
+  const barreRef = React.useRef<HTMLDivElement>(null);
+  const [hauteurBarre, setHauteurBarre] = React.useState(0);
+  const barreVisible = programmesCoches.length > 0;
+  React.useEffect(() => {
+    const el = barreRef.current;
+    if (!barreVisible || !el) {
+      setHauteurBarre(0);
+      return;
+    }
+    const mesurer = () => setHauteurBarre(Math.ceil(el.getBoundingClientRect().height));
+    mesurer();
+    const observateur = new ResizeObserver(mesurer);
+    observateur.observe(el);
+    return () => observateur.disconnect();
+  }, [barreVisible]);
+
   /**
    * L'ACTION PRINCIPALE, UNE SEULE, ET CONTEXTUELLE (§5.2).
    *
@@ -972,18 +1011,18 @@ export function SemaineProgrammes({
    * confirmation et ses requêtes.
    */
   const complementBandeau = React.useMemo(
-    () =>
-      resteAPublier || relancePreuves ? (
-        <div className="flex flex-col gap-2">
-          {resteAPublier ? engagement : null}
-          {relancePreuves}
-        </div>
-      ) : null,
-    [engagement, relancePreuves, resteAPublier],
+    () => (resteAPublier ? <div className="flex flex-col gap-2">{engagement}</div> : null),
+    [engagement, resteAPublier],
   );
 
+  // « vs semaine précédente » (maquette) : l'écart était calculé et n'était écrit nulle part.
+  const ecartPourcent =
+    ecart === null || !carburantSemainePrecedente || carburantSemainePrecedente <= 0
+      ? null
+      : Math.round((ecart / carburantSemainePrecedente) * 100);
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" style={{ '--entete-haut': `${hauteurBarre}px` } as React.CSSProperties}>
       {/*
        * ⚠ UN SEUL BANDEAU WHATSAPP, en tête de page (§5.2). La mention se répétait sur
        * CHAQUE ligne : trente-huit fois le même avertissement de configuration, qui
@@ -1014,6 +1053,8 @@ export function SemaineProgrammes({
         actionPrincipale={actionPrincipale}
         annee={annee}
         complementBandeau={complementBandeau}
+        ecartSemainePrecedente={ecartPourcent}
+        relancePreuves={relancePreuves}
         bandeau={bandeau}
         bandeauEnCours={bandeauEnCours}
         carburantEcran={carburant.total}
@@ -1054,7 +1095,8 @@ export function SemaineProgrammes({
        * l'attention d'une action principale sans en être une.
        */}
       {programmesCoches.length > 0 && (
-        <Card className="border-primary/40 bg-primary/5">
+        <div className="sticky top-0 z-30" ref={barreRef}>
+        <Card className="border-primary/40 bg-background shadow-md">
           <Card.Content className="flex-row flex-wrap items-center gap-2 py-2.5">
             <span className="text-sm font-medium text-foreground">
               {programmesCoches.length} sélectionné{programmesCoches.length > 1 ? 's' : ''}
@@ -1078,7 +1120,7 @@ export function SemaineProgrammes({
             {/* La barre de sélection exporte la SÉLECTION : le bouton envoyait toute la
                 liste, cochée ou non, et le fichier ne correspondait pas à ce qu'on venait
                 de choisir. */}
-            <Button onPress={() => onExporterExcel(programmesCoches)} size="sm" variant="outline">
+            <Button onPress={() => setExportOuvert({ estSelection: true, liste: programmesCoches })} size="sm" variant="outline">
               Exporter ({programmesCoches.length})
             </Button>
             <Button className="ms-auto" onPress={() => setCoches(new Set())} size="sm" variant="ghost">
@@ -1086,6 +1128,7 @@ export function SemaineProgrammes({
             </Button>
           </Card.Content>
         </Card>
+        </div>
       )}
 
       {/*
@@ -1167,18 +1210,14 @@ export function SemaineProgrammes({
             </Dropdown.Popover>
           </Dropdown>
 
-          <Dropdown>
-            <Button isDisabled={lignes.length === 0} variant="outline">
-              Exporter
-              <ChevronDown aria-hidden="true" className="size-4" />
-            </Button>
-            <Dropdown.Popover>
-              <Dropdown.Menu aria-label="Format d’export" onAction={(k) => (k === 'excel' ? onExporterExcel() : onExporterPdf())}>
-                <Dropdown.Item id="excel">Excel</Dropdown.Item>
-                <Dropdown.Item id="pdf">PDF</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
+          {/* Une fenêtre plutôt qu'un menu : elle dit ce qu'elle exporte, et rend le CSV. */}
+          <Button
+            isDisabled={programmes.length === 0}
+            onPress={() => setExportOuvert({ estSelection: false, liste: programmes })}
+            variant="outline"
+          >
+            Exporter
+          </Button>
         </div>
       </div>
 
@@ -1327,10 +1366,10 @@ export function SemaineProgrammes({
                       grille et n'accepte NI rowSpan NI colSpan : un compte de cellules qui
                       diverge fait tomber la page en 500. La colonne existe donc sur chaque
                       ligne, et seule la première du groupe écrit quelque chose. */}
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="base">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="base">
                     Site de base
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary pe-0" id="coche">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary pe-0" id="coche">
                     <Checkbox aria-label="Tout cocher" slot="selection">
                       <Checkbox.Content>
                         <Checkbox.Control>
@@ -1339,14 +1378,14 @@ export function SemaineProgrammes({
                       </Checkbox.Content>
                     </Checkbox>
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary px-2 text-center" id="numero">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary px-2 text-center" id="numero">
                     N°
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="livreur" isRowHeader>
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="livreur" isRowHeader>
                     Livreur
                   </Table.Column>
                   {JOURS.map((j, rang) => (
-                    <Table.Column className="sticky top-0 z-20 bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
+                    <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary px-2 text-center" id={j.cle} key={j.cle}>
                       {/* La DATE sous le jour (maquette). « Mar » seul oblige à remonter en
                           haut de page pour savoir de quel 24 novembre on parle, et une
                           copie d'écran de ce tableau n'emporte plus sa semaine. */}
@@ -1356,13 +1395,13 @@ export function SemaineProgrammes({
                       </span>
                     </Table.Column>
                   ))}
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary text-end" id="carburant">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary text-end" id="carburant">
                     Carburant
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="statut">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="statut">
                     Statut
                   </Table.Column>
-                  <Table.Column className="sticky top-0 z-20 bg-surface-secondary" id="actions">
+                  <Table.Column className="sticky top-[var(--entete-haut,0px)] z-20 bg-surface-secondary" id="actions">
                     {''}
                   </Table.Column>
                 </Table.Header>
@@ -1410,6 +1449,53 @@ export function SemaineProgrammes({
                   {(isError || isLoading ? [] : aPlat).map((item) => {
                     if (item.type === 'section') {
                       return <LigneSecteur key={`s-${item.section.cle}`} section={item.section} />;
+                    }
+                    if (item.type === 'pied') {
+                      /*
+                       * LE PIED D'UNE BASE (maquette) : « Présents », jour par jour, et le
+                       * sous-total carburant. Un zéro est rouge, c'est un trou. Chaque
+                       * chiffre ouvre la vue Couverture, qui dit QUI est là.
+                       */
+                      const g = item.groupe;
+                      const siteDuGroupe = g.programmes[0]?.siteId ?? '';
+                      const parJour = presentsParSite.get(siteDuGroupe);
+                      const sousTotal = totauxCarburant(g.programmes).total;
+                      const pied = 'border-b-2 border-default-300 bg-surface-secondary py-1.5';
+                      return (
+                        <Table.Row id={`pied-${g.cle}`} key={`pied-${g.cle}`}>
+                          <Table.Cell className={pied}>{''}</Table.Cell>
+                          <Table.Cell className={cn(pied, 'pe-0')}>{''}</Table.Cell>
+                          <Table.Cell className={pied}>{''}</Table.Cell>
+                          <Table.Cell className={pied}>
+                            <span className="block text-end text-xs font-semibold text-muted">Présents</span>
+                          </Table.Cell>
+                          {JOURS.map((j) => {
+                            const n = parJour?.[j.cle] ?? 0;
+                            return (
+                              <Table.Cell className={cn(pied, 'px-2 text-center')} key={j.cle}>
+                                <button
+                                  aria-label={`${n} présent${n > 1 ? 's' : ''} ${j.cle.toLowerCase()} : ouvrir la vue Couverture`}
+                                  className={cn(
+                                    'rounded px-1.5 text-xs font-semibold tabular-nums hover:underline',
+                                    n === 0 ? 'text-danger' : 'text-foreground',
+                                  )}
+                                  onClick={() => setVue('COUVERTURE')}
+                                  type="button"
+                                >
+                                  {n}
+                                </button>
+                              </Table.Cell>
+                            );
+                          })}
+                          <Table.Cell className={pied}>
+                            <span className="block text-end text-xs font-semibold tabular-nums text-foreground">
+                              {sousTotal > 0 ? formatMontant(sousTotal) : ''}
+                            </span>
+                          </Table.Cell>
+                          <Table.Cell className={pied}>{''}</Table.Cell>
+                          <Table.Cell className={pied}>{''}</Table.Cell>
+                        </Table.Row>
+                      );
                     }
                     const p = item.p;
                     const enCours = idEnCours === p.id;
@@ -1661,7 +1747,11 @@ export function SemaineProgrammes({
                               <Button aria-label={`Actions pour ${p.livreurNom ?? 'ce programme'}`} isIconOnly size="sm" variant="ghost">
                                 <MoreHorizontal aria-hidden="true" className="size-4" />
                               </Button>
-                              <Dropdown.Popover>
+                              {/* ⚠ Le libellé et son explication sont EMPILÉS dans un bloc : posés directement
+                                  dans l'entrée, qui est une ligne flex, ils se rangeaient côte à côte en
+                                  deux colonnes étroites. Et le menu a une largeur minimale, sinon une
+                                  explication se casse tous les deux mots. */}
+                              <Dropdown.Popover className="min-w-72">
                                 <Dropdown.Menu
                                   aria-label="Actions du programme"
                                   disabledKeys={[
@@ -1703,35 +1793,116 @@ export function SemaineProgrammes({
                                     if (k === 'supprimer') onSupprimer(p);
                                   }}
                                 >
+                                  {/*
+                                   * QUATRE GROUPES TITRÉS, et une ligne d'explication là où le
+                                   * libellé ne suffit pas (maquette) : « Ajuster le carburant »
+                                   * ne disait pas qu'il ne renvoie rien au livreur, « Envoyer »
+                                   * ne disait pas si le programme était déjà parti.
+                                   */}
                                   <Dropdown.Section>
-                                    <Dropdown.Item id="apercu">Aperçu</Dropdown.Item>
-                                    <Dropdown.Item id="historique">Historique</Dropdown.Item>
+                                    <Header>Consulter</Header>
+                                    <Dropdown.Item id="apercu" textValue="Aperçu">
+                                      <div className="flex flex-col">
+                                        <Label>Aperçu</Label>
+                                      </div>
+                                    </Dropdown.Item>
+                                    <Dropdown.Item id="historique" textValue="Historique">
+                                      <div className="flex flex-col">
+                                        <Label>Historique</Label>
+                                      </div>
+                                    </Dropdown.Item>
                                   </Dropdown.Section>
                                   <Dropdown.Section>
-                                    <Dropdown.Item id="editer">Modifier le programme</Dropdown.Item>
-                                    <Dropdown.Item id="carburant">Ajuster le carburant</Dropdown.Item>
+                                    <Header>Modifier</Header>
+                                    <Dropdown.Item id="editer" textValue="Modifier le programme">
+                                      <div className="flex flex-col">
+                                        <Label>Modifier le programme</Label>
+                                        <Description>Horaires, sites, postes, carburant</Description>
+                                      </div>
+                                    </Dropdown.Item>
+                                    <Dropdown.Item id="carburant" textValue="Ajuster le carburant">
+                                      <div className="flex flex-col">
+                                        <Label>Ajuster le carburant</Label>
+                                        <Description>Ne renvoie pas le programme au livreur</Description>
+                                      </div>
+                                    </Dropdown.Item>
                                     {onSurplus ? (
-                                      <Dropdown.Item id="surplus">Accorder un surplus carburant</Dropdown.Item>
+                                      <Dropdown.Item id="surplus" textValue="Accorder un surplus carburant">
+                                        <div className="flex flex-col">
+                                          <Label>Accorder un surplus carburant</Label>
+                                          <Description>
+                                            {estPublie(p) ? 'Notification au livreur, sans renvoi' : 'Disponible une fois le programme publié'}
+                                          </Description>
+                                        </div>
+                                      </Dropdown.Item>
                                     ) : null}
-                                    <Dropdown.Item id="planifier">Planifier pour dimanche</Dropdown.Item>
+                                    <Dropdown.Item id="planifier" textValue="Planifier pour dimanche">
+                                      <div className="flex flex-col">
+                                        <Label>Planifier pour dimanche</Label>
+                                        <Description>
+                                          {manques.length > 0 && estAPublier(p) ? 'Programme incomplet' : 'Part tout seul dimanche soir'}
+                                        </Description>
+                                      </div>
+                                    </Dropdown.Item>
                                     {onAffecterSite ? (
-                                      <Dropdown.Item id="affecter">Affecter à un autre site aujourd’hui</Dropdown.Item>
+                                      <Dropdown.Item id="affecter" textValue="Affecter à un autre site aujourd’hui">
+                                        <div className="flex flex-col">
+                                          <Label>Affecter à un autre site aujourd’hui</Label>
+                                          <Description>
+                                            {estAPublier(p) ? 'Disponible une fois le programme publié' : 'Semaine publiée et en cours'}
+                                          </Description>
+                                        </div>
+                                      </Dropdown.Item>
                                     ) : null}
                                     {onDupliquerSuivante ? (
-                                      <Dropdown.Item id="dupliquer">Dupliquer sur la semaine suivante</Dropdown.Item>
+                                      <Dropdown.Item id="dupliquer" textValue="Dupliquer sur la semaine suivante">
+                                        <div className="flex flex-col">
+                                          <Label>Dupliquer sur la semaine suivante</Label>
+                                          <Description>Crée le programme en « À publier » sur la semaine suivante</Description>
+                                        </div>
+                                      </Dropdown.Item>
                                     ) : null}
                                   </Dropdown.Section>
                                   <Dropdown.Section>
-                                    <Dropdown.Item id="envoyer">
-                                      {estAPublier(p) ? (manques.length > 0 ? 'Envoyer au livreur (programme incomplet)' : 'Envoyer au livreur') : 'Renvoyer au livreur'}
+                                    <Header>Transmettre</Header>
+                                    <Dropdown.Item
+                                      id="envoyer"
+                                      textValue={estAPublier(p) ? 'Envoyer au livreur' : 'Renvoyer au livreur'}
+                                    >
+                                      <div className="flex flex-col">
+                                        <Label>{estAPublier(p) ? 'Envoyer au livreur' : 'Renvoyer au livreur'}</Label>
+                                        <Description>
+                                          {estAPublier(p)
+                                            ? manques.length > 0
+                                              ? 'Programme incomplet'
+                                              : 'Jamais envoyé · notification dans l’application'
+                                            : 'Déjà parti · notification dans l’application'}
+                                        </Description>
+                                      </div>
                                     </Dropdown.Item>
-                                    <Dropdown.Item id="whatsapp">Renvoyer par WhatsApp</Dropdown.Item>
-                                    {onRelancerPreuves ? (
-                                      <Dropdown.Item id="relancer-preuves">Relancer les preuves Wave</Dropdown.Item>
+                                    <Dropdown.Item id="whatsapp" textValue="Renvoyer par WhatsApp">
+                                      <div className="flex flex-col">
+                                        <Label>Renvoyer par WhatsApp</Label>
+                                      </div>
+                                    </Dropdown.Item>
+                                    {onRelancerPreuves && preuvesManquantes(p, JOURS_SEMAINE) > 0 ? (
+                                      <Dropdown.Item id="relancer-preuves" textValue="Relancer les preuves Wave">
+                                        <div className="flex flex-col">
+                                          <Label>Relancer les preuves Wave</Label>
+                                          <Description>
+                                            {preuvesManquantes(p, JOURS_SEMAINE)} preuve(s) manquante(s) · ce livreur seulement
+                                          </Description>
+                                        </div>
+                                      </Dropdown.Item>
                                     ) : null}
                                   </Dropdown.Section>
                                   <Dropdown.Section>
-                                    <Dropdown.Item id="supprimer">Supprimer le programme</Dropdown.Item>
+                                    <Header>Supprimer</Header>
+                                    <Dropdown.Item id="supprimer" textValue="Supprimer le programme" variant="danger">
+                                      <div className="flex flex-col">
+                                        <Label>Supprimer le programme</Label>
+                                      </div>
+                                    </Dropdown.Item>
                                   </Dropdown.Section>
                                 </Dropdown.Menu>
                               </Dropdown.Popover>
@@ -1881,6 +2052,15 @@ export function SemaineProgrammes({
           </Table>
         </Card.Content>
       </Card>
+      <FenetreExport
+        estSelection={exportOuvert?.estSelection ?? false}
+        nomSite={nomSite}
+        onExcel={() => onExporterExcel(exportOuvert?.estSelection ? exportOuvert.liste : undefined)}
+        onFermer={() => setExportOuvert(null)}
+        onPdf={() => onExporterPdf(exportOuvert?.estSelection ? exportOuvert.liste : undefined)}
+        ouvert={exportOuvert !== null}
+        programmes={exportOuvert?.liste ?? []}
+      />
     </div>
   );
 }

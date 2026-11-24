@@ -45,11 +45,17 @@ const heure = (iso: string | null) =>
 
 /** La ligne du bandeau, sans aucune requête : ce que le banc montre. */
 export function LigneRelancePreuves({
+  compact = false,
   enCours = false,
   etat,
   onOuvrir,
   peutRelancer,
 }: {
+  /**
+   * Sans le rappel « N preuves Wave manquantes ». À utiliser quand la ligne est posée À CÔTÉ
+   * du compteur de preuves, qui le dit déjà : le même chiffre deux fois côte à côte.
+   */
+  compact?: boolean;
   enCours?: boolean;
   etat: IRelancePreuves | null | undefined;
   onOuvrir: () => void;
@@ -60,10 +66,12 @@ export function LigneRelancePreuves({
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-sm text-danger-soft-foreground">
-        {etat.nbManquantes} preuve{etat.nbManquantes > 1 ? 's' : ''} Wave manquante
-        {etat.nbManquantes > 1 ? 's' : ''}
-      </span>
+      {compact ? null : (
+        <span className="text-sm text-danger-soft-foreground">
+          {etat.nbManquantes} preuve{etat.nbManquantes > 1 ? 's' : ''} Wave manquante
+          {etat.nbManquantes > 1 ? 's' : ''}
+        </span>
+      )}
       {peutRelancer ? (
         <Button isPending={enCours} onPress={onOuvrir} size="sm" variant="outline">
           <Bell aria-hidden="true" className="size-4" />
@@ -195,7 +203,7 @@ export function RelancePreuvesDialog({ annee, semaine, ouvert, onFermer, seuleme
 }
 
 /** La ligne branchée : lecture, droit, ouverture de la fenêtre. */
-export function RelancePreuvesConnectee({ annee, semaine }: { annee: number; semaine: number }) {
+export function RelancePreuvesConnectee({ annee, compact = false, semaine }: { annee: number; compact?: boolean; semaine: number }) {
   const ability = useAbility();
   const peutRelancer = ability.can('relancer-preuve', 'ProgrammeLivreur');
   const etatQuery = useEtatRelancePreuvesQuery(annee, semaine);
@@ -204,6 +212,7 @@ export function RelancePreuvesConnectee({ annee, semaine }: { annee: number; sem
   return (
     <>
       <LigneRelancePreuves
+        compact={compact}
         etat={etatQuery.data}
         onOuvrir={() => setOuvert(true)}
         peutRelancer={peutRelancer}

@@ -419,9 +419,9 @@ export default function ProgrammesSection() {
           }}
           onEnvoyer={(p) => runAction(p.id, envoyer.mutateAsync)}
           onExporterExcel={(seulement) => exporterProgrammesExcel(seulement ?? programmesFiltres, annee, semaine, contexteExport)}
-          onExporterPdf={() =>
+          onExporterPdf={(seulement) =>
             exporterProgrammesPdf(
-              programmesFiltres,
+              seulement ?? programmesFiltres,
               annee,
               semaine,
               TYPE_OPTIONS.find((o) => o.cle === typeFiltre)?.libelle ?? 'Tous',
@@ -473,7 +473,7 @@ export default function ProgrammesSection() {
           partenaires={restaurants}
           partenairesEnCours={restaurantsQuery.isLoading}
           programmes={programmesFiltres}
-          relancePreuves={<RelancePreuvesConnectee annee={annee} semaine={semaine} />}
+          relancePreuves={<RelancePreuvesConnectee annee={annee} compact semaine={semaine} />}
           secteurs={secteursQuery.data ?? []}
           semaine={semaine}
           typeFiltre={typeFiltre}

@@ -706,6 +706,38 @@ export default function ApercuProgrammes() {
                         autosuffisance={AUTOSUFFISANCE}
                         autosuffisanceIsError={etat === 'echec'}
                         autosuffisanceIsLoading={etat === 'chargement'}
+                        // Le bandeau du serveur et la relance : sans eux, ni le compteur de preuves,
+                        // ni le bouton posé à côté, ni « vs semaine précédente » ne se voient.
+                        bandeau={
+                            jeu === 'vide'
+                                ? null
+                                : {
+                                      annee: 2026,
+                                      dotationValidee: 172000,
+                                      montantEngage: 120000,
+                                      nbProgrammesJournaliers: 5,
+                                      nbProgrammesSuperviseurs: 5,
+                                      preuvesAttendues: 18,
+                                      preuvesManquantes: 7,
+                                      preuvesRecues: 11,
+                                      preuvesValidees: 6,
+                                      semaine: 35,
+                                      totalADecaisser: 180000,
+                                      totalJournaliers: 110000,
+                                      totalSuperviseurs: 70000,
+                                      totalSurplus: 8000,
+                                  }
+                        }
+                        relancePreuves={
+                            jeu === 'vide' ? null : (
+                                <LigneRelancePreuves
+                                    compact
+                                    etat={{ annee: 2026, livreurs: [], nbManquantes: 7, semaine: 35 }}
+                                    onOuvrir={() => noter('Relance ouverte depuis le bandeau')}
+                                    peutRelancer
+                                />
+                            )
+                        }
                         carburantSemainePrecedente={jeu === 'vide' ? null : 573000}
                         engagement={
                             jeu === 'publiee' ? (
@@ -758,7 +790,7 @@ export default function ApercuProgrammes() {
                         onEditer={(p, champ) => noter(`Édition de ${p.livreurNom}${champ ? ` sur le champ ${champ}` : ''}`)}
                         onEnvoyer={(p) => noter(`Envoi au livreur ${p.livreurNom}`)}
                         onExporterExcel={(seulement) => noter(seulement ? `Export Excel de ${seulement.length} programme(s) cochés` : 'Export Excel')}
-                        onExporterPdf={() => noter('Export PDF')}
+                        onExporterPdf={(seulement) => noter(seulement ? `Export PDF de ${seulement.length} programme(s) cochés` : 'Export PDF')}
                         onHistorique={(p) => noter(`Historique de ${p.livreurNom}`)}
                         onImporterFichier={() => noter('Import de fichier')}
                         onNouveau={() => noter('Nouveau programme')}
