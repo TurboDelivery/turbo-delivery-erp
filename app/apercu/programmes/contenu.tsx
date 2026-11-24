@@ -9,6 +9,7 @@ import { DuplicationSemaineDialog } from '@/components/turboys/programmes/duplic
 import { EngagementCarburant } from '@/components/turboys/programmes/engagement-carburant';
 import { ProgrammeApercuPanneau } from '@/components/turboys/programmes/programme-apercu-panneau';
 import { ProgrammeFormModal } from '@/components/turboys/programmes/programme-form-modal';
+import { PreuvesCarburantDialog } from '@/components/turboys/programmes/preuves-carburant-dialog';
 import { LigneRelancePreuves, RelancePreuvesDialog } from '@/components/turboys/programmes/relance-preuves-dialog';
 import { SoumissionSurplus } from '@/components/turboys/programmes/soumission-surplus';
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
@@ -671,6 +672,8 @@ export default function ApercuProgrammes() {
     const [type, setType] = React.useState('TOUS');
     const [partenaire, setPartenaire] = React.useState('TOUS');
     const [journal, setJournal] = React.useState<string[]>([]);
+    // La vraie fenêtre des preuves, sur le programme et le jour cliqués (l'œil d'une case).
+    const [preuvesDe, setPreuvesDe] = React.useState<{ jour: string; programme: IProgramme } | null>(null);
     const noter = (m: string) => setJournal((j) => [...j, m]);
 
     return (
@@ -822,7 +825,8 @@ export default function ApercuProgrammes() {
                         /* Le bouton œil des preuves Wave : sans ce rappel, le banc ne le
                            montre pas du tout, et sa couleur est précisément ce qu'on doit
                            pouvoir vérifier à l'œil. */
-                        onPreuves={(p, jour) => noter(`Preuves de ${p.livreurNom} — ${jour}`)}
+                        onPreuves={(p, jour) => setPreuvesDe({ jour, programme: p })}
+                        onApercuExport={(seulement) => noter(seulement ? `Aperçu de l’export de ${seulement.length} programme(s)` : 'Aperçu de l’export')}
                         /* Les quatre gestes du menu de ligne qui ne s'affichent QUE si leur
                            rappel est fourni. Sans eux, le banc montrait un menu amputé de
                            moitié, et surtout on ne pouvait pas vérifier à l'œil lesquels
@@ -836,10 +840,22 @@ export default function ApercuProgrammes() {
                         /* Deux secteurs et un site orphelin : les onglets, leurs comptes
                            et « Sans secteur » doivent tous être visibles d'un coup. */
                         onConfigurerSecteurs={() => noter('Configuration des secteurs')}
+                        secteursEnLecture
                         secteurs={[
                             { id: 's1', nom: 'Abidjan Nord', siteIds: ['r0', 'r1'] },
                             { id: 's2', nom: 'Abidjan Sud', siteIds: ['r2'] },
                         ]}
+                    />
+                    {/* ⚠ Valider ou relancer depuis cette fenêtre appelle le VRAI serveur : ne
+                        cliquer que « Relancer ce livreur », qui est ici intercepté. */}
+                    <PreuvesCarburantDialog
+                        cible={preuvesDe}
+                        onFermer={() => setPreuvesDe(null)}
+                        onRelancer={(p) => {
+                            setPreuvesDe(null);
+                            noter(`Relance de ${p.livreurNom} depuis la fenêtre des preuves`);
+                        }}
+                        peutValider={false}
                     />
                     <BancEditeur />
                     <BancFormulaire programmes={JEUX.ordinaire.lignes} />

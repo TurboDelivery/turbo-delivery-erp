@@ -135,6 +135,8 @@ export interface SemaineProgrammesProps {
   /** `seulement` : n'exporter QUE ces programmes (la sélection) ; absent = ce que la liste affiche. */
   onExporterExcel: (seulement?: IProgramme[]) => void;
   onExporterPdf: (seulement?: IProgramme[]) => void;
+  /** Le PDF ouvert dans un onglet plutôt que téléchargé ; absent = pas d'aperçu. */
+  onApercuExport?: (seulement?: IProgramme[]) => void;
   importEnCours?: boolean;
   lotEnCours?: boolean;
 
@@ -185,6 +187,8 @@ export interface SemaineProgrammesProps {
   secteurs?: { id: string; nom: string; siteIds: string[] }[];
   /** Ouvrir la configuration des secteurs (§8.6). Absent = pas de bouton. */
   onConfigurerSecteurs?: () => void;
+  /** Vrai quand le profil ne peut que CONSULTER les secteurs : le bouton le dit. */
+  secteursEnLecture?: boolean;
 }
 
 const JOURS = [
@@ -722,6 +726,7 @@ export function SemaineProgrammes({
   onTelechargerModele,
   onExporterExcel,
   onExporterPdf,
+  onApercuExport,
   importEnCours = false,
   lotEnCours = false,
   idEnCours = null,
@@ -746,6 +751,7 @@ export function SemaineProgrammes({
   relancePreuves = null,
   secteurs = [],
   onConfigurerSecteurs,
+  secteursEnLecture = false,
 }: SemaineProgrammesProps) {
   const [recherche, setRecherche] = React.useState('');
   const [seulement, setSeulement] = React.useState<Onglet>('TOUS');
@@ -1373,10 +1379,18 @@ export function SemaineProgrammes({
             ) : null}
           </ToggleButtonGroup>
 
+          {/* Le bouton reste ouvert à tous : consulter les secteurs sert à chacun. Mais un
+              profil qui ne peut pas les modifier le sait AVANT d'ouvrir (maquette). */}
           {onConfigurerSecteurs ? (
-            <Button className="ms-auto" onPress={onConfigurerSecteurs} size="sm" variant="ghost">
+            <Button
+              aria-label={secteursEnLecture ? 'Secteurs, consultation seule : votre profil ne peut pas les modifier' : undefined}
+              className="ms-auto"
+              onPress={onConfigurerSecteurs}
+              size="sm"
+              variant="ghost"
+            >
               <Settings2 aria-hidden="true" className="size-4" />
-              Secteurs
+              {secteursEnLecture ? 'Secteurs (consultation)' : 'Secteurs'}
             </Button>
           ) : null}
         </div>
@@ -2188,6 +2202,7 @@ export function SemaineProgrammes({
         onExcel={() => onExporterExcel(exportOuvert?.estSelection ? exportOuvert.liste : undefined)}
         onFermer={() => setExportOuvert(null)}
         onPdf={() => onExporterPdf(exportOuvert?.estSelection ? exportOuvert.liste : undefined)}
+        onApercu={onApercuExport ? () => onApercuExport(exportOuvert?.estSelection ? exportOuvert.liste : undefined) : undefined}
         ouvert={exportOuvert !== null}
         programmes={exportOuvert?.liste ?? []}
       />

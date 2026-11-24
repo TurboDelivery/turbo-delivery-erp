@@ -44,6 +44,7 @@ import {
   type ContexteExport,
   exporterProgrammesExcel,
   exporterProgrammesPdf,
+  apercuProgrammesPdf,
 } from '@/features/turboys/utils/programmes-export.utils';
 import {
   lireFichierProgrammes,
@@ -428,6 +429,17 @@ export default function ProgrammesSection() {
               contexteExport,
             )
           }
+          onApercuExport={(seulement) => {
+            const ouvert =
+            apercuProgrammesPdf(
+              seulement ?? programmesFiltres,
+              annee,
+              semaine,
+              TYPE_OPTIONS.find((o) => o.cle === typeFiltre)?.libelle ?? 'Tous',
+              contexteExport,
+            );
+            if (!ouvert) toast.error('Le navigateur a bloqué l’onglet de l’aperçu : autorisez les fenêtres surgissantes pour ce site.');
+          }}
           onHistorique={setHistoriqueDe}
           onRenvoyerWhatsApp={(p) => runAction(p.id, renvoyerWhatsApp.mutateAsync)}
           onImporterFichier={() => fileRef.current?.click()}
@@ -437,6 +449,7 @@ export default function ProgrammesSection() {
           onPublier={(p) => runAction(p.id, publier.mutateAsync)}
           onConfigurerCouvertures={() => setConfigOuverte('couvertures')}
           onConfigurerSecteurs={() => setConfigOuverte('secteurs')}
+          secteursEnLecture={!peutConfigurerGroupes}
           onPreuves={(p, jour) => setPreuvesDe({ jour, programme: p })}
           onPublierLot={publierLot}
           onReessayer={() => void refetch()}
@@ -560,6 +573,16 @@ export default function ProgrammesSection() {
         cible={preuvesDe}
         nomSite={nomSite}
         onFermer={() => setPreuvesDe(null)}
+        onRelancer={
+          peutRelancerPreuve
+            ? (p) => {
+                // La fenêtre des preuves se ferme : la relance s'ouvre sur ce seul livreur.
+                setPreuvesDe(null);
+                setRelancePour(p.id);
+                setRelanceOuverte(true);
+              }
+            : undefined
+        }
         peutValider={peutValiderPreuve}
       />
       {/* La relance ouverte depuis le menu d'une ligne : la même fenêtre que celle du

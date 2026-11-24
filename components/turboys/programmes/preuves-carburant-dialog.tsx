@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Input, Label, NumberField, Separator, TextField } from '@heroui-v3/react';
-import { Check, Eye, ExternalLink, RotateCcw } from 'lucide-react';
+import { Bell, Check, Eye, ExternalLink, RotateCcw } from 'lucide-react';
 import React from 'react';
 
 import { FenetreAction } from '@/components/commons/FenetreAction';
@@ -227,9 +227,14 @@ export interface PreuvesCarburantDialogProps {
   /** Nom d'un site par identifiant, pour situer un surplus. */
   nomSite?: Map<string, string>;
   onFermer: () => void;
+  /**
+   * Relancer CE livreur (RG-W04 : « pour une preuve absente, relancer le livreur »). Absent
+   * = profil non habilité, pas de bouton.
+   */
+  onRelancer?: (p: IProgramme) => void;
 }
 
-export function PreuvesCarburantDialog({ cible, peutValider, nomSite, onFermer }: PreuvesCarburantDialogProps) {
+export function PreuvesCarburantDialog({ cible, peutValider, nomSite, onFermer, onRelancer }: PreuvesCarburantDialogProps) {
   const valider = useValiderPreuveMutation();
   const rejeter = useRejeterPreuveMutation();
 
@@ -324,6 +329,29 @@ export function PreuvesCarburantDialog({ cible, peutValider, nomSite, onFermer }
         {(jourProgramme?.montantCarburant ?? 0) === 0 && surplus.length === 0 && (
           <p className="text-sm text-muted">Aucun versement n’était dû ce jour-là.</p>
         )}
+
+        {/*
+         * Rien de reçu pour un versement dû : la fenêtre n'offrait aucun geste, il fallait
+         * la fermer et retrouver la relance dans le menu de la ligne. Seul un programme
+         * PARTI peut être relancé : c'est la règle du serveur.
+         */}
+        {(() => {
+          if (!p || !onRelancer || (p.statut !== 'NOTIFIE' && p.statut !== 'ACCEPTE')) return null;
+          const vivante = (pr: IPreuveCarburant | null) => !!pr && pr.statut !== 'REJETEE';
+          const manque =
+            ((jourProgramme?.montantCarburant ?? 0) > 0 && !vivante(preuvePour(null))) ||
+            surplus.some((s) => !vivante(preuvePour(s.id)));
+          if (!manque) return null;
+          return (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-warning/10 px-3 py-2">
+              <span className="text-sm text-warning-soft-foreground">Une capture attendue n’est pas arrivée.</span>
+              <Button onPress={() => onRelancer(p)} size="sm" variant="outline">
+                <Bell aria-hidden="true" className="size-4" />
+                Relancer ce livreur
+              </Button>
+            </div>
+          );
+        })()}
 
         {!peutValider && (
           <p className="text-xs text-muted">

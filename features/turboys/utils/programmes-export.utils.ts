@@ -949,6 +949,23 @@ export function exporterProgrammesPdf(
 }
 
 /**
+ * L'APERÇU de l'export (maquette) : le même PDF, ouvert dans un onglet au lieu d'être
+ * téléchargé. On le lit, on l'imprime d'ici si besoin, sans fichier laissé derrière.
+ *
+ * @return faux si le navigateur a bloqué l'onglet (fenêtres surgissantes interdites)
+ */
+export function apercuProgrammesPdf(
+  programmes: IProgramme[],
+  annee: number,
+  semaine: number,
+  filtreLabel = 'Tous',
+  ctx: ContexteExport = {},
+): boolean {
+  const url = construirePdfProgrammes(programmes, annee, semaine, filtreLabel, ctx).output('bloburl');
+  return window.open(String(url), '_blank') !== null;
+}
+
+/**
  * Le même document en mémoire, pour le joindre en justificatif à l'engagement du
  * carburant : le circuit finance exige une pièce, et celle-ci est celle qui dit d'où vient
  * le total.

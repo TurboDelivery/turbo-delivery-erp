@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Modal } from '@heroui-v3/react';
-import { ClipboardList, FileSpreadsheet, Printer } from 'lucide-react';
+import { ClipboardList, Eye, FileSpreadsheet, Printer } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
 
@@ -18,6 +18,8 @@ interface FenetreExportProps {
   nomSite: Map<string, string>;
   onExcel: () => void;
   onPdf: () => void;
+  /** Absent = pas d'entrée « Voir l'aperçu ». */
+  onApercu?: () => void;
 }
 
 /**
@@ -27,11 +29,9 @@ interface FenetreExportProps {
  * découvrait dans le fichier si la sélection avait compté. La fenêtre ÉNONCE son périmètre
  * avant de partir, et rend le CSV que le menu avait perdu.</p>
  *
- * <p>⚠ « Voir l'aperçu de l'export » de la maquette n'est PAS fait : le PDF est dessiné
- * directement dans le fichier, il n'existe pas de rendu à l'écran à montrer. Le PDF lui-même
- * sert d'aperçu avant impression.</p>
+ * <p>« Voir l'aperçu » ouvre le PDF dans un onglet, sans le télécharger.</p>
  */
-export function FenetreExport({ estSelection, nomSite, onExcel, onFermer, onPdf, ouvert, programmes }: FenetreExportProps) {
+export function FenetreExport({ estSelection, nomSite, onApercu, onExcel, onFermer, onPdf, ouvert, programmes }: FenetreExportProps) {
   const n = programmes.length;
 
   const copierCsv = async () => {
@@ -87,6 +87,20 @@ export function FenetreExport({ estSelection, nomSite, onExcel, onFermer, onPdf,
       onPress: () => void copierCsv(),
       titre: 'Copier en CSV',
     },
+    ...(onApercu
+      ? [
+          {
+            cle: 'apercu',
+            description: 'Le PDF s’ouvre dans un nouvel onglet, sans rien télécharger.',
+            icone: <Eye aria-hidden="true" className="size-5 shrink-0 text-muted" />,
+            onPress: () => {
+              onApercu();
+              onFermer();
+            },
+            titre: 'Voir l’aperçu de l’export',
+          },
+        ]
+      : []),
   ];
 
   return (
